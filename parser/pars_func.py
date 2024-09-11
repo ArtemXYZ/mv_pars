@@ -1,8 +1,9 @@
 """Основные функции вынесены в отдельный модуль."""
 # ----------------------------------------------------------------------------------------------------------------------
 import requests
+import pandas as pd
 # from bs4 import BeautifulSoup
-# import time
+
 
 
 
@@ -29,7 +30,7 @@ def get_response(url: str, headers: dict=None, params: dict=None, cookies: dict=
 
 
     # Устанавливаем куки в сессии
-    if cookies:
+    if session and cookies:
         session.cookies.update(cookies)
 
     # Обычный запрос или сессия:
@@ -37,7 +38,7 @@ def get_response(url: str, headers: dict=None, params: dict=None, cookies: dict=
         response = session.get(url, headers=headers, params=params)
 
     else:
-        response = requests.get(url, headers=headers, params=params)
+        response = requests.get(url, headers=headers, params=params, cookies=cookies)
 
 
     # Выполнение запроса:
@@ -48,16 +49,54 @@ def get_response(url: str, headers: dict=None, params: dict=None, cookies: dict=
 
     else:
         data = None
-        print(f"Ошибка: {response.status_code}")
+        print(f"Ошибка: {response.status_code} - {response.text}")
 
     return data
 
 
 
 
+# Рекурсивная функция для обхода всех категорий
+def iterate_categories(categories, next_lvl=1):
+
+    df_categories = pd.DataFrame(columns=['lvl', 'category_name', 'URL' ])
+    # ['lvl', 'main_category_name','sub_category_name_1', 'URL' ])
 
 
 
+    # Далее итерируем по ним:
+    # for count, category in enumerate(categories, start=1):
+    for category in categories:
+
+        # # Если есть уровень, тогда ссуммируем его
+        # if next_lvl:
+        #     start_namb = next_lvl + category
+        #
+        # else:
+        #     start_namb = 1
+
+
+        # Извлекаем name и url
+        get_name = category.get('name')
+        get_url = category.get('url')
+        get_lvl = next_lvl
+
+        # Добавляем записи в DataFrame:
+        df_categories.loc[len(df_categories.index )] = [get_lvl, get_name, get_url]
+
+
+        # Выводим или обрабатываем результат
+        # print(f"Название: {name}, URL: {url}")
+
+        # Если есть вложенные категории, продолжаем обход
+        subcategories = category.get('categories', [])
+        if subcategories:
+            # Рекурсивно обходим подкатегории, увеличивая уровень:
+            df_subcategories = iterate_categories(subcategories, next_lvl=get_lvl + 1)
+            # Объединяем результат с текущим DataFrame
+            df_categories = pd.concat([df_categories, df_subcategories], ignore_index=True)
+
+    return df_categories
 
 
 
