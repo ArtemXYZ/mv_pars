@@ -57,7 +57,7 @@ def get_response(url: str, headers: dict=None, params: dict=None, cookies: dict=
 
 
 # Рекурсивная функция для обхода всех категорий
-def iterate_categories(categories, next_lvl=1):
+def iterate_categories(categories, start_lvl=0, parent_lvl='main'):
 
     df_categories = pd.DataFrame(columns=['lvl', 'category_name', 'URL' ])
     # ['lvl', 'main_category_name','sub_category_name_1', 'URL' ])
@@ -65,8 +65,8 @@ def iterate_categories(categories, next_lvl=1):
 
 
     # Далее итерируем по ним:
-    # for count, category in enumerate(categories, start=1):
-    for category in categories:
+    for count, category in enumerate(categories, start=start_lvl):
+    # for category in categories:
 
         # # Если есть уровень, тогда ссуммируем его
         # if next_lvl:
@@ -79,20 +79,21 @@ def iterate_categories(categories, next_lvl=1):
         # Извлекаем name и url
         get_name = category.get('name')
         get_url = category.get('url')
-        get_lvl = next_lvl
 
-        # Добавляем записи в DataFrame:
+        # get_lvl = f'{count}_{parent_lvl}'
+        get_lvl = f'{parent_lvl}'
+
+        # -------------- главная категория:
+        # Добавляем записи в DataFrame (главная категория):
         df_categories.loc[len(df_categories.index )] = [get_lvl, get_name, get_url]
 
 
-        # Выводим или обрабатываем результат
-        # print(f"Название: {name}, URL: {url}")
-
+        # -------------- подкатегория:
         # Если есть вложенные категории, продолжаем обход
         subcategories = category.get('categories', [])
         if subcategories:
             # Рекурсивно обходим подкатегории, увеличивая уровень:
-            df_subcategories = iterate_categories(subcategories, next_lvl=get_lvl + 1)
+            df_subcategories = iterate_categories(subcategories, start_lvl=1, parent_lvl=get_name) #
             # Объединяем результат с текущим DataFrame
             df_categories = pd.concat([df_categories, df_subcategories], ignore_index=True)
 

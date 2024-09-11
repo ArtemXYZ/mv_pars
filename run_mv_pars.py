@@ -41,26 +41,30 @@ session = requests.Session()
 
 
 
+# # ------------------ Забираем наименования категорий:
+# # Запрос на извлечение всех категорий (на вход не бязательны куки):
+# result_data = get_response('https://www.mvideo.ru/bff/settings/v2/catalog', headers=headers_base,
+#                            cookies=None, session=session)
+#
+# # Берем только категории:
+# categories = result_data['body']['categories']
+#
+#
+# df_categories = iterate_categories(categories)
+#
+# # Сохранение DataFrame в Excel
+# excel_file_path = 'data/categories.xlsx'
+# df_categories.to_excel(excel_file_path, index=False, sheet_name='Категории')
+#
+#
+# # pr.pprint(categories)
+# print(df_categories)
+# # ------------------ Забираем наименования категорий:
 
 
-# ------------------ Забираем наименования категорий:
-# Запрос на извлечение всех категорий (на вход не бязательны куки):
-result_data = get_response('https://www.mvideo.ru/bff/settings/v2/catalog', headers=headers_base,
-                           cookies=None, session=session)
-
-# Берем только категории:
-categories = result_data['body']['categories']
 
 
-df_categories = iterate_categories(categories)
 
-# Сохранение DataFrame в Excel
-excel_file_path = 'data/categories.xlsx'
-df_categories.to_excel(excel_file_path, index=False, sheet_name='Категории')
-
-
-# pr.pprint(categories)
-print(df_categories)
 
 
 
