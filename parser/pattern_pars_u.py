@@ -45,8 +45,35 @@
 #
 # # pr.pprint(categories)
 # print(df_categories)
-# # ------------------ Забираем наименования категорий:
+
 # ----------------------------------------------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
+# ------------------ Забираем количество товаров по категории:
+
+# Вариант 2
+
+
+# url_count = 'https://www.mvideo.ru/bff/products/listing?categoryId=118&offset=0'  # categoryId - обязательно
+
+# ["Мобильные устройства", "-12", "A311"] + ["Мобильные устройства", "-11", "S906"]
+# &filterParams=WyLQotC%2B0LvRjNC60L4g0LIg0L3QsNC70LjRh9C40LgiLCItOSIsItCU0LAiXQ%3D%3D&filterParams=WyLQl9Cw0LHRgNCw0YLRjCDQuNC3INC80LDQs9Cw0LfQuNC90LAg0L%2FQviDQsNC00YDQtdGB0YMiLCItMTIiLCJBMzExIl0%3D&filterParams=WyLQl9Cw0LHRgNCw0YLRjCDRh9C10YDQtdC3IDE1INC80LjQvdGD0YIiLCItMTEiLCJTOTA2Il0%3D
+# ----------------------------------------------------------------------------------------------------------------------
+
+
+# # Параметры фильтрации в запросе:
+# cherez_15_minut = {'filterParams': 'WyLQl9Cw0LHRgNCw0YLRjCDRh9C10YDQtdC3IDE1INC80LjQvdGD0YIiLCItMTEiLCJTOTA2Il0'}
+#
+# # Запрос на извлечение count_product (на вход бязательны: \
+# # MVID_CITY_ID, MVID_REGION_ID, MVID_REGION_SHOP, MVID_TIMEZONE_OFFSET):
+# result_data = get_response(url=url_count, headers=headers_base, params=cherez_15_minut,
+#                            cookies=cookies_count_product, session=session)
+#
+# # pr.pprint(f'Вывод: {result_data}')
+# pr.pprint(result_data)
+# ----------------------------------------------------------------------------------------------------------------------
+
+
+
 
 
 

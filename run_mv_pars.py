@@ -3,9 +3,9 @@
 import requests
 # import time
 import pprint
+# from bs4 import BeautifulSoup as bs
 
-
-from parser.pars_func import *
+from parser.pars_func_undetected import get_undetected_sup_by_html_category
 from parser.params_bank import * # Все куки хедеры и параметры
 
 pr = pprint.PrettyPrinter(indent=4, width=80, compact=False)
@@ -15,33 +15,47 @@ session = requests.Session()
 # ----------------------------------------------------------------------------------------------------------------------
 
 
-url_count = 'https://www.mvideo.ru/bff/products/listing?categoryId=205&offset=0&filterParams=WyLQotC%2B0LvRjNC60L4g0LIg0L3QsNC70LjRh9C40LgiLCItOSIsItCU0LAiXQ%3D%3D&filterParams=WyLQl9Cw0LHRgNCw0YLRjCDQuNC3INC80LDQs9Cw0LfQuNC90LAg0L%2FQviDQsNC00YDQtdGB0YMiLCItMTIiLCJBMzExIl0%3D&filterParams=WyLQl9Cw0LHRgNCw0YLRjCDRh9C10YDQtdC3IDE1INC80LjQvdGD0YIiLCItMTEiLCJTOTA2Il0%3D'
+catygory_part = '/smartfony-i-svyaz-10/smartfony-205'
+branch = 'A520' # (str)
+region_shop = 's972'
+
+# https://www.mvideo.ru/smartfony-i-svyaz-10/smartfony-205?f_tolko-v-nalichii=da&f_zabrat-iz-magazina-po-adresu=S659&f_zabrat-cherez-15-minut=s972
+
+# url_count = 'https://www.mvideo.ru/smartfony-i-svyaz-10/smartfony-205?f_tolko-v-nalichii=da&f_zabrat-iz-magazina-po-adresu=S659&f_zabrat-cherez-15-minut=s972'
+# ----------------------------------------------------------------------------------------------------------------------
+
+# ---------------------------------------- Забираем количество товаров по категории:
+# ------------- Вариант  1                 -= (ответ зашифрован, динамическая таблица)
+# Забираем первичный суп по входным параметрам (для конкретной категории открываем страницу)
+# soup = get_request_sup_by_html_category(branch, region_shop, category_part, session, json_type=False)
+
+
+# ------------- Вариант  2
+# Забираем первичный суп по входным параметрам (для конкретной категории открываем страницу)
+# soup = get_undetected_sup_by_html_category(branch, region_shop, catygory_part)
+
+# pr.pprint(soup)
+
+# soup = html_
+
+# Ищем первый тег <span> с классом "count"
+# value = get_count_by_category(soup)
+# pr.pprint(value)
+
+
+# ------------- Вариант  3
+# Забираем первичный суп по входным параметрам (для конкретной категории открываем страницу)
+soup = get_json_response_category_decoded_input_params(branch, region_shop, catygory_name)
+
+
+
+
+
+
+
+
 
 
 # ----------------------------------------------------------------------------------------------------------------------
-
-
-
-
-# ------------------ Забираем количество товаров по категории:
-# 1 - й вариант.
-# В адресной строке из списка ссылок заменяем (reff=menu_main) на  \
-# (f_tolko-v-nalichii=da&f_zabrat-cherez-15-minut={s906})
-# f_tolko-v-nalichii=da&f_zabrat-iz-magazina-po-adresu={A167}&f_zabrat-cherez-15-minut={s906}
-
-
-
-
-
-
-# Запрос на извлечение count_product (на вход бязательны: MVID_REGION_ID, MVID_REGION_SHOP, MVID_TIMEZONE_OFFSET):
-result_data = get_response(url=url_count, headers=headers_base,
-                           cookies=cookies_count_product, session=session)
-
-# pr.pprint(f'Вывод: {result_data}')
-pr.pprint(result_data)
-
-
-
-
+# ----------------------------------------------------------------------------------------------------------------------
 

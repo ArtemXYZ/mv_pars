@@ -6,3 +6,4 @@ config_bot.py
 /local_base.db
 .idea/inspectionProfiles/profiles_settings.xml
 data/*.*
+driver/*.*

@@ -16,12 +16,12 @@ cookies_branches = {
     "MVID_REGION_SHOP": "S930",
 }
 
-cookies_count_product = {
-    'MVID_CITY_ID': 'CityCZ_2534',
-    'MVID_REGION_ID': '10',
-    'MVID_REGION_SHOP': 'S906',
-    'MVID_TIMEZONE_OFFSET': '5',
-}
+# cookies_count_product = {
+#     'MVID_CITY_ID': 'CityCZ_2534',
+#     'MVID_REGION_ID': '10',
+#     'MVID_REGION_SHOP': 'S906',
+#     'MVID_TIMEZONE_OFFSET': '5',
+# }
 
 
 
