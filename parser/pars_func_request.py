@@ -285,7 +285,7 @@ def encoded_request_input_params(branch_code: str, region_shop_code: str):
 
 
  # Забираем количество товаров по категории: Вариант  3
-def count_product_request(categoryId, city_id, region_shop_code, branch_code, region_id, time_zone):
+def count_product_request(session, categoryId, city_id, region_shop_code, branch_code, region_id, time_zone):
 
     """
     # ---------------- Расшифрованные filterParams:
@@ -326,6 +326,10 @@ def count_product_request(categoryId, city_id, region_shop_code, branch_code, re
     # MVID_CITY_ID, MVID_REGION_ID, MVID_REGION_SHOP, MVID_TIMEZONE_OFFSET):
     result_data = get_response(url=full_url, headers=headers_base, params=None,  # косяк в result_filters_params
                                cookies=cookies_count_product, session=session)
+
+
+    # Добавить функцию достающую нужную категорию:
+    ...
 
     return result_data
 

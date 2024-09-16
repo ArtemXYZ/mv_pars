@@ -33,10 +33,11 @@ time_zone = '4'
 
 
 
+a = count_product_request(session, categoryId, city_id, region_shop_code, branch_code, region_id, time_zone)
 
-
-
-
+pr.pprint(a)
+# Парсинг филиалов:
+# Нужен дата фрейм вида:  categoryId, city_id, region_shop_code, branch_code, region_id, time_zone
 
 
 
@@ -63,8 +64,8 @@ time_zone = '4'
 
 
 # pr.pprint(f'Вывод: {result_data}')
-pr.pprint(result_data)
-# pr.pprint(a)
+# pr.pprint(result_data)
+
 
 
 
