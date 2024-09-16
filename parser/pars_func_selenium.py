@@ -1,23 +1,25 @@
 """Основные функции вынесены в отдельный модуль."""
 # ----------------------------------------------------------------------------------------------------------------------
-import selenium
-# import pandas as pd
-import time
-import random
-import undetected_chromedriver
+# # import selenium
+# # import pandas as pd
+# import time
+# import random
+# # import undetected_chromedriver
+#
+# # from bs4 import BeautifulSoup
+#
+# from selenium import webdriver  # https://github.com/jsnjack/chromedriver/releases/tag/v121.0.6167.184
+# from selenium.webdriver.chrome.service import Service
+# from selenium.webdriver.common.by import By
+# from selenium.webdriver.support.ui import WebDriverWait
+# from selenium.webdriver.support import expected_conditions as EC
+# from selenium.webdriver.chrome.options import Options
+#
+# import json
+#
+# from parser.params_bank import * # Все куки хедеры и параметры
 
-# from bs4 import BeautifulSoup
 
-from selenium import webdriver  # https://github.com/jsnjack/chromedriver/releases/tag/v121.0.6167.184
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.chrome.options import Options
-
-import json
-
-from parser.params_bank import * # Все куки хедеры и параметры
 # from run_mv_pars import session
 
 # from requests import Response

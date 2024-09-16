@@ -2,12 +2,12 @@
 # ----------------------------------------------------------------------------------------------------------------------
 import time
 import random
-import undetected_chromedriver
-from selenium.webdriver.common.by import By
+# import undetected_chromedriver
+# from selenium.webdriver.common.by import By
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Устанавливаем путь к драйверу браузера
-driver_und = undetected_chromedriver.Chrome(version_main=121)
+# driver_und = undetected_chromedriver.Chrome(version_main=121)
 
 
 # ----------------------------------------------------------------------------------------------------------------------

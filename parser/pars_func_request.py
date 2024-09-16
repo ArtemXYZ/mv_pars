@@ -143,30 +143,30 @@ def get_request_sup_by_html_category(branch, region_shop, catygory_part, session
 
 
 # Разбираем суп из тегов, ищем количество для категории:
-def get_count_by_category(soup: BeautifulSoup) -> list[str] | None:
-
-    # Ищем первый тег <span> с классом "count"
-    # span_tag = soup.find('span', class_=['count', 'ng-star-inserted'])
-
-    span_tag = soup.find('div' ,  class_='app')
-
-    # Примеры:
-    # span_tag = soup.find('h1')   #.text
-    # _ngcontent - serverapp - c2525370525
-    # results = soup.find("div", {"class": "app", "style":
-    # "background:#f9f9f9;padding:20px;"}).find_all("a")
-
-    # print(span_tag)
-
-    if span_tag:
-        value = span_tag.get_text(strip=True)  # Убирает лишние пробелы
-
-    else:
-        value = None
-
-
-
-    return span_tag  # value
+# def get_count_by_category(soup: BeautifulSoup) -> list[str] | None:
+#
+#     # Ищем первый тег <span> с классом "count"
+#     # span_tag = soup.find('span', class_=['count', 'ng-star-inserted'])
+#
+#     span_tag = soup.find('div' ,  class_='app')
+#
+#     # Примеры:
+#     # span_tag = soup.find('h1')   #.text
+#     # _ngcontent - serverapp - c2525370525
+#     # results = soup.find("div", {"class": "app", "style":
+#     # "background:#f9f9f9;padding:20px;"}).find_all("a")
+#
+#     # print(span_tag)
+#
+#     if span_tag:
+#         value = span_tag.get_text(strip=True)  # Убирает лишние пробелы
+#
+#     else:
+#         value = None
+#
+#
+#
+#     return span_tag  # value
 
     # list_city: list[str] = []  # Создаем пустой список, в него поместим результат работы цикла
 
@@ -189,60 +189,146 @@ def get_count_by_category(soup: BeautifulSoup) -> list[str] | None:
 #                                cookies=cookies_count_product, session=session)
 
 
+def base64_decoded(url_param_string):
+    """
+    Расшифровка параметров URL.
+    :param base64_string:
+    :type base64_string:
+    :return:
+    :rtype:
+    """
+    try:
+
+        # Шаг 1: URL-декодирование
+        url_param_string_decoded = urllib.parse.unquote(url_param_string)
+
+        # Шаг 1: Дополнение выравнивания строки
+        # padding = len(base64_string) % 4
+        # if padding:
+        #     base64_string += '=' * (4 - padding)
 
 
+        # Шаг 2: Base64-декодирование
+        base64_decoded_string = base64.b64decode(url_param_string_decoded).decode('utf-8')
+
+        return base64_decoded_string
+    except Exception as e:
+        print(f'Ошибка декодирования: {e}')
+        return None
 
 
-def encoded_request_input_params(category_name: str, region_shop_code: str, branch_code: str):
+def encoded_request_input_params(branch_code: str, region_shop_code: str):
 
     """
-     url_list = {
-    'filterParams': ["Мобильные устройства", "-12", "A311"],
-    'filterParams': ["Мобильные устройства", "-11", "S906"],}
+     Формирует закодированные параметры запроса для фильтрации.
 
-    category_name = 'Мобильные устройства'
+    :param branch_code: Код филиала
+    :param region_shop_code: Код магазина региона
+    :return: Список закодированных параметров фильтра
+    :rtype: list
+
     region_shop_code = 'S906'
     branch_code = 'A311'
-
     """
 
     results_keys_value = []
 
     # 1. Формирование фильтров:
-    filter_param_11 = [category_name, '-11', region_shop_code]
-    filter_param_12 = [category_name, '-12', branch_code]
+    filter_param_9 = f'["Только в наличии","-9","Да"]'
+    filter_param_12 = f'["Забрать из магазина по адресу","-12","{branch_code}"]'
+    filter_param_11 = f'["Забрать через 15 минут","-11","{region_shop_code}"]'
 
-    filter_tuple = (filter_param_11, filter_param_12)
+    filter_tuple = (filter_param_9, filter_param_12, filter_param_11)
 
 
     # 2. Кодирование:
     for param_list in filter_tuple:
 
-        encoded_list = str(param_list).encode('utf-8')  # Преобразуем списки в строку и кодируем в 'utf-8':
+        # Преобразование списка в строку
+        joined_string = str(param_list)
+
+        encoded_list = joined_string.encode('utf-8')  # Преобразуем списки в строку и кодируем в  в байты 'utf-8':
         base64_encoded = base64.b64encode(encoded_list).decode('utf-8')  # Base64-кодирование
         # print(f"Base64-кодированная строка: {base64_encoded}")
         final_encoded = urllib.parse.quote(base64_encoded)  # URL-кодирование
         # print(f"Итоговый URL-кодированный параметр: {final_encoded}")
 
 
-
         # 3. Сохраняем в виде словаря для передачи как параметр в строку запроса.
         # Добавляем в список результат кодирования:
-        results_keys_value.append(final_encoded)  # Ожидаем на выход: [рез1, рез2]
+        results_keys_value.append(final_encoded)  # Ожидаем на выход: [рез1, рез2, рез3]
         # print(results_keys_value)
 
+    # ----------------  Не работает если ожидаем (пердаем) одинаковые ключи ("&filterParams=...24&filterParams=... " )
     # filter_params = {
     #     'filterParams1': results_keys_value[0],
     #     'filterParams2': results_keys_value[1],
     # }
 
-    # Одинаковый ключ:
-    filter_params = [
-        ('filterParams', results_keys_value[0]),
-        ('filterParams', results_keys_value[1]),
-    ]
+    # Одинаковый ключ: Не все сервисы корректно принимают параметры с одинаковыми ключами. \
+    # # Хотя requests корректно формирует URL с повторяющимися параметрами, сервер может их неправильно обрабатывать.
+    # filter_params = [
+    #     ('filterParams', results_keys_value[0]),
+    #     ('filterParams', results_keys_value[1]),
+    # ]
+    # ----------------
+
+    # filter_params = f'&{results_keys_value[0]}&{results_keys_value[1]}' - не работает при передаче в параметры \
+    # реквест, однако ошибку не вызывает.
+
+    filter_params = (results_keys_value[0], results_keys_value[1], results_keys_value[2])
+    filter_params = (f'&filterParams={results_keys_value[0]}'
+                     f'&filterParams={results_keys_value[1]}'
+                     f'&filterParams={results_keys_value[2]}')
 
     return filter_params
+
+
+ # Забираем количество товаров по категории: Вариант  3
+def count_product_request(categoryId, city_id, region_shop_code, branch_code, region_id, time_zone):
+
+    """
+    # ---------------- Расшифрованные filterParams:
+    # 1. ["Только в наличии","-9","Да"] = 'WyLQotC%2B0LvRjNC60L4g0LIg0L3QsNC70LjRh9C40LgiLCItOSIsItCU0LAiXQ%3D%3D'
+    # 2. ["Забрать из магазина по адресу","-12","S668"] =  \
+    WyLQl9Cw0LHRgNCw0YLRjCDQuNC3INC80LDQs9Cw0LfQuNC90LAg0L%2FQviDQsNC00YDQtdGB0YMiLCItMTIiLCJTNjY4Il0%3D
+    # 3. '["Забрать через 15 минут","-11","S972"]' = \
+     WyLQl9Cw0LHRgNCw0YLRjCDRh9C10YDQtdC3IDE1INC80LjQvdGD0YIiLCItMTEiLCJTOTcyIl0%3D
+
+    :param categoryId:
+    :type categoryId:
+    :return:
+    :rtype:
+    """
+
+    # Формирование закодированных параметров фильтрации в запросе:
+    result_filters_params = encoded_request_input_params(branch_code, region_shop_code)
+
+    # --------------------------------------- Переменные:
+    # Базовая строка подключения:
+    url_count = f'https://www.mvideo.ru/bff/products/listing?categoryId={categoryId}&offset=0&limit=1'
+    # categoryId - обязательно
+
+    # Конструктор куков:
+    cookies_count_product = {
+        'MVID_CITY_ID': city_id,
+        'MVID_REGION_ID': region_id,
+        'MVID_REGION_SHOP': region_shop_code,
+        'MVID_TIMEZONE_OFFSET': time_zone,
+    }
+
+    # Полная строка с фильтрами:
+    full_url = f'{url_count}{result_filters_params}'
+    # --------------------------------------- Переменные:
+
+    # ---------------------------------------- Выполняем основной запрос:
+    # Запрос на извлечение count_product (на вход бязательны: \
+    # MVID_CITY_ID, MVID_REGION_ID, MVID_REGION_SHOP, MVID_TIMEZONE_OFFSET):
+    result_data = get_response(url=full_url, headers=headers_base, params=None,  # косяк в result_filters_params
+                               cookies=cookies_count_product, session=session)
+
+    return result_data
+
 
 
 

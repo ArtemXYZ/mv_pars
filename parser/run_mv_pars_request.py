@@ -16,41 +16,36 @@ session = requests.Session()
 # ----------------------------------------------------------------------------------------------------------------------
 
 # catygory_part = '/smartfony-i-svyaz-10/smartfony-205'
-# branch = 'A520' # (str)
-# region_shop = 's972'
+
+
 
 
 # ----------------------------------------------------------------------------------------------------------------------
- # Забираем количество товаров по категории: Вариант  3
-category_name = 'Мобильные устройства'
-region_shop_code = 'S972'
-branch_code = 'S668'
+
 # ---------------- Самара
+categoryId = '205'
 city_id = 'CityCZ_1780'
+region_shop_code = 'S972'
+
+branch_code = 'S668'
 region_id = '4'
 time_zone = '4'
 
-categoryId = '205'
-url_count = f'https://www.mvideo.ru/bff/products/listing?categoryId={categoryId}&offset=0'  # categoryId - обязательно
-
-cookies_count_product = {
-    'MVID_CITY_ID': city_id,
-    'MVID_REGION_ID': region_id,
-    'MVID_REGION_SHOP': region_shop_code,
-    'MVID_TIMEZONE_OFFSET': time_zone,
-}
-# ---------------------------------------- Параметры фильтрации в запросе:
-
-# Формирование закодированных параметров фильтрации:
-result_filters_params = encoded_request_input_params(category_name, region_shop_code, branch_code)
 
 
-# ---------------------------------------- Выполняем основной запрос:
 
-# Запрос на извлечение count_product (на вход бязательны: \
-# MVID_CITY_ID, MVID_REGION_ID, MVID_REGION_SHOP, MVID_TIMEZONE_OFFSET):
-result_data = get_response(url=url_count, headers=headers_base, params=result_filters_params, - косяк в result_filters_params
-                           cookies=cookies_count_product, session=session)
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -61,16 +56,15 @@ result_data = get_response(url=url_count, headers=headers_base, params=result_fi
 # soup = get_json_response_category_decoded_input_params(branch, region_shop, catygory_name)
 #
 
-
-
-
-
-
+# for i in result_filters_params:
+#
+#     a = base64_decoded(i)
+#     pr.pprint(a)
 
 
 # pr.pprint(f'Вывод: {result_data}')
 pr.pprint(result_data)
-
+# pr.pprint(a)
 
 
 
@@ -81,4 +75,25 @@ pr.pprint(result_data)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
+# для тестирования вариантов передачи строки параметров.
+# По итогу: передачаодинакового ключа вызывает ошибку. даже если пердать в строке.
+# Пока что без ошибки обрабатывается строка без ключей фильтров \
+# filter_params = f'&{results_keys_value[0]}&{results_keys_value[1]}'
+# def full_url(url_count, result_filters_params):
+#
+#     for i in result_filters_params:
+#         a = i[1]
+#         b = i[1]
+#
+#     new = f'{url_count}&{a}&{b}'
+#
+#     return new
 
+# new_url = full_url(url_count, result_filters_params)
+
+
+# a = '&filterParams=WyLQotC%2B0LvRjNC60L4g0LIg0L3QsNC70LjRh9C40LgiLCItOSIsItCU0LAiXQ%3D%3D&filterParams=WyLQl9Cw0LHRgNCw0YLRjCDQuNC3INC80LDQs9Cw0LfQuNC90LAg0L%2FQviDQsNC00YDQtdGB0YMiLCItMTIiLCJTNjY4Il0%3D&filterParams=WyLQl9Cw0LHRgNCw0YLRjCDRh9C10YDQtdC3IDE1INC80LjQvdGD0YIiLCItMTEiLCJTOTcyIl0%3D'
+# b = ('https://www.mvideo.ru/bff/products/listing?categoryId=205&offset=0&limit=24&'
+#      'filterParams=WyLQotC%2B0LvRjNC60L4g0LIg0L3QsNC70LjRh9C40LgiLCItOSIsItCU0LAiXQ%3D%3D'
+#      '&filterParams=WyLQl9Cw0LHRgNCw0YLRjCDQuNC3INC80LDQs9Cw0LfQuNC90LAg0L%2FQviDQsNC00YDQtdGB0YMiLCItMTIiLCJTNjY4Il0%3D&filter'
+#      'Params=WyLQl9Cw0LHRgNCw0YLRjCDRh9C10YDQtdC3IDE1INC80LjQvdGD0YIiLCItMTEiLCJTOTcyIl0%3D')
