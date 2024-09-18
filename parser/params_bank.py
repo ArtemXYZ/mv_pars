@@ -54,6 +54,18 @@ CITY_DATA = [
     ('Балаково', 'CityR_91', '13', 'S908', '4')
 ]
 
+CATEGORY_ID_DATA: tuple = ('205',
+
+)
+
+# ---------------- Самара
+# category_id = '205'
+# city_id = 'CityCZ_1780'
+# region_shop_id = 'S972'
+#
+# branch_code = 'S668'
+# region_id = '4'
+# time_zone = '4'
 
 #
 # https://www.mvideo.ru/sitebuilder/blocks/browse/store/locator/store.json.jsp?storeId=S103&hideBtn=true&skuId=
