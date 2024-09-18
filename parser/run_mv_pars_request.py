@@ -23,19 +23,31 @@ session = requests.Session()
 # ----------------------------------------------------------------------------------------------------------------------
 
 # ---------------- Самара
-categoryId = '205'
-city_id = 'CityCZ_1780'
-region_shop_code = 'S972'
+# category_id = '205'
+# city_id = 'CityCZ_1780'
+# region_shop_id = 'S972'
+#
+# branch_code = 'S668'
+# region_id = '4'
+# time_zone = '4'
 
-branch_code = 'S668'
-region_id = '4'
-time_zone = '4'
+# url = "https://www.mvideo.ru/bff/region/getShops"
 
 
 
-a = count_product_request(session, categoryId, city_id, region_shop_code, branch_code, region_id, time_zone)
 
-pr.pprint(a)
+df_full_branch_data = get_shops(session, CITY_DATA)
+
+pr.pprint(df_full_branch_data)
+
+
+
+
+
+# a = count_product_request(session, category_id, city_id, region_shop_code, branch_code, region_id, time_zone)
+
+
+
 # Парсинг филиалов:
 # Нужен дата фрейм вида:  categoryId, city_id, region_shop_code, branch_code, region_id, time_zone
 
@@ -43,7 +55,7 @@ pr.pprint(a)
 
 
 
-
+# dumps = load(load_path_damp)  # Тогда загружаем работает
 
 
 

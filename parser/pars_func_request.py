@@ -12,6 +12,9 @@ import urllib.parse
 
 from bs4 import BeautifulSoup
 
+from joblib import dump
+from joblib import load
+
 from parser.params_bank import * # Все куки хедеры и параметры
 
 
@@ -324,16 +327,142 @@ def count_product_request(session, categoryId, city_id, region_shop_code, branch
     # ---------------------------------------- Выполняем основной запрос:
     # Запрос на извлечение count_product (на вход бязательны: \
     # MVID_CITY_ID, MVID_REGION_ID, MVID_REGION_SHOP, MVID_TIMEZONE_OFFSET):
-    result_data = get_response(url=full_url, headers=headers_base, params=None,  # косяк в result_filters_params
+    data = get_response(url=full_url, headers=headers_base, params=None,  # косяк в result_filters_params
                                cookies=cookies_count_product, session=session)
 
 
     # Добавить функцию достающую нужную категорию:
-    ...
+    summ_total = data['body']['total']
+    summ_total = data['currentCategory']['count']
 
     return result_data
 
 
+
+
+
+
+
+def get_shops(session, CITY_DATA: list[tuple], imitation_ping_min: float = 0.5, ping_max: float = 1.5):
+
+    # -----------------------------------
+    # Запрос на коды магазинов и адреса. Необходимо передать куки.
+    url = "https://www.mvideo.ru/bff/region/getShops"
+    # -----------------------------------
+
+    # Преобразуем список картежей CITY_DATA в датафрейм:
+    df_city_data = pd.DataFrame(CITY_DATA, columns=['city_name', 'city_id', 'region_id', 'region_shop_id',
+                                                    'timezone_offset'])
+
+    # Создаем целевой датафрейм - устарело
+    # df_full_branch_data = pd.DataFrame(columns=['id_branch', 'city_id', 'city_name_branch', 'city_name_parent',
+    #                                             'region_id', 'region_shop_id', 'timezone_offse', 'address'
+    #                                             ])
+
+    # Создаем целевой датафрейм
+    df_branch_data = pd.DataFrame(columns=['id_branch', 'city_name_branch', 'address_branch'])
+
+    # print(f'df_city_data {df_city_data}')
+
+    # Перебираем  построчно датафрейм df_city_data:
+    for index, row in df_city_data.iterrows():
+
+        city_id = row.get('city_id')  #  row['city_id']
+        region_id = row.get('region_id')        # row['region_id']
+        region_shop_id = row.get('region_shop_id')   # row['region_shop_id']
+        time_zone = row.get('timezone_offset')
+        # city_name_parent = row.get('city_name')
+
+
+        # Конструктор куков:
+        cookies_shops = {'MVID_CITY_ID': city_id, 'MVID_REGION_ID': region_id, 'MVID_REGION_SHOP': region_shop_id,
+                         'MVID_TIMEZONE_OFFSET': time_zone}
+
+        # Случайная задержка для имитации человека:
+        time.sleep(random.uniform(imitation_ping_min, ping_max))
+
+        # ------------------------  Выполняем основной запрос на извлечение филиалов в конкретном городе:
+        # (на вход бязательны: # MVID_CITY_ID, MVID_REGION_ID, MVID_REGION_SHOP, MVID_TIMEZONE_OFFSET):
+        data: json = get_response(url=url, headers=headers_base, cookies=cookies_shops, session=session)
+        # print(f'data = {data}, {cookies_shops}')
+
+
+        # Перебираем массив JSON, содержащий информацию о филиалах
+        for shop in data['body']['shops']:
+            # Получаем список параметров филиала с использованием get()
+            id_branch = shop.get('id', 0)  # Если нет 'id', будет 'ID не указан'
+            city_name_branch = shop.get('cityName', 0)  # Если нет 'cityName', будет 'Город не указан'
+            address_branch = shop.get('address', 0)  # Если нет 'address', будет 'Адрес не указан'
+
+
+
+            # print(f'id_branch: {id_branch}, city_name_branch: {city_name_branch}, address_branch: {address_branch}')
+
+            # ------------------------------------------------------------------- Устарело
+            # if city_name_parent == city_name_branch[2:]:
+            #     check_city_id = city_id
+            #     check_region_id = region_id
+            #     check_timezone_offse = time_zone
+            # else:
+            #     check_city_id = 'Nan'
+            #     check_region_id = 'Nan'
+            #     check_timezone_offse = 'Nan'
+            #
+            # # Добавление новой строки в датафрейм: - устарело.
+            # df_full_branch_data.loc[len(df_full_branch_data.index)] = [
+            #     id_branch, check_city_id, city_name_branch, city_name_parent,
+            #     check_region_id, region_shop_id, check_timezone_offse, address_branch]
+            #
+            # print(f'{id_branch}, {check_city_id}, {city_name_branch} , {city_name_parent},'
+            #       f' {check_region_id}, {region_shop_id}, {check_timezone_offse}, {address_branch}')
+
+            # ------------------------------------------------------------------- Устарело
+
+            print(f'{id_branch}, {city_name_branch}, {address_branch}')
+
+            # Добавление новой строки в датафрейм: - новое
+            df_branch_data.loc[len(df_branch_data.index)] = [id_branch, city_name_branch, address_branch]
+
+    # Удаляем дубликаты (адреса повторяютися в каждом городе):
+    df_branch_data.drop_duplicates(subset=['id_branch'], keep=False, inplace=True)
+
+    # Добавляем новые колонки со значением 0:
+    df_branch_data[['city_id', 'region_id', 'region_shop_id', 'timezone_offset']] = '0'
+
+    # Перебираем по филиалам:
+    for index, row in df_branch_data.iterrows():
+
+        city_name = row.get('city_name_branch')
+
+        city_name_branch = city_name[2:] # г.Самара -> Самара
+
+
+        # Ищем в родительском датафрейме значения совпадающие по имени города
+        city_row_parent = df_city_data[df_city_data['city_name'] == city_name_branch]
+
+        # Обращаемся к значениям по имени колонки
+        if not city_row_parent.empty:
+            city_id = city_row_parent['city_id'].values[0]
+            region_id = city_row_parent['region_id'].values[0]
+            region_shop_id = city_row_parent['region_shop_id'].values[0]
+            time_zone = city_row_parent['timezone_offset'].values[0]
+
+            # ---------------
+            df_branch_data.loc[index, 'city_id'] = city_id
+            df_branch_data.loc[index, 'region_id'] = region_id
+            df_branch_data.loc[index, 'region_shop_id'] = region_shop_id
+            df_branch_data.loc[index, 'timezone_offset'] = time_zone
+
+
+        # если в city_row_parent пусто, то ничего не делаем (останутся значения 0).
+
+    df_full_branch_data = df_branch_data
+    # -------------------------------------------------------------------
+    # Сохраняем результат парсинга в дамп и в эксель:
+    save_damp = dump(df_full_branch_data, '../data/df_full_branch_data.joblib')
+    df_full_branch_data.to_excel( '../data/df_full_branch_data2.xlsx', index=False,)
+
+    return df_full_branch_data
 
 
 
