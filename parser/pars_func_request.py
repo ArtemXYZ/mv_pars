@@ -18,7 +18,7 @@ from joblib import dump
 from joblib import load
 
 from parser.params_bank import * # Все куки хедеры и параметры
-
+from settings.configs import engine_mart_sv
 
 # from requests import Response
 # from requests import
@@ -610,6 +610,7 @@ def load_result_pars_in_db():
 
         # ------------------------------------
         load_damp_df = load('../data/df_fin_category_data.joblib')  # Тогда загружаем дамп
+        print("Дамп успешно загружен!")
 
         current_time  = datetime.now()
 
@@ -620,9 +621,18 @@ def load_result_pars_in_db():
         load_damp_df['dt_load'] = formatted_time
         # print(load_damp_df)
         # ------------------------------------
+        print("Соединение с сервером для загрузки.")
         # ------------------------------------
-        # Загрузка итогового датафрейма в базу данных:
+        # Загрузка итогового DataFrame в базу данных:
+        load_damp_df.to_sql(name='current_stock_mvideo', schema='inlet', con=engine_mart_sv,
+                            if_exists='replace', index=False, method='multi')
+        # Выбираем метод 'replace' для перезаписи таблицы или 'append' для добавления данных
+        # method='multi' используется для оптимизации вставки большого объема данных.
 
+        # Закрытие соединения
+        engine_mart_sv.dispose()
+
+        print("Данные успешно сохранены в базу данных!")
 
 
 
