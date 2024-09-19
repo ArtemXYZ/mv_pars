@@ -5,6 +5,7 @@ import requests
 import pandas as pd
 from pandas import DataFrame
 import time
+from datetime import datetime
 import random
 import json
 
@@ -472,6 +473,9 @@ def pars_cycle(session, load_damp: bool=True, imitation_ping_min: float = 0.5, p
     :rtype:  DataFrame
     """
 
+    # Кортеж категорий на исключяение (наполнение через итерации):
+    bag_category_tuple = ()
+
     # Создаем целевой  итоговый датафрейм, куда будут сохранены данные типа: код магазина, категория (имя), количество.
     df_fin_category_data = pd.DataFrame(columns=['id_branch','name_category','count', 'category_id'])
 
@@ -551,23 +555,37 @@ def pars_cycle(session, load_damp: bool=True, imitation_ping_min: float = 0.5, p
                     all_category_in_html = json_python['body']['filters'][0]['criterias']
                     # print(f'Все категории на странице: {all_category_in_html}')
 
-                    # Перебираем родительскую директорию, забираем значения категорий и количество:
-                    for row_category in all_category_in_html:
+                    try:
 
-                        count = row_category['count']   # Количество по категории
-                        name_category = row_category['name']   # Наименованеи категории:
+                        # Перебираем родительскую директорию, забираем значения категорий и количество:
+                        for row_category in all_category_in_html:
 
-                        new_row = {'id_branch': id_branch, 'name_category': name_category, 'count': count,
-                                   'category_id': category_id}
+                            count = row_category['count']   # Количество по категории
+                            name_category = row_category['name']   # Наименованеи категории:
 
-                        # print(f'count: {count}, name {name_category}')
-                        print(new_row)
-                        # Сохраняем в целевой итоговый датафырейм:
-                        # Добавляем новую строку с помощью loc[], где индексом будет len(df_fin_category_data)
-                        df_fin_category_data.loc[len(df_fin_category_data)] = new_row
+                            new_row = {'id_branch': id_branch, 'name_category': name_category, 'count': count,
+                                       'category_id': category_id}
+
+                            # print(f'count: {count}, name {name_category}')
+                            print(new_row)
+                            # Сохраняем в целевой итоговый датафырейм:
+                            # Добавляем новую строку с помощью loc[], где индексом будет len(df_fin_category_data)
+                            df_fin_category_data.loc[len(df_fin_category_data)] = new_row
                         # break
+                    except (KeyError, IndexError):
+                        # Срабатывает, если ключ 'criterias' не существует или его невозможно получить
+                        print(f'По category_id {category_id} - нет нужных тегов, пропускаем ее.')
+
+                        # Добавление в общий кортеж багов.
+                        bag_category_tuple =  bag_category_tuple + (category_id,)
+
+
                 # Итог код магазина, категория, количество. ['id_branch','name_category','count']
                 # ----------------------------------------------------------
+
+        # Если по конкретной категории не нашлись нужные теги, такая категория добавится в стписок. Далее эти категории
+        # можно исключить из парсинга.
+        print(f'Список лишних категорий: {bag_category_tuple}.')
 
         # Сохраняем результат парсинга в дамп и в эксель:
         dump(df_fin_category_data, '../data/df_fin_category_data.joblib')
@@ -583,30 +601,34 @@ def pars_cycle(session, load_damp: bool=True, imitation_ping_min: float = 0.5, p
     return df_fin_category_data
 
 
+# Функция сохраняет датафрейм в базу данных, предварительно загрузив дамп результатов парсинга:
+def load_result_pars_in_db():
+
+
+    # ------------------------------------ Загрузка дампа результатов парсинга ------------------------------------
+    if os.path.isfile('../data/df_fin_category_data.joblib'):  # Если файл существует,тогда: True
+
+        # ------------------------------------
+        load_damp_df = load('../data/df_fin_category_data.joblib')  # Тогда загружаем дамп
+
+        current_time  = datetime.now()
+
+
+        # Форматируем время в строку
+        formatted_time = current_time.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
+        # Добавляем новые колонки со значением 0:
+        load_damp_df['dt_load'] = formatted_time
+        # print(load_damp_df)
+        # ------------------------------------
+        # ------------------------------------
+        # Загрузка итогового датафрейма в базу данных:
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    else:
+        load_damp_df = None
+        print(f'Отсутствует файл дампа "df_fin_category_data" в директории: "/data/df_full_branch_data.joblib"!')
 
 # ----------------------------------------------------------------------------------------------------------------------
 # def get_soup(url: str = None) -> object:

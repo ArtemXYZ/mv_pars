@@ -14,27 +14,15 @@ pr = pprint.PrettyPrinter(indent=4, width=80, compact=False)
 session = requests.Session()
 
 # ----------------------------------------------------------------------------------------------------------------------
+# Раскоментировать для начала парсинга: +
+# df_fin_category_data = pars_cycle(session, load_damp=True, imitation_ping_min=0.5, ping_max=2.5)
 
-# catygory_part = '/smartfony-i-svyaz-10/smartfony-205'
-
-
-
+# print(df_fin_category_data)
 
 # ----------------------------------------------------------------------------------------------------------------------
-
-
-
-
-df_fin_category_data = pars_cycle(session, load_damp=True, imitation_ping_min=0.5, ping_max=2.5)
-
-print(df_fin_category_data)
-
-
-
-
-
-
-
+# Сохранить в базу данных.
+# Функция сохраняет датафрейм в базу данных, предварительно загрузив дамп результатов парсинга:
+load_result_pars_in_db()
 
 
 
