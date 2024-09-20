@@ -1,11 +1,11 @@
-
-from parser.pars_func_request import *
-
-# создадим словарь с перечнем url
-input_list_url = {
+#
+# from parser.pars_func_request import *
+#
+# # создадим словарь с перечнем url
+# input_list_url = {
 # 'mvideo': 'https:https://www.mvideo.ru/smartfony-i-svyaz-10/smartfony-205?f_category=smartfony-761&f_tolko-v-nalichii=da&f_zabrat-iz-magazina-po-adresu=A374&f_zabrat-cherez-15-minut=s984'
 
-}
+# }
 
 
 # Разбор адресной строки:
@@ -46,4 +46,4 @@ input_list_url = {
 #
 # print(f'Парсер завершил работу. Общее время парсинга всех корпораций составило: {m} мин. {s} сек.')
 
-get_response()
+# get_response()
