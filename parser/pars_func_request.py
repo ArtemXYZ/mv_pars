@@ -17,6 +17,8 @@ from bs4 import BeautifulSoup
 from joblib import dump
 from joblib import load
 
+from tqdm import tqdm
+
 from parser.params_bank import * # Все куки хедеры и параметры
 from settings.configs import engine_mart_sv
 
@@ -335,87 +337,124 @@ def count_product_request(session, category_id, id_branch, city_id, region_id, r
     return data
 
 
-def get_shops(session, CITY_DATA: list[tuple], imitation_ping_min: float = 0.5, ping_max: float = 1.5):
+def get_shops(session, CITY_DATA: list[tuple], imitation_ping_min: float = 0.5, ping_max: float = 1.5,
+              save_name_dump='df_full_branch_data', save_name_excel='df_full_branch_data'):
+    """
+    # Парсинг кодов магазинов и адресов, необходимых для целевого запроса. Необходимо передать куки.
+    :param session:
+    :type session:
+    :param CITY_DATA: ['city_name', 'city_id', 'region_id', 'region_shop_id', 'timezone_offset']
+    :type CITY_DATA: DataFrame
+    :param imitation_ping_min: минимальная задержка
+    :type imitation_ping_min: float
+    :param ping_max: максимальная задержка
+    :type ping_max: float
+    :return: DataFrame: ['id_branch', 'city_name_branch', , 'address_branch', 'city_id', 'region_id', 'region_shop_id',
+                'timezone_offse'];
+            Если в CITY_DATA не найдется исходного города (исходные данные для целевых запросов по городам), тогда в \
+            колонки [['city_id', 'region_id', 'region_shop_id', 'timezone_offset']] = '0' (останутся с нулевыми \
+            (по умолчанию) значениями).
+
+    :rtype:  DataFrame
+    """
+
+    _name_dump = f'../data/{save_name_dump}.joblib'
+    _name_excel = f'../data/{save_name_excel}.xlsx'
 
     # -----------------------------------
     # Запрос на коды магазинов и адреса. Необходимо передать куки.
     url = "https://www.mvideo.ru/bff/region/getShops"
     # -----------------------------------
 
-    # Преобразуем список картежей CITY_DATA в датафрейм:
+    # Отмена: Переделать! не нужно создавать датафрейм для переборки, \
+    # Отмена:  однако при обращении к элементам картежа - проверку на нул! \
+    # Причина: в конце функции проще искать через пандас нужные значения в CITY_DATA.
+
+    # 1. Преобразуем список картежей CITY_DATA в датафрейм:
     df_city_data = pd.DataFrame(CITY_DATA, columns=['city_name', 'city_id', 'region_id', 'region_shop_id',
                                                     'timezone_offset'])
 
-    # Создаем целевой датафрейм - устарело
-    # df_full_branch_data = pd.DataFrame(columns=['id_branch', 'city_id', 'city_name_branch', 'city_name_parent',
-    #                                             'region_id', 'region_shop_id', 'timezone_offse', 'address'
-    #                                             ])
-
-    # Создаем целевой датафрейм
+    # 2. Создаем целевой датафрейм
     df_branch_data = pd.DataFrame(columns=['id_branch', 'city_name_branch', 'address_branch'])
 
     # print(f'df_city_data {df_city_data}')
 
-    # Перебираем  построчно датафрейм df_city_data:
-    for index, row in df_city_data.iterrows():
+    # print(f'==================== Подготовка данных для основного запроса ====================')
+    # print(f'Перебираем города присутствия МВидео (датафрейм с исходными справочными данными):')
+
+    # 3. Перебираем построчно датафрейм df_city_data с исходными справочными данными для основного запроса:
+    # for index, row in df_city_data.iterrows():
+    for index, row in tqdm(df_city_data.iterrows(), ncols=80, ascii=True,
+                 desc=f'==================== Обработка данных для следующего города ===================='):
+                # desc = f'================== Подготовка данных для основного запроса =================='):
+
+        # desc - задает статическое описание, которое будет отображаться на протяжении всего выполнения прогресс-бара.
+        # параметр total для того, чтобы знать, сколько итераций ему нужно отслеживать.
 
         city_id = row.get('city_id')  #  row['city_id']
         region_id = row.get('region_id')        # row['region_id']
         region_shop_id = row.get('region_shop_id')   # row['region_shop_id']
         time_zone = row.get('timezone_offset')
-        # city_name_parent = row.get('city_name')
+        city_name_parent = row.get('city_name')
 
+        # print(f'\n'
+        #       f'Город (parent) {index} : {city_name_parent}')
 
-        # Конструктор куков:
+        # 4. Конструктор куков:
         cookies_shops = {'MVID_CITY_ID': city_id, 'MVID_REGION_ID': region_id, 'MVID_REGION_SHOP': region_shop_id,
                          'MVID_TIMEZONE_OFFSET': time_zone}
 
-        # Случайная задержка для имитации человека:
+        # 5. Случайная задержка для имитации человека:
         time.sleep(random.uniform(imitation_ping_min, ping_max))
 
-        # ------------------------  Выполняем основной запрос на извлечение филиалов в конкретном городе:
+        # 6. Выполняем основной запрос на извлечение филиалов в конкретном городе:
         # (на вход бязательны: # MVID_CITY_ID, MVID_REGION_ID, MVID_REGION_SHOP, MVID_TIMEZONE_OFFSET):
         data: json = get_response(url=url, headers=headers_base, cookies=cookies_shops, session=session)
         # print(f'data = {data}, {cookies_shops}')
 
+        # + прогрессбар tqdm
+        # 7. Перебираем массив JSON, содержащий информацию о филиалах
+        # for shop in tqdm(data['body']['shops'],  ncols=80,  ascii=True,  total=len(data['body']['shops']),
+        #                  desc=f'\n'
+        #                       f'Перебираем все филиалы в теле ответа GET запроса (json)'):
+        print(f'\n'
+              f'Перебираем все филиалы в теле ответа GET запроса (json) для: {city_name_parent}')
 
-        # Перебираем массив JSON, содержащий информацию о филиалах
-        for shop in data['body']['shops']:
+        time.sleep(0.1)
+        for namb, shop in enumerate(data['body']['shops']):
+
+            # Можно добавить проверки на пустоту, но пока что не требуется.
+            ...
+
             # Получаем список параметров филиала с использованием get()
             id_branch = shop.get('id', 0)  # Если нет 'id', будет 'ID не указан'
             city_name_branch = shop.get('cityName', 0)  # Если нет 'cityName', будет 'Город не указан'
             address_branch = shop.get('address', 0)  # Если нет 'address', будет 'Адрес не указан'
 
+            print(f'{namb}. id_branch: {id_branch}, city_name_branch: {city_name_branch}, '
+                  f'address_branch: {address_branch}')
 
-
-            # print(f'id_branch: {id_branch}, city_name_branch: {city_name_branch}, address_branch: {address_branch}')
-
-            # ------------------------------------------------------------------- Устарело
-            # if city_name_parent == city_name_branch[2:]:
-            #     check_city_id = city_id
-            #     check_region_id = region_id
-            #     check_timezone_offse = time_zone
-            # else:
-            #     check_city_id = 'Nan'
-            #     check_region_id = 'Nan'
-            #     check_timezone_offse = 'Nan'
-            #
-            # # Добавление новой строки в датафрейм: - устарело.
-            # df_full_branch_data.loc[len(df_full_branch_data.index)] = [
-            #     id_branch, check_city_id, city_name_branch, city_name_parent,
-            #     check_region_id, region_shop_id, check_timezone_offse, address_branch]
-            #
-            # print(f'{id_branch}, {check_city_id}, {city_name_branch} , {city_name_parent},'
-            #       f' {check_region_id}, {region_shop_id}, {check_timezone_offse}, {address_branch}')
-
-            # ------------------------------------------------------------------- Устарело
-
-            print(f'{id_branch}, {city_name_branch}, {address_branch}')
 
             # Добавление новой строки в датафрейм: - новое
             df_branch_data.loc[len(df_branch_data.index)] = [id_branch, city_name_branch, address_branch]
 
-    # Удаляем дубликаты (адреса повторяютися в каждом городе):
+            # завершение прогресс-бара (Перебираем массив JSON)
+            # time.sleep(0.1) # - если выставить, то появляется время, но ломается структура принта. !
+
+    # Удаляем дубликаты илиалов ((если хотим забрать товар из города "А", \
+    # то на сайте доступны филиалы + из других городов, что пораждает дубли, \
+    # тк. те же самые города что есть на выпадающем списоке(сайт): "Б", "С", "Д", итд..)  \
+    # так же  будут(могут) содержать исходный город "А" если сменить геолокацию на сайте в "Б", "С", "Д" \
+    # Итого: цикличность данных.):
+
+    # =============================================================================================
+    #       1                   2
+    # city_name_branch    city_name_parent      # address
+
+    # г.Бирск             # Бирск               # Бирск, ул. Мира, д.143В, ТК «Семейный», Эльдорадо
+    # г.Бирск             # Стерлитамак         # Бирск, ул. Мира, д.143В, ТК «Семейный», Эльдорадо
+    # г.Бирск             # Уфа                 # Бирск, ул. Мира, д.143В, ТК «Семейный», Эльдорадо
+
     df_branch_data.drop_duplicates(subset=['id_branch'], keep=False, inplace=True)
 
     # Добавляем новые колонки со значением 0:
@@ -426,18 +465,21 @@ def get_shops(session, CITY_DATA: list[tuple], imitation_ping_min: float = 0.5, 
 
         city_name = row.get('city_name_branch')
 
+        # Сравниваем города полученные парсингом с городами в исходных данных, при совпадении \
+        # подтягиваем недостающие значения (заполняем колонки city_id, region_id, region_shop_id, timezone_offset).
         city_name_branch = city_name[2:] # г.Самара -> Самара
 
 
-        # Ищем в родительском датафрейме значения совпадающие по имени города
+        # Ищем в родительском датафрейме значения совпадающие по имени города (оставляем в дф только нужную строку):
         city_row_parent = df_city_data[df_city_data['city_name'] == city_name_branch]
 
-        # Обращаемся к значениям по имени колонки
+        # Обращаемся к значениям по имени колонки, если DataFrame не пустой:
         if not city_row_parent.empty:
-            city_id = city_row_parent['city_id'].values[0]
-            region_id = city_row_parent['region_id'].values[0]
-            region_shop_id = city_row_parent['region_shop_id'].values[0]
-            time_zone = city_row_parent['timezone_offset'].values[0]
+            # Забираем значения, обращаясь к первой строке отфильрованного DataFrame
+            city_id = city_row_parent['city_id'].iloc[0]
+            region_id = city_row_parent['region_id'].iloc[0]
+            region_shop_id = city_row_parent['region_shop_id'].iloc[0]
+            time_zone = city_row_parent['timezone_offset'].iloc[0]
 
             # ---------------
             df_branch_data.loc[index, 'city_id'] = city_id
@@ -445,17 +487,28 @@ def get_shops(session, CITY_DATA: list[tuple], imitation_ping_min: float = 0.5, 
             df_branch_data.loc[index, 'region_shop_id'] = region_shop_id
             df_branch_data.loc[index, 'timezone_offset'] = time_zone
 
-
-        # если в city_row_parent пусто, то ничего не делаем (останутся значения 0).
+        # если в DataFrame city_row_parent=пусто, то ничего не делаем (останутся значения 0, что были по умолчанию \
+        # при создании DataFrame).
+        else:
+            print(f'В родительском датафрейме тсутствуют справочные данныфе для города ({city_name_branch})')
+                  # f'для сопоставления новых найденных филиалов.')
 
     df_full_branch_data = df_branch_data
     # -------------------------------------------------------------------
     # Сохраняем результат парсинга в дамп и в эксель:
-    save_damp = dump(df_full_branch_data, '../data/df_full_branch_data.joblib')
-    df_full_branch_data.to_excel( '../data/df_full_branch_data2.xlsx', index=False,)
+    # _name_dump = '../data/df_full_branch_data.joblib'
+    save_damp = dump(df_full_branch_data, _name_dump)
+    # _name_excel = '../data/df_full_branch_data.xlsx'
+    df_full_branch_data.to_excel(_name_excel, index=False)
+
+    # завершение прогресс-бара
+    # time.sleep(0.3)
 
     return df_full_branch_data
 
+
+
+# todo: 1) возможно здесь кроится причина пропуска некоторых фыилиалов!
 
 def pars_cycle(session, load_damp: bool=True, imitation_ping_min: float = 0.5, ping_max: float = 2.5):
 
