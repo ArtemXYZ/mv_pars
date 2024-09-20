@@ -377,6 +377,9 @@ def get_shops(session, CITY_DATA: list[tuple], imitation_ping_min: float = 0.5, 
     # 2. Создаем целевой датафрейм
     df_branch_data = pd.DataFrame(columns=['id_branch', 'city_name_branch', 'address_branch'])
 
+    # Создаем список для добавления отсутствующих городов в CITY_DATA (справочные данные):
+    bug_list_city_data = []
+
     # print(f'df_city_data {df_city_data}')
 
     # print(f'==================== Подготовка данных для основного запроса ====================')
@@ -455,7 +458,8 @@ def get_shops(session, CITY_DATA: list[tuple], imitation_ping_min: float = 0.5, 
     # г.Бирск             # Стерлитамак         # Бирск, ул. Мира, д.143В, ТК «Семейный», Эльдорадо
     # г.Бирск             # Уфа                 # Бирск, ул. Мира, д.143В, ТК «Семейный», Эльдорадо
 
-    df_branch_data.drop_duplicates(subset=['id_branch'], keep=False, inplace=True)
+    # Удалить дубликаты в DataFrame, оставляя только первые значения - параметр keep='first'
+    df_branch_data.drop_duplicates(subset=['id_branch'],  keep='first', inplace=True)
 
     # Добавляем новые колонки со значением 0:
     df_branch_data[['city_id', 'region_id', 'region_shop_id', 'timezone_offset']] = '0'
@@ -490,19 +494,31 @@ def get_shops(session, CITY_DATA: list[tuple], imitation_ping_min: float = 0.5, 
         # если в DataFrame city_row_parent=пусто, то ничего не делаем (останутся значения 0, что были по умолчанию \
         # при создании DataFrame).
         else:
-            print(f'В родительском датафрейме тсутствуют справочные данныфе для города ({city_name_branch})')
+
+            # Проверяем наличие в списке bug_list_city_data такого же города (точное совпадение) с city_name_branch
+            for city in bug_list_city_data:
+
+                if city_name_branch == city:
+                    break
+            else:
+                # need to add reference cities
+                bug_list_city_data.append(city_name_branch)
+
+            # print(f'В родительском датафрейме тсутствуют справочные данныфе для города ({bug_list_city_data})')
                   # f'для сопоставления новых найденных филиалов.')
+
+    print(f'В родительском датафрейме тсутствуют справочные данныфе для города ({bug_list_city_data})')
 
     df_full_branch_data = df_branch_data
     # -------------------------------------------------------------------
     # Сохраняем результат парсинга в дамп и в эксель:
+
     # _name_dump = '../data/df_full_branch_data.joblib'
     save_damp = dump(df_full_branch_data, _name_dump)
     # _name_excel = '../data/df_full_branch_data.xlsx'
     df_full_branch_data.to_excel(_name_excel, index=False)
 
-    # завершение прогресс-бара
-    # time.sleep(0.3)
+
 
     return df_full_branch_data
 
