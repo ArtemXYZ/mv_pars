@@ -40,7 +40,7 @@ CITY_DATA = [
     ('Энгельс', 'CityCZ_2714', '13', 'S908', '4'),
     ('Оренбург', 'CityCZ_6276', '17', 'S930', '5'),
     ('Тольятти', 'CityCZ_6270', '24', 'S924', '4'),
-    # ('Белорецк', 'CityDE_27134', '27', 'S966', '5'),
+    ('Белорецк', 'CityDE_27134', '27', 'S966', '5'),
     ('Ишимбай', 'CityDE_27162',  '58', 'S983', '5'),
     ('Салават', 'CityR_58', '58', 'S983', '5'),
     ('Пенза', 'CityCZ_7182', '59', 'S922', '3'),
@@ -50,21 +50,21 @@ CITY_DATA = [
     ('Туймазы', '24300007', '88', 'S984', '5'),
     ('Новотроицк', 'CityR_70', '99',  'S938', '5'),
     ('Орск', 'CityCZ_15549', '99', 'S938', '5'),
-    # ('Сыктывкар', 'CityR_102', '102', 'S964', '3'),
-    ('Балаково', 'CityR_91', '13', 'S908', '4')
+    ('Сыктывкар', 'CityR_102', '102', 'S964', '3'),
+    ('Балаково', 'CityR_91', '13', 'S908', '4'),
+    ('Сибай', 'CityDE_27110', '27', 'S966', '5'),
+    ('Магнитогорск', 'CityR_27', '27', 'S966', '5'),
+    ('Чапаевск', 'CityCZ_3798', '4', 'S972', '4'),
 ]
 
-CITY_DATA_ADD = [
-    ('Белорецк', 'CityDE_27134', '27', 'S966', '5'),
-    ('Сыктывкар', 'CityR_102', '102', 'S964', '3'),
-    ('Нефтекамск', 'CityR_102', '102', 'S964', '3'),
-    ('Чапаевск', 'CityR_102', '102', 'S964', '3'),
-]
+# CITY_DATA_ADD = [
+#
+# ]
 
 
 
 # Главные категории на сайте (для поиска подкатегорий парсингом):
-CATEGORY_ID_DATA: tuple = (#'118', '205',
+CATEGORY_ID_DATA: tuple = (
                            '6', '16', '25', '64', '65', '68', '69', '72', '73', '78', '79', '80', '81', '82', '83',
                            '85', '89', '91', '92', '94', '95', '96', '97', '100', '101', '102', '103', '104', '106',
                            '107', '109', '112', '114', '118', '125', '128', '134', '137', '138', '140', '141', '142',
@@ -95,7 +95,33 @@ CATEGORY_ID_DATA: tuple = (#'118', '205',
                            '35216', '35217', '35285', '35286', '35287', '35288', '35289', '35290', '35291',
 )
 
-
+# На некоторые категории из CATEGORY_ID_DATA приходит пустой ответ: это значит нет такой категории, \
+# 0 в поле count - нет в наличии
+ziro_recuests = {
+    'success': True, 'messages': [], 'body':
+        {'type': 'plain', 'total': 0, 'products': [],
+                                              'filters': [
+        {'name': 'Только в наличии', 'selected': True, 'translitName': 'tolko-v-nalichii', 'type': 'Только в наличии',
+         'codes': [-9], 'criterias': [
+            {'name': 'Да', 'value': 'Да', 'count': None, 'translitName': None, 'translitValue': 'da', 'selected': True,
+             'isSeo': True}], 'urlFacetCrossBlock': None},
+        {'name': 'Забрать через 15 минут', 'selected': True, 'translitName': 'zabrat-cherez-15-minut',
+         'type': 'Забрать через 15 минут', 'codes': [-11], 'criterias': [
+            {'name': 'S930', 'value': 'S930', 'count': None, 'translitName': None, 'translitValue': 's930',
+             'selected': True, 'isSeo': True}], 'urlFacetCrossBlock': None},
+        {'name': 'Забрать из магазина по адресу', 'selected': True, 'translitName': 'zabrat-iz-magazina-po-adresu',
+         'type': 'Забрать из магазина по адресу', 'codes': [-12], 'criterias': [
+            {'name': 'S656', 'value': 'S656', 'count': 0, 'translitName': None, 'translitValue': 'S656',
+             'selected': True,
+             'isSeo': True}], 'urlFacetCrossBlock': None},
+        {'name': 'Доставить курьером', 'selected': False, 'translitName': 'dostavit-kurerom',
+         'type': 'Доставить курьером',
+         'codes': [-13], 'criterias': [
+            {'name': 'Да', 'value': 'Да', 'count': None, 'translitName': None, 'translitValue': 'da', 'selected': False,
+             'isSeo': True}], 'urlFacetCrossBlock': None}],
+                                              'currentCategory': {'name': None, 'parents': [], 'count': None,
+                                                                  'translitName': None, 'value': None}}
+}
 
 
 # ---------------- Самара

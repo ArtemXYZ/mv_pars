@@ -518,15 +518,11 @@ def get_shops(session, CITY_DATA: list[tuple], imitation_ping_min: float = 0.5, 
     # _name_excel = '../data/df_full_branch_data.xlsx'
     df_full_branch_data.to_excel(_name_excel, index=False)
 
-
-
     return df_full_branch_data
 
 
-
-# todo: 1) возможно здесь кроится причина пропуска некоторых фыилиалов!
-
-def pars_cycle(session, load_damp: bool=True, imitation_ping_min: float = 0.5, ping_max: float = 2.5):
+def pars_cycle(session, load_damp: bool=True, imitation_ping_min: float = 0.5, ping_max: float = 2.5,
+               save_name_dump='df_full_branch_data', save_name_excel='df_full_branch_data'):
 
     """
     Итоговая функция полного цикла обработки (сбора с сайта МВидео)
@@ -542,6 +538,9 @@ def pars_cycle(session, load_damp: bool=True, imitation_ping_min: float = 0.5, p
     :rtype:  DataFrame
     """
 
+    _name_dump = f'../data/{save_name_dump}.joblib'
+    _name_excel = f'../data/{save_name_excel}.xlsx'
+
     # Кортеж категорий на исключяение (наполнение через итерации):
     bag_category_tuple = ()
 
@@ -553,7 +552,8 @@ def pars_cycle(session, load_damp: bool=True, imitation_ping_min: float = 0.5, p
 
         # 1) Подготовка данных (атрибуты филиалов) для основной функции count_product_request:
         # ----------------------------------------------------------
-        df_full_branch_data = get_shops(session, CITY_DATA, imitation_ping_min=imitation_ping_min , ping_max=ping_max)
+        df_full_branch_data = get_shops(session, CITY_DATA, imitation_ping_min=imitation_ping_min , ping_max=ping_max,
+                                        save_name_dump=save_name_dump, save_name_excel=save_name_excel)
         if df_full_branch_data is None:
             reason = (f'Работа функции "get_shops" завершилась неудачей.')
         # pr.pprint(df_full_branch_data)
@@ -561,9 +561,12 @@ def pars_cycle(session, load_damp: bool=True, imitation_ping_min: float = 0.5, p
 
     # в остальных случаях загружаем дамп данных.
     elif load_damp is True:
-        if os.path.isfile('../data/df_full_branch_data.joblib'):  # Если файл существует,тогда: True
 
-            df_full_branch_data = load('../data/df_full_branch_data.joblib')  # Тогда загружаем дамп
+        # _name_dump = '../data/df_full_branch_data.joblib'
+        if os.path.isfile(_name_dump):  # Если файл существует,тогда: True
+
+            # _name_dump = '../data/df_full_branch_data.joblib'
+            df_full_branch_data = load(_name_dump)  # Тогда загружаем дамп
         else:
             df_full_branch_data = None
             reason =(f'Отсутствует файл дампа в директории: "/data/df_full_branch_data.joblib".\n'
@@ -591,12 +594,25 @@ def pars_cycle(session, load_damp: bool=True, imitation_ping_min: float = 0.5, p
         # 3) Основная конструкция перебирания филиалов по категориям\
         # 3.1) Итерируем по категориям (на каждую категорию итерируем по филиалам) :
         # ----------------------------------------------------------
+
         for row in CATEGORY_ID_DATA:
+
+        # for row in tqdm(CATEGORY_ID_DATA, ncols=80, ascii=True,
+        #                 desc=f'==================== Обработка данных для категории по филиалам ===================='):
+
             # Забирает id категории:
             category_id = row
 
+            print(
+                  f'==================== Обработка данных категории {category_id} ====================')
+            print(f'==================== Обработка данных филиалов  ====================')
+
+
+
             # 3.1.1) Итерируем по филиалам и по конкретной категории:
-            for index, row in df_branch_not_null.iterrows():
+            for index, row in tqdm(df_branch_not_null.iterrows(), ncols=80, ascii=True,
+                     desc=f'=================================================================='):
+                     # desc=f'==================== Обработка данных филиала ===================='):
 
                 # Достаем данные из строки датафрейма:
                 id_branch = row.get('id_branch')
@@ -610,12 +626,12 @@ def pars_cycle(session, load_damp: bool=True, imitation_ping_min: float = 0.5, p
                 time.sleep(random.uniform(imitation_ping_min, ping_max))
 
                 # 3.1.1.1) Основной запрос (возвращает json (айтон)):
-                json_python = count_product_request( # address_branch - ока не нужен. city_name_branch,
+                json_python = count_product_request( # address_branch - пока не нужен. city_name_branch,
                     session, category_id,
                     id_branch, city_id, region_id, region_shop_id, timezone_offset)
                 # print(json_python)
         # ----------------------------------------------------------
-
+        #         time.sleep(0.1)
 
                 # 4) Обработка и сохранение результатов (достаем нужные категории и сохраняем в итоговый датафрейм)
                 # ----------------------------------------------------------
@@ -628,18 +644,24 @@ def pars_cycle(session, load_damp: bool=True, imitation_ping_min: float = 0.5, p
 
                         # Перебираем родительскую директорию, забираем значения категорий и количество:
                         for row_category in all_category_in_html:
+                            count = row_category['count']  # Количество по категории (если != 'Да' \
+                            # то здесь все равно будет None,  условие проверки не нужно, опускаем)
 
-                            count = row_category['count']   # Количество по категории
-                            name_category = row_category['name']   # Наименованеи категории:
+                            # Наименование категории: если count равно 'Да', то name_category также будет None
+                            name_category = None if row_category['name'] == 'Да' else row_category['name']
+                            # Наименованеи категории:
 
                             new_row = {'id_branch': id_branch, 'name_category': name_category, 'count': count,
                                        'category_id': category_id}
 
                             # print(f'count: {count}, name {name_category}')
-                            print(new_row)
+                            print(f'\n'
+                                  f'{index}. {new_row}')
                             # Сохраняем в целевой итоговый датафырейм:
                             # Добавляем новую строку с помощью loc[], где индексом будет len(df_fin_category_data)
                             df_fin_category_data.loc[len(df_fin_category_data)] = new_row
+
+
                         # break
                     except (KeyError, IndexError):
                         # Срабатывает, если ключ 'criterias' не существует или его невозможно получить
@@ -648,7 +670,9 @@ def pars_cycle(session, load_damp: bool=True, imitation_ping_min: float = 0.5, p
                         # Добавление в общий кортеж багов.
                         bag_category_tuple =  bag_category_tuple + (category_id,)
 
+                time.sleep(0.1)
 
+            # time.sleep(0.1)
                 # Итог код магазина, категория, количество. ['id_branch','name_category','count']
                 # ----------------------------------------------------------
 
@@ -657,14 +681,16 @@ def pars_cycle(session, load_damp: bool=True, imitation_ping_min: float = 0.5, p
         print(f'Список лишних категорий: {bag_category_tuple}.')
 
         # Сохраняем результат парсинга в дамп и в эксель:
-        dump(df_fin_category_data, '../data/df_fin_category_data.joblib')
-        df_fin_category_data.to_excel('../data/df_fin_category_data.xlsx', index=False, )
+        dump(df_fin_category_data, _name_dump) # _name_dump = '../data/df_full_branch_data.joblib'
+        df_fin_category_data.to_excel(_name_excel, index=False, )   # _name_excel = '../data/df_full_branch_data.xlsx'
 
 
     # Парсинг остановлен по причине отсутствия файла дампа или подготовка данных в "get_shops" завершилась неудачей:
     else:
         print(f'Запуск парсинга остановлен по причине: {reason}')
         df_fin_category_data = None
+
+
 
     # Итог код магазина, категория, количество. ['id_branch','name_category','count']
     return df_fin_category_data

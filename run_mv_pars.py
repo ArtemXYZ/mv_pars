@@ -16,14 +16,15 @@ session = requests.Session()
 
 # ----------------------------------------------------------------------------------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
-get_shops(session, CITY_DATA_ADD, imitation_ping_min = 0.5, ping_max = 1.5,
-          save_name_dump='df_full_branch_data_ADD', save_name_excel='df_full_branch_data_ADD')
+# Только запуск парсинга предварительных данных
+# get_shops(session, CITY_DATA, imitation_ping_min = 0.5, ping_max = 1.5,
+#           save_name_dump='df_full_branch_data', save_name_excel='df_full_branch_data')
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Раскоментировать для начала парсинга: +
-# df_fin_category_data = pars_cycle(session, load_damp=True, imitation_ping_min=0.5, ping_max=2.5)
+df_fin_category_data = pars_cycle(session, load_damp=True, imitation_ping_min=0.5, ping_max=2.5)
 #
-# print(df_fin_category_data)
+print(df_fin_category_data)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
@@ -38,8 +39,22 @@ get_shops(session, CITY_DATA_ADD, imitation_ping_min = 0.5, ping_max = 1.5,
 
 
 
-
-
-
 # ----------------------------------------------------------------------------------------------------------------------
-# ----------------------------------------------------------------------------------------------------------------------
+# -------json_python = count_product_request(
+#                     session, category_id=6,
+#                     id_branch='S656', city_id='CityCZ_6276', region_id='17', region_shop_id='S930', timezone_offset='5')
+#
+# if json_python:
+#     # Обращаемся к родительскому ключу где хранятся категории товаров:
+#     all_category_in_html = json_python['body']['filters'][0]['criterias']
+#     # print(f'Все категории на странице: {all_category_in_html}')
+#
+#     # Перебираем родительскую директорию, забираем значения категорий и количество:
+#     for row_category in all_category_in_html:
+#         count = row_category['count']  # Количество по категории (если != 'Да' то здесь все равно будет None, \
+#         # условие проверки не нужно, опускаем)
+#         # Наименование категории: если count равно 'Да', то name_category также будет None
+#         name_category = None if row_category['name'] == 'Да' else row_category['name'] # Наименованеи категории:
+#
+#
+# print(f'{count}, {name_category}')
