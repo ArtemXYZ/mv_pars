@@ -521,7 +521,7 @@ def get_shops(session, CITY_DATA: list[tuple], imitation_ping_min: float = 0.5, 
     return df_full_branch_data
 
 
-def pars_cycle(session, load_damp: bool=True, imitation_ping_min: float = 0.5, ping_max: float = 2.5,
+def pars_cycle(session, load_damp: bool=True, imitation_ping_min: float = 0.5, imitation_ping_ping_max: float = 2.5,
                save_name_dump='df_full_branch_data', save_name_excel='df_full_branch_data'):
 
     """
@@ -552,7 +552,8 @@ def pars_cycle(session, load_damp: bool=True, imitation_ping_min: float = 0.5, p
 
         # 1) Подготовка данных (атрибуты филиалов) для основной функции count_product_request:
         # ----------------------------------------------------------
-        df_full_branch_data = get_shops(session, CITY_DATA, imitation_ping_min=imitation_ping_min , ping_max=ping_max,
+        df_full_branch_data = get_shops(session, CITY_DATA, imitation_ping_min=imitation_ping_min ,
+                                        imitation_ping_ping_max=imitation_ping_ping_max,
                                         save_name_dump=save_name_dump, save_name_excel=save_name_excel)
         if df_full_branch_data is None:
             reason = (f'Работа функции "get_shops" завершилась неудачей.')
@@ -595,23 +596,25 @@ def pars_cycle(session, load_damp: bool=True, imitation_ping_min: float = 0.5, p
         # 3.1) Итерируем по категориям (на каждую категорию итерируем по филиалам) :
         # ----------------------------------------------------------
 
-        for row in CATEGORY_ID_DATA:
+        # for row in CATEGORY_ID_DATA:
 
-        # for row in tqdm(CATEGORY_ID_DATA, ncols=80, ascii=True,
-        #                 desc=f'==================== Обработка данных для категории по филиалам ===================='):
+        for row in tqdm(CATEGORY_ID_DATA,  total=len(CATEGORY_ID_DATA), ncols=80, ascii=True,
+                        desc=f'==================== Обработка данных по категории ===================='):
 
+            time.sleep(0.1) #\n
             # Забирает id категории:
             category_id = row
 
-            print(
-                  f'==================== Обработка данных категории {category_id} ====================')
+            print(f'\n==================== Категория {category_id} ====================')
             print(f'==================== Обработка данных филиалов  ====================')
 
 
 
+
             # 3.1.1) Итерируем по филиалам и по конкретной категории:
-            for index, row in tqdm(df_branch_not_null.iterrows(), ncols=80, ascii=True,
-                     desc=f'=================================================================='):
+            for index, row in df_branch_not_null.iterrows():
+            # for index, row in tqdm(df_branch_not_null.iterrows(), ncols=80, ascii=True,
+            #          desc=f'=================================================================='):
                      # desc=f'==================== Обработка данных филиала ===================='):
 
                 # Достаем данные из строки датафрейма:
@@ -623,7 +626,7 @@ def pars_cycle(session, load_damp: bool=True, imitation_ping_min: float = 0.5, p
                 timezone_offset = row.get('timezone_offset')
 
                 # Случайная задержка для имитации человека:
-                time.sleep(random.uniform(imitation_ping_min, ping_max))
+                time.sleep(random.uniform(imitation_ping_min, imitation_ping_ping_max))
 
                 # 3.1.1.1) Основной запрос (возвращает json (айтон)):
                 json_python = count_product_request( # address_branch - пока не нужен. city_name_branch,
@@ -631,7 +634,7 @@ def pars_cycle(session, load_damp: bool=True, imitation_ping_min: float = 0.5, p
                     id_branch, city_id, region_id, region_shop_id, timezone_offset)
                 # print(json_python)
         # ----------------------------------------------------------
-        #         time.sleep(0.1)
+
 
                 # 4) Обработка и сохранение результатов (достаем нужные категории и сохраняем в итоговый датафрейм)
                 # ----------------------------------------------------------
@@ -649,13 +652,14 @@ def pars_cycle(session, load_damp: bool=True, imitation_ping_min: float = 0.5, p
 
                             # Наименование категории: если count равно 'Да', то name_category также будет None
                             name_category = None if row_category['name'] == 'Да' else row_category['name']
+                            # name_category = row_category['name']
                             # Наименованеи категории:
 
                             new_row = {'id_branch': id_branch, 'name_category': name_category, 'count': count,
                                        'category_id': category_id}
 
                             # print(f'count: {count}, name {name_category}')
-                            print(f'\n'
+                            print(#f'\n'
                                   f'{index}. {new_row}')
                             # Сохраняем в целевой итоговый датафырейм:
                             # Добавляем новую строку с помощью loc[], где индексом будет len(df_fin_category_data)
@@ -670,7 +674,7 @@ def pars_cycle(session, load_damp: bool=True, imitation_ping_min: float = 0.5, p
                         # Добавление в общий кортеж багов.
                         bag_category_tuple =  bag_category_tuple + (category_id,)
 
-                time.sleep(0.1)
+                # time.sleep(0.1)
 
             # time.sleep(0.1)
                 # Итог код магазина, категория, количество. ['id_branch','name_category','count']
@@ -683,6 +687,12 @@ def pars_cycle(session, load_damp: bool=True, imitation_ping_min: float = 0.5, p
         # Сохраняем результат парсинга в дамп и в эксель:
         dump(df_fin_category_data, _name_dump) # _name_dump = '../data/df_full_branch_data.joblib'
         df_fin_category_data.to_excel(_name_excel, index=False, )   # _name_excel = '../data/df_full_branch_data.xlsx'
+
+        # Сохраняем в бд:
+        # ----------------------------------------------------------
+        # Функция сохраняет датафрейм в базу данных, предварительно загрузив дамп результатов парсинга:
+        load_result_pars_in_db()
+
 
 
     # Парсинг остановлен по причине отсутствия файла дампа или подготовка данных в "get_shops" завершилась неудачей:
