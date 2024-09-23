@@ -522,7 +522,8 @@ def get_shops(session, CITY_DATA: list[tuple], imitation_ping_min: float = 0.5, 
 
 
 def pars_cycle(session, load_damp: bool=True, imitation_ping_min: float = 0.5, imitation_ping_ping_max: float = 2.5,
-               save_name_dump='df_full_branch_data', save_name_excel='df_full_branch_data'):
+               save_name_branch_dump='df_branch_data', save_name_branch_excel='df_branch_data',
+               save_name_category_dump='df_category_data', save_name_category_excel='df_category_data'):
 
     """
     Итоговая функция полного цикла обработки (сбора с сайта МВидео)
@@ -538,8 +539,11 @@ def pars_cycle(session, load_damp: bool=True, imitation_ping_min: float = 0.5, i
     :rtype:  DataFrame
     """
 
-    _name_dump = f'../data/{save_name_dump}.joblib'
-    _name_excel = f'../data/{save_name_excel}.xlsx'
+    _name_branch_dump = f'../data/{save_name_branch_dump}.joblib'
+    _name_branch_excel = f'../data/{save_name_branch_excel}.xlsx'
+    _name_category_dump = f'../data/{save_name_category_dump}.joblib'
+    _name_category_excel = f'../data/{save_name_category_excel}.xlsx'
+
 
     # Кортеж категорий на исключяение (наполнение через итерации):
     bag_category_tuple = ()
@@ -554,7 +558,7 @@ def pars_cycle(session, load_damp: bool=True, imitation_ping_min: float = 0.5, i
         # ----------------------------------------------------------
         df_full_branch_data = get_shops(session, CITY_DATA, imitation_ping_min=imitation_ping_min ,
                                         imitation_ping_ping_max=imitation_ping_ping_max,
-                                        save_name_dump=save_name_dump, save_name_excel=save_name_excel)
+                                        save_name_dump=save_name_branch_dump, save_name_excel=save_name_branch_excel)
         if df_full_branch_data is None:
             reason = (f'Работа функции "get_shops" завершилась неудачей.')
         # pr.pprint(df_full_branch_data)
@@ -684,13 +688,13 @@ def pars_cycle(session, load_damp: bool=True, imitation_ping_min: float = 0.5, i
         print(f'Список лишних категорий: {bag_category_tuple}.')
 
         # Сохраняем результат парсинга в дамп и в эксель:
-        dump(df_fin_category_data, _name_dump) # _name_dump = '../data/df_full_branch_data.joblib'
-        df_fin_category_data.to_excel(_name_excel, index=False, )   # _name_excel = '../data/df_full_branch_data.xlsx'
+        dump(df_fin_category_data, _name_category_dump) # _name_dump = '../data/df_full_branch_data.joblib'
+        df_fin_category_data.to_excel(_name_category_excel, index=False, )   # _name_excel = '../data/df_full_branch_data.xlsx'
 
         # Сохраняем в бд:
         # ----------------------------------------------------------
         # Функция сохраняет датафрейм в базу данных, предварительно загрузив дамп результатов парсинга:
-        load_result_pars_in_db()
+        load_result_pars_in_db(_name_branch_dump)
 
 
 
@@ -706,14 +710,14 @@ def pars_cycle(session, load_damp: bool=True, imitation_ping_min: float = 0.5, i
 
 
 # Функция сохраняет датафрейм в базу данных, предварительно загрузив дамп результатов парсинга:
-def load_result_pars_in_db():
+def load_result_pars_in_db(name_branch_dump='../data/df_category_data.joblib'):
 
 
     # ------------------------------------ Загрузка дампа результатов парсинга ------------------------------------
-    if os.path.isfile('../data/df_fin_category_data.joblib'):  # Если файл существует,тогда: True
+    if os.path.isfile(name_branch_dump):  # Если файл существует,тогда: True
 
         # ------------------------------------
-        load_damp_df = load('../data/df_fin_category_data.joblib')  # Тогда загружаем дамп
+        load_damp_df = load(name_branch_dump)  # Тогда загружаем дамп
         print("Дамп успешно загружен!")
 
         current_time  = datetime.now()
