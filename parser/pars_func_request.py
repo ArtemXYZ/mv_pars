@@ -659,8 +659,7 @@ def pars_cycle(session, load_damp: bool=True, imitation_ping_min: float = 0.5, i
                                        'category_id': category_id}
 
                             # print(f'count: {count}, name {name_category}')
-                            print(#f'\n'
-                                  f'{index}. {new_row}')
+                            print(f'{index}. {new_row}')
                             # Сохраняем в целевой итоговый датафырейм:
                             # Добавляем новую строку с помощью loc[], где индексом будет len(df_fin_category_data)
                             df_fin_category_data.loc[len(df_fin_category_data)] = new_row
