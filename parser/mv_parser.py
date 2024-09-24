@@ -32,6 +32,8 @@ class ParsTools:
 
     # Создаём сессию:
     _SESSION = requests.Session()
+    _CITY_DATA = CITY_DATA
+
 
     _BASE_FOLDER_SAVE = '../data/'
 
@@ -56,34 +58,64 @@ class ParsTools:
     def __init__(self):
         pass
 
+    @classmethod
+    def get_headers(cls, headers=None):
+        """
+        Задает параметры заголовков.
+        Если необходимо изменить параметры, вызываем данный метод и перезаписываем переменны.
+        """
+
+        cls._BASE_HEADERS = headers if headers else cls._BASE_HEADERS
+
+        return cls._BASE_HEADERS
+
+    @classmethod
+    def get_file_name_branch(cls, name_file=None):
+        """
+        Задает имена файлов относящихся к методу получения филиалов.
+        Если необходимо изменить имена, вызываем данный метод и перезаписываем переменную.
+        """
+
+        cls._FILE_NAME_BRANCH = name_file if name_file else cls._FILE_NAME_BRANCH
+
+        return cls._FILE_NAME_BRANCH
+
+    @classmethod
+    def get_file_name_category(cls, name_file=None):
+        """
+        Задает имена файлов относящихся к методу получения филиалов.
+        Если необходимо изменить имена, вызываем данный метод и перезаписываем переменную.
+        """
+
+        cls._FILE_NAME_CATEGORY = name_file if name_file else cls._FILE_NAME_CATEGORY
+
+        return cls._FILE_NAME_CATEGORY
+
+    @classmethod
+    def get_imitation_ping_min(cls, ping_min=None):
+        """
+        Формирует пределы рандомной задержки (имитация задержки, минимальное значение).
+        Если необходимо изменить параметр задержки, вызываем данный метод и перезаписываем переменную.
+        """
+        cls._IMITATION_PING_MIN = ping_min if ping_min else cls._IMITATION_PING_MIN
+
+        return cls._IMITATION_PING_MIN
+
+    @classmethod
+    def get_imitation_ping_max(cls, ping_max=None):
+        """
+        Формирует пределы рандомной задержки (имитация задержки, максимальное значение).
+        Если необходимо изменить параметр задержки, вызываем данный метод и перезаписываем переменную.
+        """
+        cls._IMITATION_PING_MAX = ping_max if ping_max else cls._IMITATION_PING_MAX
+
+        return cls._IMITATION_PING_MIN
+
+
     @staticmethod
-    def _get_file_name(folder=None, name=None, extension=None):
+    def _get_file_name_path(folder=None, name=None, extension=None):
         # create_path_name
         return f'{folder}{name}{extension}'
-
-    # ------------------------------------------------------
-    # # instance - передаем экземпляр в метод, чтобы использовать его атрибуты.
-    # @staticmethod
-    # def _get_file_name_branch_dump():
-    #     return cls._get_file_name(base_folder_save, save_name_dump_branch_data,
-    #                               ParsTools()._EXPANSION_FILE_DUMP)
-    #
-    # @staticmethod
-    # def _get_file_name_branch_excel( ):
-    #     return cls._get_file_name(instance.base_folder_save, instance.save_name_excel_branch_data,
-    #                               cls._EXPANSION_FILE_EXCEL)
-    #
-    # @staticmethod
-    # def _get_file_name_category_dump( ):
-    #     return cls._get_file_name(instance.base_folder_save, instance.save_name_dump_category_data,
-    #                               cls._EXPANSION_FILE_DUMP)
-    #
-    # @staticmethod
-    # def _get_file_name_category_excel(cls, instance):
-    #     return cls._get_file_name(instance.base_folder_save, instance.save_name_excel_category_data,
-    #                               cls._EXPANSION_FILE_EXCEL)
-    # ------------------------------------------------------
-
 
     @staticmethod
     def _get_response(url: str,
@@ -192,69 +224,57 @@ class ParsTools:
 class BranchesDat(ParsTools):
     """Получаем данные о филиалах."""
 
-    def __init__(self, CITY_DATA: list[tuple], headers=None,
-                 save_name_dump_branch_data=None, save_name_excel_branch_data=None,
-                 imitation_ping_min: float = None, imitation_ping_max: float = None
-                 ):
+    def __init__(self):
+        pass
 
-        # ------------------------------------------------------
-        self._CITY_DATA = CITY_DATA
-        self._session = super()._SESSION
-        self._HEADERS = super()._BASE_HEADERS
+    def get_file_name_branch_dump(self, base_folder=None, name_file=None, extension=None):
+        """
+        Формирует путь для сохранения дампа по филиалам.
+        Если необходимо изменить путь, вызываем данный метод и перезаписываем переменные.
+        """
 
-        # Используем значения родительского класса, если не переданы новые значения:
-        self._DUMP = super()._EXTENSION_FILE_DUMP
-        self._EXCEL = super()._EXTENSION_FILE_EXCEL
+        self.base_folder = base_folder if base_folder else self._BASE_FOLDER_SAVE
+        self.name_file = name_file if name_file else self.get_file_name_branch()
+        self.extension = extension if extension else self._EXTENSION_FILE_DUMP
 
-        self._BRANCH_DATA_NAME = super()._FILE_NAME_BRANCH
+        return self._get_file_name_path(self.base_folder, self.name_file, self.extension)
 
-        self._PING_MIN = super()._IMITATION_PING_MIN
-        self._PING_MAX = super()._IMITATION_PING_MAX
+    def get_file_name_branch_excel(self, base_folder=None, name_file=None, extension=None):
+        """
+        Формирует путь для сохранения файла excel по филиалам.
+        Если необходимо изменить путь, вызываем данный метод и перезаписываем переменные.
+        """
 
-        self._BASE_FOLDER = super()._BASE_FOLDER_SAVE
+        self.base_folder = base_folder if base_folder else self._BASE_FOLDER_SAVE
+        self.name_file = name_file if name_file else self.get_file_name_branch()
+        self.extension = extension if extension else self._EXTENSION_FILE_EXCEL
 
-
-
-        # ------------------------------------------------------
-
-        self._headers = headers if headers else self._HEADERS
-
-
-        # Присваиваем имена файлов для сохранения либо переданные, либо по умолчанию из родительского класса:
-        self.save_name_dump_branch_data = save_name_dump_branch_data if save_name_dump_branch_data \
-            else self._BRANCH_DATA_NAME
-        self.save_name_excel_branch_data = save_name_excel_branch_data if save_name_excel_branch_data \
-            else self._BRANCH_DATA_NAME
-
-        # Имитация задержки:
-        self.imitation_ping_min = imitation_ping_min if imitation_ping_min else self._PING_MIN
-        self.imitation_ping_max = imitation_ping_max if imitation_ping_max else self._PING_MAX
-
-        self.save_name_dump = super()._get_file_name(folder=self._BASE_FOLDER, name=save_name_dump_branch_data,
-                                                     extension=self._DUMP)
-
-        self.save_name_excel = super()._get_file_name(folder=self._BASE_FOLDER, name=save_name_excel_branch_data,
-                                                      extension=self._EXCEL)
+        return self._get_file_name_path(self.base_folder, self.name_file, self.extension)
 
 
-    def get_shops(self):
 
-        # self.CITY_DATA: list[tuple],
-        # self.session = MvPars()._session,
-        # imitation_ping_min: float = self.imitation_ping_min,
 
-        # imitation_ping_max: float = self.imitation_ping_max,
 
-        # save_name_dump=get_file_name_branch_dump(),
-        # save_name_excel=get_file_name_branch_excel()
 
+        # cls._FILE_NAME_BRANCH = name_file if name_file else cls._FILE_NAME_BRANCH
+
+
+
+
+
+
+    # ------------------------------------------------------
+    def get_shops(self, city_data: list[tuple]=None, headers=None,
+                  name_dump=None, name_excel=None,
+                  ping_min: float = None, ping_max: float = None
+                  ):
 
         """
         # Парсинг кодов магазинов и адресов, необходимых для целевого запроса. Необходимо передать куки.
         :param session:
         :type session:
-        :param CITY_DATA: ['city_name', 'city_id', 'region_id', 'region_shop_id', 'timezone_offset']
-        :type CITY_DATA: DataFrame
+        :param city_data: ['city_name', 'city_id', 'region_id', 'region_shop_id', 'timezone_offset']
+        :type city_data: DataFrame
         :param imitation_ping_min: минимальная задержка
         :type imitation_ping_min: float
         :param ping_max: максимальная задержка
@@ -262,24 +282,41 @@ class BranchesDat(ParsTools):
         :return: DataFrame: ['id_branch', 'city_name_branch', , 'address_branch', 'city_id', 'region_id',
         'region_shop_id',
                 'timezone_offse'];
-            Если в CITY_DATA не найдется исходного города (исходные данные для целевых запросов по городам), тогда в \
+            Если в city_data не найдется исходного города (исходные данные для целевых запросов по городам), тогда в \
             колонки [['city_id', 'region_id', 'region_shop_id', 'timezone_offset']] = '0' (останутся с нулевыми \
             (по умолчанию) значениями).
 
         :rtype:  DataFrame
         """
+        self.session = self._SESSION
+
+        self.city_data  = city_data if city_data else self._CITY_DATA
+        self.headers = headers if headers else self._BASE_HEADERS
+
+        self.ping_min = ping_min if ping_min else self._IMITATION_PING_MIN
+        self.ping_max = ping_max if ping_max else self._IMITATION_PING_MAX
+
+        self.name_dump = name_dump if name_dump else self._FILE_NAME_BRANCH
+        self.name_excel = name_excel if name_excel else self._FILE_NAME_BRANCH
 
         # Запрос на коды магазинов и адреса. Необходимо передать куки.
         self.url_get_shops = "https://www.mvideo.ru/bff/region/getShops"
 
+        # save_name_dump=get_file_name_branch_dump()
+        # save_name_excel=get_file_name_branch_excel()
 
 
-        # _name_dump = f'../data/{save_name_dump}.joblib'
-        # _name_excel = f'../data/{save_name_excel}.xlsx'
+
+
+
+
+
+
+
 
 
         # 1. Преобразуем список картежей CITY_DATA в датафрейм:
-        df_city_data = pd.DataFrame(self._CITY_DATA,
+        df_city_data = pd.DataFrame(self.city_data,
                                     columns=['city_name', 'city_id', 'region_id', 'region_shop_id',
                                              'timezone_offset'])
 
@@ -309,22 +346,16 @@ class BranchesDat(ParsTools):
                              'MVID_TIMEZONE_OFFSET': time_zone}
 
             # 5. Случайная задержка для имитации человека:
-            time.sleep(random.uniform(imitation_ping_min, ping_max))
+            # time.sleep(random.uniform(imitation_ping_min, ping_max))
+            self._get_imitation_ping_params()
 
             # 6. Выполняем основной запрос на извлечение филиалов в конкретном городе:
             # (на вход бязательны: # MVID_CITY_ID, MVID_REGION_ID, MVID_REGION_SHOP, MVID_TIMEZONE_OFFSET):
-            data: json = MvPars.get_response(
-                url=self.url_get_shops,
-                headers=self._headers,
-                cookies=cookies_shops,
-                session=self._session)
+            data: json = self._get_response(url=self.url_get_shops, headers=self.headers, cookies=cookies_shops,
+                                            session=self.session)
             # print(f'data = {data}, {cookies_shops}')
 
-            # + прогрессбар tqdm
-            # 7. Перебираем массив JSON, содержащий информацию о филиалах
-            # for shop in tqdm(data['body']['shops'],  ncols=80,  ascii=True,  total=len(data['body']['shops']),
-            #                  desc=f'\n'
-            #                       f'Перебираем все филиалы в теле ответа GET запроса (json)'):
+
             print(f'\n'
                   f'Перебираем все филиалы в теле ответа GET запроса (json) для: {city_name_parent}')
 
@@ -419,9 +450,9 @@ class BranchesDat(ParsTools):
         # Сохраняем результат парсинга в дамп и в эксель:
 
         # _name_dump = '../data/df_full_branch_data.joblib'
-        save_damp = dump(df_full_branch_data, self.save_name_dump)
+        save_damp = dump(df_full_branch_data, self.get_file_name_branch_dump())
         # _name_excel = '../data/df_full_branch_data.xlsx'
-        df_full_branch_data.to_excel(self.save_name_excel, index=False)
+        df_full_branch_data.to_excel(self.get_file_name_branch_excel(), index=False)
 
         return df_full_branch_data
 
@@ -637,3 +668,47 @@ pars.
 #     def get_file_name_category_excel(self):
 #         return MvPars.get_file_name(self.base_folder_save, self.save_name_excel_category_data,
 #                                     self.__EXPANSION_FILE_EXCEL)
+
+
+
+#     # Методы для получения файловых путей с использованием значений по умолчанию
+#     def get_file_name_branch_dump(self):
+#         return self._get_file_name(self._BASE_FOLDER_SAVE, self._save_name_dump_branch_data, self._EXTENSION_FILE_DUMP)
+#
+#     def get_file_name_branch_excel(self):
+#         return self._get_file_name(self._BASE_FOLDER_SAVE, self._save_name_excel_branch_data, self._EXTENSION_FILE_EXCEL)
+#
+#     # Методы для изменения значений по умолчанию
+#     def set_save_name_dump_branch_data(self, new_name: str):
+#         self._save_name_dump_branch_data = new_name
+#
+#     def set_save_name_excel_branch_data(self, new_name: str):
+#         self._save_name_excel_branch_data = new_name
+#
+#     def set_ping_limits(self, ping_min: float, ping_max: float):
+#         self._imitation_ping_min = ping_min
+#         self._imitation_ping_max = ping_max
+
+
+# ------------------------------------------------------
+    # # instance - передаем экземпляр в метод, чтобы использовать его атрибуты.
+    # @staticmethod
+    # def _get_file_name_branch_dump():
+    #     return cls._get_file_name(base_folder_save, save_name_dump_branch_data,
+    #                               ParsTools()._EXPANSION_FILE_DUMP)
+    #
+    # @staticmethod
+    # def _get_file_name_branch_excel( ):
+    #     return cls._get_file_name(instance.base_folder_save, instance.save_name_excel_branch_data,
+    #                               cls._EXPANSION_FILE_EXCEL)
+    #
+    # @staticmethod
+    # def _get_file_name_category_dump( ):
+    #     return cls._get_file_name(instance.base_folder_save, instance.save_name_dump_category_data,
+    #                               cls._EXPANSION_FILE_DUMP)
+    #
+    # @staticmethod
+    # def _get_file_name_category_excel(cls, instance):
+    #     return cls._get_file_name(instance.base_folder_save, instance.save_name_excel_category_data,
+    #                               cls._EXPANSION_FILE_EXCEL)
+    # ------------------------------------------------------
