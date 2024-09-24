@@ -283,7 +283,7 @@ def encoded_request_input_params(branch_code: str, region_shop_code: str):
     # filter_params = f'&{results_keys_value[0]}&{results_keys_value[1]}' - не работает при передаче в параметры \
     # реквест, однако ошибку не вызывает.
 
-    filter_params = (results_keys_value[0], results_keys_value[1], results_keys_value[2])
+    # filter_params = (results_keys_value[0], results_keys_value[1], results_keys_value[2])
     filter_params = (f'&filterParams={results_keys_value[0]}'
                      f'&filterParams={results_keys_value[1]}'
                      f'&filterParams={results_keys_value[2]}')
