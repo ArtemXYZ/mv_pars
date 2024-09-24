@@ -25,7 +25,7 @@ load_dotenv(find_dotenv())  # Загружаем переменную окруж
 
 
 # drivername =  os.environ.get("CONFIG_MART_SV_DRIVERNAME")
-username  = os.environ.get("CONFIG_MART_SV_USERNAME")
+username = os.environ.get("CONFIG_MART_SV_USERNAME")
 password = os.environ.get("CONFIG_MART_SV_PASSWORD")
 host = os.environ.get("CONFIG_MART_SV_HOST")
 port = os.environ.get("CONFIG_MART_SV_PORT")

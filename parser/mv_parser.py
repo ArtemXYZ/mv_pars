@@ -27,86 +27,63 @@ from settings.configs import engine_mart_sv
 
 
 # ----------------------------------------------------------------------------------------------------------------------
-# ----------------------------------------------------------------------------------------------------------------------
-class MvPars:
-    """Парсинг количества товаров на остатке по филиалам по расписанию."""
+class ParsTools:
+    """Вспомогательные методы вынесены в отдельный класс."""
 
-    # Приватные переменные для расширений файлов:
-    __EXPANSION_FILE_DUMP = '.joblib'
-    __EXPANSION_FILE_EXCEL = '.xlsx'
-    # # Создаём сессию:
-    # __session = requests.Session()
+    # Создаём сессию:
+    _SESSION = requests.Session()
 
-    # ------------------------------------------------------
-    def __init__(self,
-                 *,
+    _BASE_FOLDER_SAVE = '../data/'
 
-                 session,
-                 # Параметры городов в API МВидео, типа: [('Бузулук',	'CityDE_31010',	'4', 'S972', '4'), ...]:
-                 city_data: list[tuple],  # CITY_DATA
+    # Переменные для расширений сохраняемых итоговых файлов:
+    _EXTENSION_FILE_DUMP = '.joblib'
+    _EXTENSION_FILE_EXCEL = '.xlsx'
 
-                 # В заголовках необходимо указать Юзер Агент для корректных запросов
-                 get_headers_base: dict,
+    _FILE_NAME_BRANCH = 'df_branch_data'
+    _FILE_NAME_CATEGORY = 'df_category_data'
 
-                 save_name_dump_branch_data='df_branch_data',
-                 save_name_excel_branch_data='df_branch_data',
+    _IMITATION_PING_MIN = 0.5
+    _IMITATION_PING_MAX = 2.5
 
-                 save_name_dump_category_data='df_category_data',
-                 save_name_excel_category_data='df_category_data',
+    _BASE_HEADERS: dict = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+        'Accept': 'application/json',
+        'Accept-Encoding': 'gzip, deflate, br, zstd',
+        'Referer': 'https://www.mvideo.ru/',
+        'Origin': 'https://www.mvideo.ru',
+    }
 
-                 imitation_ping_min: float = 0.5,
-                 imitation_ping_max: float = 1.5,
+    def __init__(self):
+        pass
 
-                 base_folder_save='../data/',
-                 ):
-
-        self.session = session
-        self.city_data = city_data
-        self.get_headers_base = get_headers_base
-
-        # Имена файла для сохранения филиалов:
-        self.save_name_dump_branch_data = save_name_dump_branch_data
-        self.save_name_excel_branch_data = save_name_excel_branch_data
-
-        # Имена файла для сохранения категорий:
-        self.save_name_dump_category_data = save_name_dump_category_data
-        self.save_name_excel_category_data = save_name_excel_category_data
-
-        # Пределы рандомной задержки для имитации реального пользователя:
-        self.imitation_ping_min = imitation_ping_min
-        self.imitation_ping_max = imitation_ping_max
-
-        # Базовая директория для сохранения файлов:
-        self.base_folder_save = base_folder_save
-
-    # ------------------------------------------------------
-    @classmethod
-    def _get_file_name(cls, folder=None, name=None, expansion=None):
+    @staticmethod
+    def _get_file_name(folder=None, name=None, extension=None):
         # create_path_name
-        return f'{folder}{name}{expansion}'
+        return f'{folder}{name}{extension}'
 
     # ------------------------------------------------------
-    # instance - передаем экземпляр в метод, чтобы использовать его атрибуты.
-    @classmethod
-    def _get_file_name_branch_dump(cls, instance):
-        return MvPars._get_file_name(instance.base_folder_save, instance.save_name_dump_branch_data,
-                                     cls.__EXPANSION_FILE_DUMP)
-
-    @classmethod
-    def _get_file_name_branch_excel(cls, instance):
-        return cls._get_file_name(instance.base_folder_save, instance.save_name_excel_branch_data,
-                                  cls.__EXPANSION_FILE_EXCEL)
-
-    @classmethod
-    def _get_file_name_category_dump(cls, instance):
-        return cls._get_file_name(instance.base_folder_save, instance.save_name_dump_category_data,
-                                  cls.__EXPANSION_FILE_DUMP)
-
-    @classmethod
-    def _get_file_name_category_excel(cls, instance):
-        return cls._get_file_name(instance.base_folder_save, instance.save_name_excel_category_data,
-                                  cls.__EXPANSION_FILE_EXCEL)
+    # # instance - передаем экземпляр в метод, чтобы использовать его атрибуты.
+    # @staticmethod
+    # def _get_file_name_branch_dump():
+    #     return cls._get_file_name(base_folder_save, save_name_dump_branch_data,
+    #                               ParsTools()._EXPANSION_FILE_DUMP)
+    #
+    # @staticmethod
+    # def _get_file_name_branch_excel( ):
+    #     return cls._get_file_name(instance.base_folder_save, instance.save_name_excel_branch_data,
+    #                               cls._EXPANSION_FILE_EXCEL)
+    #
+    # @staticmethod
+    # def _get_file_name_category_dump( ):
+    #     return cls._get_file_name(instance.base_folder_save, instance.save_name_dump_category_data,
+    #                               cls._EXPANSION_FILE_DUMP)
+    #
+    # @staticmethod
+    # def _get_file_name_category_excel(cls, instance):
+    #     return cls._get_file_name(instance.base_folder_save, instance.save_name_excel_category_data,
+    #                               cls._EXPANSION_FILE_EXCEL)
     # ------------------------------------------------------
+
 
     @staticmethod
     def get_response(url: str,
@@ -167,7 +144,6 @@ class MvPars:
 
     @staticmethod
     def encoded_request_input_params(branch_code: str, region_shop_code: str):
-
         """
          Формирует закодированные параметры запроса для фильтрации.
 
@@ -211,7 +187,56 @@ class MvPars:
         return filter_params
 
 
-class BranchesDat(MvPars):
+
+# ----------------------------------------------------------------------------------------------------------------------
+class BranchesDat(ParsTools):
+    """Получаем данные о филиалах."""
+
+    def __init__(self, CITY_DATA: list[tuple], headers=None,
+                 save_name_dump_branch_data=None, save_name_excel_branch_data=None,
+                 imitation_ping_min: float = None, imitation_ping_max: float = None
+                 ):
+
+        # ------------------------------------------------------
+        self.CITY_DATA = CITY_DATA
+        self.session = super()._SESSION
+        self.HEADERS = super()._BASE_HEADERS
+
+        # Используем значения родительского класса, если не переданы новые значения:
+        self.DUMP = super()._EXTENSION_FILE_DUMP
+        self.EXCEL = super()._EXTENSION_FILE_EXCEL
+
+        self.BRANCH_DATA_NAME = super()._FILE_NAME_BRANCH
+
+        self.PING_MIN = super()._IMITATION_PING_MIN
+        self.PING_MAX = super()._IMITATION_PING_MAX
+
+        self.BASE_FOLDER = super()._BASE_FOLDER_SAVE
+
+
+
+        # ------------------------------------------------------
+
+        self.headers = headers if headers else self.HEADERS
+
+
+        # Присваиваем имена файлов для сохранения либо переданные, либо по умолчанию из родительского класса:
+        self.save_name_dump_branch_data = save_name_dump_branch_data if save_name_dump_branch_data \
+            else self.BRANCH_DATA_NAME
+        self.save_name_excel_branch_data = save_name_excel_branch_data if save_name_excel_branch_data \
+            else self.BRANCH_DATA_NAME
+
+        # Имитация задержки:
+        self.imitation_ping_min = imitation_ping_min if imitation_ping_min else self.PING_MIN
+        self.imitation_ping_max = imitation_ping_max if imitation_ping_max else self.PING_MAX
+
+        self.save_name_dump = super()._get_file_name(folder=self.BASE_FOLDER, name=save_name_dump_branch_data,
+                                                     extension=self.DUMP)
+
+        self.save_name_excel = super()._get_file_name(folder=self.BASE_FOLDER, name=save_name_excel_branch_data,
+                                                      extension=self.EXCEL)
+
+
     def get_shops(self):
 
         # self.CITY_DATA: list[tuple],
@@ -235,7 +260,7 @@ class BranchesDat(MvPars):
         :param ping_max: максимальная задержка
         :type ping_max: float
         :return: DataFrame: ['id_branch', 'city_name_branch', , 'address_branch', 'city_id', 'region_id',
-         'region_shop_id',
+        'region_shop_id',
                 'timezone_offse'];
             Если в CITY_DATA не найдется исходного города (исходные данные для целевых запросов по городам), тогда в \
             колонки [['city_id', 'region_id', 'region_shop_id', 'timezone_offset']] = '0' (останутся с нулевыми \
@@ -254,7 +279,7 @@ class BranchesDat(MvPars):
 
 
         # 1. Преобразуем список картежей CITY_DATA в датафрейм:
-        df_city_data = pd.DataFrame(self.city_data,
+        df_city_data = pd.DataFrame(self.CITY_DATA,
                                     columns=['city_name', 'city_id', 'region_id', 'region_shop_id',
                                              'timezone_offset'])
 
@@ -264,8 +289,6 @@ class BranchesDat(MvPars):
         # Создаем список для добавления отсутствующих городов в CITY_DATA (справочные данные):
         bug_list_city_data = []
 
-        # print(f'df_city_data {df_city_data}')
-
         # print(f'==================== Подготовка данных для основного запроса ====================')
         # print(f'Перебираем города присутствия МВидео (датафрейм с исходными справочными данными):')
 
@@ -273,10 +296,6 @@ class BranchesDat(MvPars):
         # for index, row in df_city_data.iterrows():
         for index, row in tqdm(df_city_data.iterrows(), ncols=80, ascii=True,
                      desc=f'==================== Обработка данных для следующего города ===================='):
-                    # desc = f'================== Подготовка данных для основного запроса =================='):
-
-            # desc - задает статическое описание, которое будет отображаться на протяжении всего выполнения прогресс-бара.
-            # параметр total для того, чтобы знать, сколько итераций ему нужно отслеживать.
 
             city_id = row.get('city_id')
             region_id = row.get('region_id')
@@ -294,10 +313,11 @@ class BranchesDat(MvPars):
 
             # 6. Выполняем основной запрос на извлечение филиалов в конкретном городе:
             # (на вход бязательны: # MVID_CITY_ID, MVID_REGION_ID, MVID_REGION_SHOP, MVID_TIMEZONE_OFFSET):
-            data: json = MvPars.get_response(url=self.url_get_shops,
-                                                     headers=headers_base,
-                                                     cookies=cookies_shops,
-                                                     session=self._session)
+            data: json = MvPars.get_response(
+                url=self.url_get_shops,
+                headers=self.headers,
+                cookies=cookies_shops,
+                session=self.session)
             # print(f'data = {data}, {cookies_shops}')
 
             # + прогрессбар tqdm
@@ -329,7 +349,7 @@ class BranchesDat(MvPars):
                 # завершение прогресс-бара (Перебираем массив JSON)
                 # time.sleep(0.1) # - если выставить, то появляется время, но ломается структура принта. !
 
-        # Удаляем дубликаты илиалов ((если хотим забрать товар из города "А", \
+        # Удаляем дубликаты филиалов ((если хотим забрать товар из города "А", \
         # то на сайте доступны филиалы + из других городов, что пораждает дубли, \
         # тк. те же самые города что есть на выпадающем списоке(сайт): "Б", "С", "Д", итд..)  \
         # так же  будут(могут) содержать исходный город "А" если сменить геолокацию на сайте в "Б", "С", "Д" \
@@ -356,7 +376,7 @@ class BranchesDat(MvPars):
 
             # Сравниваем города полученные парсингом с городами в исходных данных, при совпадении \
             # подтягиваем недостающие значения (заполняем колонки city_id, region_id, region_shop_id, timezone_offset).
-            city_name_branch = city_name[2:] # г.Самара -> Самара
+            city_name_branch = city_name[2:]  # г.Самара -> Самара
 
 
             # Ищем в родительском датафрейме значения совпадающие по имени города (оставляем в дф только нужную строку):
@@ -389,28 +409,125 @@ class BranchesDat(MvPars):
                     # need to add reference cities
                     bug_list_city_data.append(city_name_branch)
 
-                # print(f'В родительском датафрейме тсутствуют справочные данныфе для города ({bug_list_city_data})')
+                # print(f'В родительском датафрейме отсутствуют справочные данныфе для города ({bug_list_city_data})')
                       # f'для сопоставления новых найденных филиалов.')
 
-        print(f'В родительском датафрейме тсутствуют справочные данныфе для города ({bug_list_city_data})')
+        print(f'В родительском датафрейме отсутствуют справочные данныфе для города ({bug_list_city_data})')
 
         df_full_branch_data = df_branch_data
         # -------------------------------------------------------------------
         # Сохраняем результат парсинга в дамп и в эксель:
 
         # _name_dump = '../data/df_full_branch_data.joblib'
-        save_damp = dump(df_full_branch_data, _name_dump)
+        save_damp = dump(df_full_branch_data, self.save_name_dump)
         # _name_excel = '../data/df_full_branch_data.xlsx'
-        df_full_branch_data.to_excel(_name_excel, index=False)
+        df_full_branch_data.to_excel(self.save_name_excel, index=False)
 
         return df_full_branch_data
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+class MvPars:
+    """Парсинг количества товаров на остатке по филиалам по расписанию."""
+
+    # # Приватные переменные для расширений файлов:
+    # __EXPANSION_FILE_DUMP = '.joblib'
+    # __EXPANSION_FILE_EXCEL = '.xlsx'
+    # # Создаём сессию:
+    # __session = requests.Session()
+
+    # ------------------------------------------------------
+    def __init__(self,
+                 *,
+
+                 session,
+                 # Параметры городов в API МВидео, типа: [('Бузулук',	'CityDE_31010',	'4', 'S972', '4'), ...]:
+                 city_data: list[tuple],  # CITY_DATA
+
+                 # В заголовках необходимо указать Юзер Агент для корректных запросов
+                 get_headers_base: dict,
+
+                 save_name_dump_branch_data='df_branch_data',
+                 save_name_excel_branch_data='df_branch_data',
+
+                 save_name_dump_category_data='df_category_data',
+                 save_name_excel_category_data='df_category_data',
+
+                 imitation_ping_min: float = 0.5,
+                 imitation_ping_max: float = 1.5,
+
+                 base_folder_save='../data/',
+                 ):
+
+        self.session = session
+        self.city_data = city_data
+        self.get_headers_base = get_headers_base
+
+        # Имена файла для сохранения филиалов:
+        self.save_name_dump_branch_data = save_name_dump_branch_data
+        self.save_name_excel_branch_data = save_name_excel_branch_data
+
+        # Имена файла для сохранения категорий:
+        self.save_name_dump_category_data = save_name_dump_category_data
+        self.save_name_excel_category_data = save_name_excel_category_data
+
+        # Пределы рандомной задержки для имитации реального пользователя:
+        self.imitation_ping_min = imitation_ping_min
+        self.imitation_ping_max = imitation_ping_max
+
+        # Базовая директория для сохранения файлов:
+        self.base_folder_save = base_folder_save
+
+    #     self._shop_data_collector = ShopDataCollector()
+    #     self._product_counter = ProductCounter()
+    #
+    # def get_shop_data(self):
+    #     return self._shop_data_collector.get_shop_data()
+    #
+    # def count_products(self):
+    #     return self._product_counter.count_products()
+
+    # ------------------------------------------------------
+    # @classmethod
+    # def _get_file_name(cls, folder=None, name=None, expansion=None):
+    #     # create_path_name
+    #     return f'{folder}{name}{expansion}'
+
+    # # ------------------------------------------------------
+    # # instance - передаем экземпляр в метод, чтобы использовать его атрибуты.
+    # @classmethod
+    # def _get_file_name_branch_dump(cls, instance):
+    #     return cls._get_file_name(instance.base_folder_save, instance.save_name_dump_branch_data,
+    #                                  cls.__EXPANSION_FILE_DUMP)
+    #
+    # @classmethod
+    # def _get_file_name_branch_excel(cls, instance):
+    #     return cls._get_file_name(instance.base_folder_save, instance.save_name_excel_branch_data,
+    #                               cls.__EXPANSION_FILE_EXCEL)
+    #
+    # @classmethod
+    # def _get_file_name_category_dump(cls, instance):
+    #     return cls._get_file_name(instance.base_folder_save, instance.save_name_dump_category_data,
+    #                               cls.__EXPANSION_FILE_DUMP)
+    #
+    # @classmethod
+    # def _get_file_name_category_excel(cls, instance):
+    #     return cls._get_file_name(instance.base_folder_save, instance.save_name_excel_category_data,
+    #                               cls.__EXPANSION_FILE_EXCEL)
+    # # ------------------------------------------------------
+
+
+
+
+
 
 
 
 
 
 # MvPars.get_response()
-
+pars= BranchesDat(CITY_DATA)
+pars.get_shops()
 
 # ----------------------------------------------------------------------------------------------------------------------
 #     @staticmethod
