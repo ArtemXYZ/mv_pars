@@ -86,7 +86,7 @@ class ParsTools:
 
 
     @staticmethod
-    def get_response(url: str,
+    def _get_response(url: str,
                      headers: dict = None, params: dict = None, cookies: dict = None, session=None,
                      json_type=True) -> object:
         """Универсальная функция для запросов с передаваемыми параметрами. """
@@ -120,7 +120,7 @@ class ParsTools:
         return data
 
     @staticmethod
-    def base64_decoded(url_param_string):
+    def _base64_decoded(url_param_string):
         """
         Расшифровка параметров URL.
         :param url_param_string: (base64_string)
@@ -143,7 +143,7 @@ class ParsTools:
             return None
 
     @staticmethod
-    def encoded_request_input_params(branch_code: str, region_shop_code: str):
+    def _encoded_request_input_params(branch_code: str, region_shop_code: str):
         """
          Формирует закодированные параметры запроса для фильтрации.
 
@@ -198,43 +198,43 @@ class BranchesDat(ParsTools):
                  ):
 
         # ------------------------------------------------------
-        self.CITY_DATA = CITY_DATA
-        self.session = super()._SESSION
-        self.HEADERS = super()._BASE_HEADERS
+        self._CITY_DATA = CITY_DATA
+        self._session = super()._SESSION
+        self._HEADERS = super()._BASE_HEADERS
 
         # Используем значения родительского класса, если не переданы новые значения:
-        self.DUMP = super()._EXTENSION_FILE_DUMP
-        self.EXCEL = super()._EXTENSION_FILE_EXCEL
+        self._DUMP = super()._EXTENSION_FILE_DUMP
+        self._EXCEL = super()._EXTENSION_FILE_EXCEL
 
-        self.BRANCH_DATA_NAME = super()._FILE_NAME_BRANCH
+        self._BRANCH_DATA_NAME = super()._FILE_NAME_BRANCH
 
-        self.PING_MIN = super()._IMITATION_PING_MIN
-        self.PING_MAX = super()._IMITATION_PING_MAX
+        self._PING_MIN = super()._IMITATION_PING_MIN
+        self._PING_MAX = super()._IMITATION_PING_MAX
 
-        self.BASE_FOLDER = super()._BASE_FOLDER_SAVE
+        self._BASE_FOLDER = super()._BASE_FOLDER_SAVE
 
 
 
         # ------------------------------------------------------
 
-        self.headers = headers if headers else self.HEADERS
+        self._headers = headers if headers else self._HEADERS
 
 
         # Присваиваем имена файлов для сохранения либо переданные, либо по умолчанию из родительского класса:
         self.save_name_dump_branch_data = save_name_dump_branch_data if save_name_dump_branch_data \
-            else self.BRANCH_DATA_NAME
+            else self._BRANCH_DATA_NAME
         self.save_name_excel_branch_data = save_name_excel_branch_data if save_name_excel_branch_data \
-            else self.BRANCH_DATA_NAME
+            else self._BRANCH_DATA_NAME
 
         # Имитация задержки:
-        self.imitation_ping_min = imitation_ping_min if imitation_ping_min else self.PING_MIN
-        self.imitation_ping_max = imitation_ping_max if imitation_ping_max else self.PING_MAX
+        self.imitation_ping_min = imitation_ping_min if imitation_ping_min else self._PING_MIN
+        self.imitation_ping_max = imitation_ping_max if imitation_ping_max else self._PING_MAX
 
-        self.save_name_dump = super()._get_file_name(folder=self.BASE_FOLDER, name=save_name_dump_branch_data,
-                                                     extension=self.DUMP)
+        self.save_name_dump = super()._get_file_name(folder=self._BASE_FOLDER, name=save_name_dump_branch_data,
+                                                     extension=self._DUMP)
 
-        self.save_name_excel = super()._get_file_name(folder=self.BASE_FOLDER, name=save_name_excel_branch_data,
-                                                      extension=self.EXCEL)
+        self.save_name_excel = super()._get_file_name(folder=self._BASE_FOLDER, name=save_name_excel_branch_data,
+                                                      extension=self._EXCEL)
 
 
     def get_shops(self):
@@ -279,7 +279,7 @@ class BranchesDat(ParsTools):
 
 
         # 1. Преобразуем список картежей CITY_DATA в датафрейм:
-        df_city_data = pd.DataFrame(self.CITY_DATA,
+        df_city_data = pd.DataFrame(self._CITY_DATA,
                                     columns=['city_name', 'city_id', 'region_id', 'region_shop_id',
                                              'timezone_offset'])
 
@@ -315,9 +315,9 @@ class BranchesDat(ParsTools):
             # (на вход бязательны: # MVID_CITY_ID, MVID_REGION_ID, MVID_REGION_SHOP, MVID_TIMEZONE_OFFSET):
             data: json = MvPars.get_response(
                 url=self.url_get_shops,
-                headers=self.headers,
+                headers=self._headers,
                 cookies=cookies_shops,
-                session=self.session)
+                session=self._session)
             # print(f'data = {data}, {cookies_shops}')
 
             # + прогрессбар tqdm
@@ -528,7 +528,7 @@ class MvPars:
 # MvPars.get_response()
 pars= BranchesDat(CITY_DATA)
 pars.get_shops()
-
+pars.
 # ----------------------------------------------------------------------------------------------------------------------
 #     @staticmethod
 #     def get_response(self,
