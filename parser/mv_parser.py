@@ -19,7 +19,7 @@ from bs4 import BeautifulSoup
 from joblib import dump
 from joblib import load
 
-# from tqdm import tqdm
+from tqdm import tqdm
 
 from parser.params_bank import *  # Все куки хедеры и параметры
 from settings.configs import engine_mart_sv
@@ -109,7 +109,7 @@ class ParsTools:
         """
         cls._IMITATION_PING_MAX = ping_max if ping_max else cls._IMITATION_PING_MAX
 
-        return cls._IMITATION_PING_MIN
+        return cls._IMITATION_PING_MAX
 
 
     @staticmethod
@@ -219,7 +219,6 @@ class ParsTools:
         return filter_params
 
 
-
 # ----------------------------------------------------------------------------------------------------------------------
 class BranchesDat(ParsTools):
     """Получаем данные о филиалах."""
@@ -251,20 +250,8 @@ class BranchesDat(ParsTools):
 
         return self._get_file_name_path(self.base_folder, self.name_file, self.extension)
 
-
-
-
-
-
-        # cls._FILE_NAME_BRANCH = name_file if name_file else cls._FILE_NAME_BRANCH
-
-
-
-
-
-
     # ------------------------------------------------------
-    def get_shops(self, city_data: list[tuple]=None, headers=None,
+    def get_shops(self, city_data: list[tuple] = None, headers=None,
                   name_dump=None, name_excel=None,
                   ping_min: float = None, ping_max: float = None
                   ):
@@ -290,7 +277,7 @@ class BranchesDat(ParsTools):
         """
         self.session = self._SESSION
 
-        self.city_data  = city_data if city_data else self._CITY_DATA
+        self.city_data = city_data if city_data else self._CITY_DATA
         self.headers = headers if headers else self._BASE_HEADERS
 
         self.ping_min = ping_min if ping_min else self._IMITATION_PING_MIN
@@ -301,19 +288,6 @@ class BranchesDat(ParsTools):
 
         # Запрос на коды магазинов и адреса. Необходимо передать куки.
         self.url_get_shops = "https://www.mvideo.ru/bff/region/getShops"
-
-        # save_name_dump=get_file_name_branch_dump()
-        # save_name_excel=get_file_name_branch_excel()
-
-
-
-
-
-
-
-
-
-
 
         # 1. Преобразуем список картежей CITY_DATA в датафрейм:
         df_city_data = pd.DataFrame(self.city_data,
@@ -332,14 +306,13 @@ class BranchesDat(ParsTools):
         # 3. Перебираем построчно датафрейм df_city_data с исходными справочными данными для основного запроса:
         # for index, row in df_city_data.iterrows():
         for index, row in tqdm(df_city_data.iterrows(), ncols=80, ascii=True,
-                     desc=f'==================== Обработка данных для следующего города ===================='):
+                               desc=f'==================== Обработка данных для следующего города ===================='):
 
             city_id = row.get('city_id')
             region_id = row.get('region_id')
             region_shop_id = row.get('region_shop_id')
             time_zone = row.get('timezone_offset')
             city_name_parent = row.get('city_name')
-
 
             # 4. Конструктор куков:
             cookies_shops = {'MVID_CITY_ID': city_id, 'MVID_REGION_ID': region_id, 'MVID_REGION_SHOP': region_shop_id,
@@ -355,13 +328,11 @@ class BranchesDat(ParsTools):
                                             session=self.session)
             # print(f'data = {data}, {cookies_shops}')
 
-
             print(f'\n'
                   f'Перебираем все филиалы в теле ответа GET запроса (json) для: {city_name_parent}')
 
             time.sleep(0.1)
             for namb, shop in enumerate(data['body']['shops']):
-
                 # Можно добавить проверки на пустоту, но пока что не требуется.
                 ...
 
@@ -372,7 +343,6 @@ class BranchesDat(ParsTools):
 
                 print(f'{namb}. id_branch: {id_branch}, city_name_branch: {city_name_branch}, '
                       f'address_branch: {address_branch}')
-
 
                 # Добавление новой строки в датафрейм: - новое
                 df_branch_data.loc[len(df_branch_data.index)] = [id_branch, city_name_branch, address_branch]
@@ -395,7 +365,7 @@ class BranchesDat(ParsTools):
         # г.Бирск             # Уфа                 # Бирск, ул. Мира, д.143В, ТК «Семейный», Эльдорадо
 
         # Удалить дубликаты в DataFrame, оставляя только первые значения - параметр keep='first'
-        df_branch_data.drop_duplicates(subset=['id_branch'],  keep='first', inplace=True)
+        df_branch_data.drop_duplicates(subset=['id_branch'], keep='first', inplace=True)
 
         # Добавляем новые колонки со значением 0:
         df_branch_data[['city_id', 'region_id', 'region_shop_id', 'timezone_offset']] = '0'
@@ -408,7 +378,6 @@ class BranchesDat(ParsTools):
             # Сравниваем города полученные парсингом с городами в исходных данных, при совпадении \
             # подтягиваем недостающие значения (заполняем колонки city_id, region_id, region_shop_id, timezone_offset).
             city_name_branch = city_name[2:]  # г.Самара -> Самара
-
 
             # Ищем в родительском датафрейме значения совпадающие по имени города (оставляем в дф только нужную строку):
             city_row_parent = df_city_data[df_city_data['city_name'] == city_name_branch]
@@ -441,7 +410,7 @@ class BranchesDat(ParsTools):
                     bug_list_city_data.append(city_name_branch)
 
                 # print(f'В родительском датафрейме отсутствуют справочные данныфе для города ({bug_list_city_data})')
-                      # f'для сопоставления новых найденных филиалов.')
+                # f'для сопоставления новых найденных филиалов.')
 
         print(f'В родительском датафрейме отсутствуют справочные данныфе для города ({bug_list_city_data})')
 
@@ -557,9 +526,11 @@ class MvPars:
 
 
 # MvPars.get_response()
-pars= BranchesDat(CITY_DATA)
-pars.get_shops()
-pars.
+# pars = BranchesDat()
+# pars.get_shops()
+# a = pars.ping_min(0,3) # Добавить в методы разные проверки.
+# pars.name_file
+
 # ----------------------------------------------------------------------------------------------------------------------
 #     @staticmethod
 #     def get_response(self,
