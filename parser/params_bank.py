@@ -9,6 +9,15 @@ headers_base = {
 }
 
 
+BASE_HEADERS = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+    'Accept': 'application/json',
+    'Accept-Encoding': 'gzip, deflate, br, zstd',
+    'Referer': 'https://www.mvideo.ru/',
+    'Origin': 'https://www.mvideo.ru',
+}
+
+
 # https://www.mvideo.ru/bff/region/getShops  +
 # cookies_branches = {
 #     "MVID_CITY_ID": "CityCZ_6276",
