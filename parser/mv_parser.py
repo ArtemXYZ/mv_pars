@@ -32,7 +32,12 @@ class ParsTools:
 
     # Создаём сессию:
     _SESSION = requests.Session()
+    _NAME_TABLE='current_stock_mvideo'
+    _SCHEMA='inlet'
+    _CON=engine_mart_sv
+
     _CITY_DATA = CITY_DATA
+    _CATEGORY_ID_DATA = CATEGORY_ID_DATA
 
     _BASE_FOLDER_SAVE = '../data/'
 
@@ -153,7 +158,6 @@ class ParsTools:
 
     # __________________________________________________________________
     # __________________________________________________________________ TOOLS
-
     @classmethod
     def _check_path_file(cls, path_file):
         """
@@ -187,10 +191,9 @@ class ParsTools:
         # _name_excel = '../data/df_full_branch_data.xlsx'
         df.to_excel(path_file_excel, index=False)
 
-        # return df
 
-    @staticmethod
-    def _get_response(url: str,
+    @classmethod
+    def _get_response(cls, url: str,
                      headers: dict = None, params: dict = None, cookies: dict = None, session=None,
                      json_type=True) -> object:
         """Универсальная функция для запросов с передаваемыми параметрами. """
@@ -289,7 +292,90 @@ class ParsTools:
                          f'&filterParams={results_keys_value[2]}')
 
         return filter_params
+
+    @classmethod
+    def _count_product_request(cls, category_id, id_branch, city_id, region_id, region_shop_id, timezone_offset):
+
+        """
+        # ---------------- Расшифрованные filterParams:
+        # 1. ["Только в наличии","-9","Да"] = 'WyLQotC%2B0LvRjNC60L4g0LIg0L3QsNC70LjRh9C40LgiLCItOSIsItCU0LAiXQ%3D%3D'
+        # 2. ["Забрать из магазина по адресу","-12","S668"] =  \
+        WyLQl9Cw0LHRgNCw0YLRjCDQuNC3INC80LDQs9Cw0LfQuNC90LAg0L%2FQviDQsNC00YDQtdGB0YMiLCItMTIiLCJTNjY4Il0%3D
+        # 3. '["Забрать через 15 минут","-11","S972"]' = \
+         WyLQl9Cw0LHRgNCw0YLRjCDRh9C10YDQtdC3IDE1INC80LjQvdGD0YIiLCItMTEiLCJTOTcyIl0%3D
+
+        :param categoryId:
+        :type categoryId:
+        :return:
+        :rtype:
+        """
+
+        # Формирование закодированных параметров фильтрации в запросе:
+        result_filters_params = cls._encoded_request_input_params(id_branch, region_shop_id)
+
+        # --------------------------------------- Переменные:
+        # Базовая строка подключения:
+        url_count = f'https://www.mvideo.ru/bff/products/listing?categoryId={category_id}&offset=0&limit=1'
+        # categoryId - обязательно
+
+        # Конструктор куков:
+        cookies_count_product = {
+            'MVID_CITY_ID': city_id,
+            'MVID_REGION_ID': region_id,
+            'MVID_REGION_SHOP': region_shop_id,
+            'MVID_TIMEZONE_OFFSET': timezone_offset,
+        }
+
+        # Полная строка с фильтрами:
+        full_url = f'{url_count}{result_filters_params}'
+        # --------------------------------------- Переменные:
+
+        # ---------------------------------------- Выполняем основной запрос:
+        # Запрос на извлечение count_product (на вход бязательны: \
+        # MVID_CITY_ID, MVID_REGION_ID, MVID_REGION_SHOP, MVID_TIMEZONE_OFFSET):
+        data = cls._get_response(url=full_url, headers=cls._BASE_HEADERS, params=None,  # косяк в result_filters_params
+                                   cookies=cookies_count_product, session=cls._SESSION)
+
+        return data
     # __________________________________________________________________
+    @classmethod
+    def load_result_pars_in_db(cls, name_branch_dump):
+        """
+        Метод сохраняет датафрейм в базу данных, предварительно загрузив дамп результатов парсинга.
+        """
+
+        # ------------------------------------ Загрузка дампа результатов парсинга ------------------------------------
+        if os.path.isfile(name_branch_dump):  # Если файл существует,тогда: True
+
+            # ------------------------------------
+            load_damp_df = load(name_branch_dump)  # Тогда загружаем дамп
+            print("Дамп успешно загружен!")
+
+            current_time  = datetime.now()
+
+
+            # Форматируем время в строку
+            formatted_time = current_time.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
+            # Добавляем новые колонки со значением 0:
+            load_damp_df['dt_load'] = formatted_time
+            # print(load_damp_df)
+            # ------------------------------------
+            print("Соединение с сервером для загрузки.")
+            # ------------------------------------
+            # Загрузка итогового DataFrame в базу данных:
+            load_damp_df.to_sql(name=cls._NAME_TABLE, schema=cls._SCHEMA, con=cls._CON,
+                                if_exists='replace', index=False, method='multi')
+            # Выбираем метод 'replace' для перезаписи таблицы или 'append' для добавления данных
+            # method='multi' используется для оптимизации вставки большого объема данных.
+
+            # Закрытие соединения
+            cls._CON.dispose()
+
+            print("Данные успешно сохранены в базу данных!")
+
+        else:
+            load_damp_df = None
+            print(f'Отсутствует файл дампа в директории: "{name_branch_dump}"!')
 # ----------------------------------------------------------------------------------------------------------------------
 # ***
 # ----------------------------------------------------------------------------------------------------------------------
@@ -462,27 +548,219 @@ class BranchesDat(ParsTools):
 
         df_full_branch_data = df_branch_data
 
-        # Проверка (создание) пути к файлу:
+        # Получаем пути к файлам:
         dump_path = self.get_path_file_branch_dump()
         excel_path = self.get_path_file_branch_excel()
 
         # Сохранение exce/dump:
         self._save_data(df=df_full_branch_data, path_file_dump=dump_path, path_file_excel=excel_path)
 
-
-
+        return df_full_branch_data
 # ----------------------------------------------------------------------------------------------------------------------
 # ***
 # ----------------------------------------------------------------------------------------------------------------------
 class СategoryDat(BranchesDat):
     """Получаем данные о филиалах."""
 
+
     def __init__(self):
         pass
 
+    # __________________________________________________________________ PATH_FILES
+    @classmethod
+    def get_path_file_category_dump(cls):
+        """Формирует путь для сохранения дампа по категориям."""
+        return f"{cls._BASE_FOLDER_SAVE}{cls._FILE_NAME_CATEGORY}{cls._EXTENSION_FILE_DUMP}"
+
+    @classmethod
+    def get_path_file_category_excel(cls):
+        """Формирует путь для сохранения файла excel по категориям."""
+        return f"{cls._BASE_FOLDER_SAVE}{cls._FILE_NAME_CATEGORY}{cls._EXTENSION_FILE_EXCEL}"
+    # __________________________________________________________________
+    # __________________________________________________________________ CATEGORY
+    def get_category(self, load_damp=True):
+
+        """
+        Итоговая функция полного цикла обработки (сбора с сайта МВидео)
+        :param session:
+        :type session:
+        :param load_damp:  файл дампа.
+        :type load_damp:
+        :param imitation_ping_min: минимальная задержка
+        :type imitation_ping_min: float
+        :param ping_max: максимальная задержка
+        :type ping_max: float
+        :return: DataFrame: код магазина, категория, количество. ['id_branch','name_category','count']
+        :rtype:  DataFrame
+        """
+
+        if not isinstance(load_damp, bool):
+            raise ValueError('Параметр "load_damp" должн иметь тип данных bool.')
+
+        _dump_path = self.get_path_file_branch_dump()
+
+
+        # _name_branch_dump = f'../data/{save_name_branch_dump}.joblib'
+        # _name_branch_excel = f'../data/{save_name_branch_excel}.xlsx'
+        # _name_category_dump = f'../data/{save_name_category_dump}.joblib'
+        # _name_category_excel = f'../data/{save_name_category_excel}.xlsx'
+
+
+        # Кортеж категорий на исключяение (наполнение через итерации):
+        bag_category_tuple = ()
+
+        # Создаем целевой  итоговый датафрейм, куда будут сохранены данные типа: код магазина, категория (имя),
+        # количество.
+        df_fin_category_data = pd.DataFrame(columns=['id_branch','name_category','count', 'category_id'])
+
+        # Bключать только когда необходимо повторно собрать данные.
+        if load_damp is False:
+
+            # 1) Подготовка данных (атрибуты филиалов) для основной функции count_product_request:
+            # ----------------------------------------------------------
+            df_full_branch_data = self.get_shops()
+            if df_full_branch_data is None:
+                reason = (f'Работа функции "get_shops" завершилась неудачей.')
+            # pr.pprint(df_full_branch_data)
+            # ----------------------------------------------------------
+
+        # в остальных случаях загружаем дамп данных.
+        elif load_damp is True:
+
+            # _name_dump = '../data/df_full_branch_data.joblib'
+            if os.path.isfile(_dump_path):  # Если файл существует,тогда: True
+
+                # _name_dump = '../data/df_full_branch_data.joblib'
+                df_full_branch_data = load(_dump_path)  # Тогда загружаем дамп
+            else:
+                df_full_branch_data = None
+                reason =(f'Отсутствует файл дампа в директории: {_dump_path}.\n'
+                         f'Запустите функцию повторно, установив параметр "load_damp: bool=False", что бы запустить '
+                         f'парсинг о филиалах.\n'
+                         f'Это необходимо для выполнения основного ззапроса к данным о количестве товара по категориям')
+
+
+        # Если есть результат загрузки дампа данных по филиалам или парсинга таких данных:
+        if df_full_branch_data is not None:
+
+            # 2) Подготовка данных (очистка и иерации):
+            # ----------------------------------------------------------
+            # Удаляем строки, где city_id равен 0
+            df_branch_not_null = df_full_branch_data[df_full_branch_data['city_id'] != 0]
+            # Если нужно удалить строки в исходном DataFrame (на месте):
+            # df_full_branch_data.drop(df_full_branch_data[df_full_branch_data['city_id'] == 0].index, inplace=True)
+
+            # Создаем целевой сириес для id категорий: - лишком тяжелый, проще обычный список перебрать.
+            # df_category_id_data = pd.DataFrame(CATEGORY_ID_DATA, columns=['category_id'])
+            # ----------------------------------------------------------
+
+            # 3) Основная конструкция перебирания филиалов по категориям\
+            # 3.1) Итерируем по категориям (на каждую категорию итерируем по филиалам) :
+            # ----------------------------------------------------------
+
+            # for row in CATEGORY_ID_DATA:
+
+            for row in tqdm(self._CATEGORY_ID_DATA,  total=len(self._CATEGORY_ID_DATA), ncols=80, ascii=True,
+                            desc=f'==================== Обработка данных по категории ===================='):
+
+                time.sleep(0.1) #\n
+                # Забирает id категории:
+                category_id = row
+
+                print(f'\n==================== Категория {category_id} ====================')
+                print(f'==================== Обработка данных филиалов  ====================')
+
+                # 3.1.1) Итерируем по филиалам и по конкретной категории:
+                for index, row in df_branch_not_null.iterrows():
+                # for index, row in tqdm(df_branch_not_null.iterrows(), ncols=80, ascii=True,
+                #          desc=f'=================================================================='):
+                         # desc=f'==================== Обработка данных филиала ===================='):
+
+                    # Достаем данные из строки датафрейма:
+                    id_branch = row.get('id_branch')
+                    city_name_branch = row.get('city_name_branch')
+                    city_id = row.get('city_id')
+                    region_id = row.get('region_id')
+                    region_shop_id = row.get('region_shop_id')
+                    timezone_offset = row.get('timezone_offset')
+
+                    # Случайная задержка для имитации человека:
+                    time.sleep(random.uniform(imitation_ping_min, imitation_ping_ping_max))
+
+                    # 3.1.1.1) Основной запрос (возвращает json (айтон)):
+                    json_python = self._count_product_request(category_id, id_branch, city_id, region_id,
+                                                              region_shop_id, timezone_offset)
+                    # print(json_python)
+                    # ----------------------------------------------------------
+
+
+                    # 4) Обработка и сохранение результатов (достаем нужные категории и сохраняем в итоговый датафрейм)
+                    # ----------------------------------------------------------
+                    if json_python:
+                        # Обращаемся к родительскому ключу где хранятся категории товаров:
+                        all_category_in_html = json_python['body']['filters'][0]['criterias']
+                        # print(f'Все категории на странице: {all_category_in_html}')
+
+                        try:
+                            # Перебираем родительскую директорию, забираем значения категорий и количество:
+                            for row_category in all_category_in_html:
+                                count = row_category['count']  # Количество по категории (если != 'Да' \
+                                # то здесь все равно будет None,  условие проверки не нужно, опускаем)
+
+                                # Наименование категории: если count равно 'Да', то name_category также будет None
+                                name_category = None if row_category['name'] == 'Да' else row_category['name']
+                                # name_category = row_category['name']
+                                # Наименованеи категории:
+
+                                new_row = {'id_branch': id_branch, 'name_category': name_category, 'count': count,
+                                           'category_id': category_id}
+
+                                # print(f'count: {count}, name {name_category}')
+                                print(f'{index}. {new_row}')
+                                # Сохраняем в целевой итоговый датафырейм:
+                                # Добавляем новую строку с помощью loc[], где индексом будет len(df_fin_category_data)
+                                df_fin_category_data.loc[len(df_fin_category_data)] = new_row
+
+                        except (KeyError, IndexError):
+                            # Срабатывает, если ключ 'criterias' не существует или его невозможно получить
+                            print(f'По category_id {category_id} - нет нужных тегов, пропускаем ее.')
+
+                            # Добавление в общий кортеж багов.
+                            bag_category_tuple =  bag_category_tuple + (category_id,)
+
+                    # Итог код магазина, категория, количество. ['id_branch','name_category','count']
+                    # ----------------------------------------------------------
+
+            # Если по конкретной категории не нашлись нужные теги, такая категория добавится в стписок. Далее эти категории
+            # можно исключить из парсинга.
+            print(f'Список лишних категорий: {bag_category_tuple}.')
+
+            # Получаем пути к файлам:
+            dump_path = self.get_path_file_category_dump()
+            excel_path = self.get_path_file_category_excel()
+
+            # # Сохраняем результат парсинга в дамп и в эксель:
+            self._save_data(df=df_fin_category_data, path_file_dump=dump_path, path_file_excel=excel_path)
+
+        # Парсинг остановлен по причине отсутствия файла дампа или подготовка данных в "get_shops" завершилась неудачей:
+        else:
+            print(f'Запуск парсинга остановлен по причине: {reason}')
+            df_fin_category_data = None
+
+        # Итог код магазина, категория, количество. ['id_branch','name_category','count']
+        return df_fin_category_data
+    # __________________________________________________________________
 
 
 
+
+
+
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+# ***
+# ----------------------------------------------------------------------------------------------------------------------
 # class MvPars:
 #     """Парсинг количества товаров на остатке по филиалам по расписанию."""
 #
@@ -539,7 +817,10 @@ class СategoryDat(BranchesDat):
 #     # def count_products(self):
 #     #     return self._product_counter.count_products()
 
-
+    # Сохраняем в бд:
+    # ----------------------------------------------------------
+    # Функция сохраняет датафрейм в базу данных, предварительно загрузив дамп результатов парсинга:
+    load_result_pars_in_db(_name_branch_dump)
 # ----------------------------------------------------------------------------------------------------------------------
 prs = BranchesDat()
 prs.set_base_folder_save('../data2/')
