@@ -7,18 +7,15 @@ import requests
 import pandas as pd
 from pandas import DataFrame
 import time
+import schedule
 from datetime import datetime
 import random
 import json
-
 import base64
 import urllib.parse
-
 from bs4 import BeautifulSoup
-
 from joblib import dump
 from joblib import load
-
 from tqdm import tqdm
 
 from parser.params_bank import *  # Все куки хедеры и параметры
@@ -34,7 +31,7 @@ class ParsTools:
     _SESSION = requests.Session()
     _NAME_TABLE='current_stock_mvideo'
     _SCHEMA='inlet'
-    _CON=engine_mart_sv
+    # _CON=engine_mart_sv
 
     _CITY_DATA = CITY_DATA
     _CATEGORY_ID_DATA = CATEGORY_ID_DATA
@@ -149,6 +146,7 @@ class ParsTools:
 
         cls._IMITATION_PING_MIN = min_ping
         cls._IMITATION_PING_MAX = max_ping
+        print(f'Устанановлены новые значения пределов задержки: {min_ping} - {max_ping}')
 
     @classmethod
     def _set_time_sleep_random(cls):
@@ -338,44 +336,42 @@ class ParsTools:
 
         return data
     # __________________________________________________________________
-    @classmethod
-    def load_result_pars_in_db(cls, name_branch_dump):
-        """
-        Метод сохраняет датафрейм в базу данных, предварительно загрузив дамп результатов парсинга.
-        """
-
-        # ------------------------------------ Загрузка дампа результатов парсинга ------------------------------------
-        if os.path.isfile(name_branch_dump):  # Если файл существует,тогда: True
-
-            # ------------------------------------
-            load_damp_df = load(name_branch_dump)  # Тогда загружаем дамп
-            print("Дамп успешно загружен!")
-
-            current_time  = datetime.now()
-
-
-            # Форматируем время в строку
-            formatted_time = current_time.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
-            # Добавляем новые колонки со значением 0:
-            load_damp_df['dt_load'] = formatted_time
-            # print(load_damp_df)
-            # ------------------------------------
-            print("Соединение с сервером для загрузки.")
-            # ------------------------------------
-            # Загрузка итогового DataFrame в базу данных:
-            load_damp_df.to_sql(name=cls._NAME_TABLE, schema=cls._SCHEMA, con=cls._CON,
-                                if_exists='replace', index=False, method='multi')
-            # Выбираем метод 'replace' для перезаписи таблицы или 'append' для добавления данных
-            # method='multi' используется для оптимизации вставки большого объема данных.
-
-            # Закрытие соединения
-            cls._CON.dispose()
-
-            print("Данные успешно сохранены в базу данных!")
-
-        else:
-            load_damp_df = None
-            print(f'Отсутствует файл дампа в директории: "{name_branch_dump}"!')
+    # @classmethod
+    # def load_result_pars_in_db(cls, name_path_file_dump):
+    #     """
+    #     Метод сохраняет датафрейм в базу данных, предварительно загрузив дамп результатов парсинга.
+    #     """
+    #
+    #     # ------------------------------------ Загрузка дампа результатов парсинга ------------------------------------
+    #     if os.path.isfile(name_path_file_dump):  # Если файл существует,тогда: True
+    #         # ------------------------------------
+    #         load_damp_df = load(name_path_file_dump)  # Тогда загружаем дамп
+    #         print("Дамп успешно загружен!")
+    #
+    #         current_time  = datetime.now()
+    #
+    #         # Форматируем время в строку
+    #         formatted_time = current_time.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
+    #         # Добавляем новые колонки со значением 0:
+    #         load_damp_df['dt_load'] = formatted_time
+    #         # print(load_damp_df)
+    #         # ------------------------------------
+    #         print("Загрузка DataFrame в базу данных.")
+    #         # ------------------------------------
+    #         # Загрузка итогового DataFrame в базу данных:
+    #         load_damp_df.to_sql(name=cls._NAME_TABLE, schema=cls._SCHEMA, con=cls._CON,
+    #                             if_exists='replace', index=False, method='multi')
+    #         # Выбираем метод 'replace' для перезаписи таблицы или 'append' для добавления данных
+    #         # method='multi' используется для оптимизации вставки большого объема данных.
+    #
+    #         # Закрытие соединения
+    #         cls._CON.dispose()
+    #
+    #         print("Данные успешно сохранены в базу данных!")
+    #
+    #     else:
+    #         load_damp_df = None
+    #         print(f'Отсутствует файл дампа в директории: "{name_path_file_dump}"!')
 # ----------------------------------------------------------------------------------------------------------------------
 # ***
 # ----------------------------------------------------------------------------------------------------------------------
@@ -577,11 +573,11 @@ class СategoryDat(BranchesDat):
         """Формирует путь для сохранения файла excel по категориям."""
         return f"{cls._BASE_FOLDER_SAVE}{cls._FILE_NAME_CATEGORY}{cls._EXTENSION_FILE_EXCEL}"
     # __________________________________________________________________
-    # __________________________________________________________________ CATEGORY
-    def get_category(self, load_damp=True):
-
+    # __________________________________________________________________ ONE_PARS_CYCLE (CATEGORY)
+    def run_one_cycle_pars(self, load_damp=True): # get_category
         """
-        Итоговая функция полного цикла обработки (сбора с сайта МВидео)
+        Метод запука полного цикла парсинга (с добычей данных по API с сайта МВидео по филиалам и остатка товара
+        по категориям на них) с сохранением результатов в базу данных.
         :param session:
         :type session:
         :param load_damp:  файл дампа.
@@ -598,13 +594,6 @@ class СategoryDat(BranchesDat):
             raise ValueError('Параметр "load_damp" должн иметь тип данных bool.')
 
         _dump_path = self.get_path_file_branch_dump()
-
-
-        # _name_branch_dump = f'../data/{save_name_branch_dump}.joblib'
-        # _name_branch_excel = f'../data/{save_name_branch_excel}.xlsx'
-        # _name_category_dump = f'../data/{save_name_category_dump}.joblib'
-        # _name_category_excel = f'../data/{save_name_category_excel}.xlsx'
-
 
         # Кортеж категорий на исключяение (наполнение через итерации):
         bag_category_tuple = ()
@@ -685,14 +674,13 @@ class СategoryDat(BranchesDat):
                     timezone_offset = row.get('timezone_offset')
 
                     # Случайная задержка для имитации человека:
-                    time.sleep(random.uniform(imitation_ping_min, imitation_ping_ping_max))
+                    self._set_time_sleep_random()
 
                     # 3.1.1.1) Основной запрос (возвращает json (айтон)):
                     json_python = self._count_product_request(category_id, id_branch, city_id, region_id,
                                                               region_shop_id, timezone_offset)
                     # print(json_python)
                     # ----------------------------------------------------------
-
 
                     # 4) Обработка и сохранение результатов (достаем нужные категории и сохраняем в итоговый датафрейм)
                     # ----------------------------------------------------------
@@ -731,8 +719,8 @@ class СategoryDat(BranchesDat):
                     # Итог код магазина, категория, количество. ['id_branch','name_category','count']
                     # ----------------------------------------------------------
 
-            # Если по конкретной категории не нашлись нужные теги, такая категория добавится в стписок. Далее эти категории
-            # можно исключить из парсинга.
+            # Если по конкретной категории не нашлись нужные теги, такая категория добавится в стписок.
+            # Далее эти категории можно исключить из парсинга.
             print(f'Список лишних категорий: {bag_category_tuple}.')
 
             # Получаем пути к файлам:
@@ -742,6 +730,12 @@ class СategoryDat(BranchesDat):
             # # Сохраняем результат парсинга в дамп и в эксель:
             self._save_data(df=df_fin_category_data, path_file_dump=dump_path, path_file_excel=excel_path)
 
+            # Сохраняем в бд:
+            # ----------------------------------------------------------
+            # Функция сохраняет датафрейм в базу данных, предварительно загрузив дамп результатов парсинга:
+            # self.load_result_pars_in_db(dump_path)
+
+
         # Парсинг остановлен по причине отсутствия файла дампа или подготовка данных в "get_shops" завершилась неудачей:
         else:
             print(f'Запуск парсинга остановлен по причине: {reason}')
@@ -750,89 +744,58 @@ class СategoryDat(BranchesDat):
         # Итог код магазина, категория, количество. ['id_branch','name_category','count']
         return df_fin_category_data
     # __________________________________________________________________
-
-
-
-
-
-
-
-
 # ----------------------------------------------------------------------------------------------------------------------
 # ***
 # ----------------------------------------------------------------------------------------------------------------------
-# class MvPars:
-#     """Парсинг количества товаров на остатке по филиалам по расписанию."""
-#
-#     # # Приватные переменные для расширений файлов:
-#     # __EXPANSION_FILE_DUMP = '.joblib'
-#     # __EXPANSION_FILE_EXCEL = '.xlsx'
-#     # # Создаём сессию:
-#     # __session = requests.Session()
-#
-#     # ------------------------------------------------------
-#     def __init__(self,
-#                  *,
-#
-#                  session,
-#                  # Параметры городов в API МВидео, типа: [('Бузулук',	'CityDE_31010',	'4', 'S972', '4'), ...]:
-#                  city_data: list[tuple],  # CITY_DATA
-#
-#
-#
-#
-#
-#
-#                  # save_name_dump_category_data='df_category_data',
-#                  # save_name_excel_category_data='df_category_data',
-#
-#
-#                  ):
-#
-#         self.session = session
-#         self.city_data = city_data
-#         self.get_headers_base = get_headers_base
-#
-#         # Имена файла для сохранения филиалов:
-#         self.save_name_dump_branch_data = save_name_dump_branch_data
-#         self.save_name_excel_branch_data = save_name_excel_branch_data
-#
-#         # Имена файла для сохранения категорий:
-#         self.save_name_dump_category_data = save_name_dump_category_data
-#         self.save_name_excel_category_data = save_name_excel_category_data
-#
-#         # Пределы рандомной задержки для имитации реального пользователя:
-#         self.imitation_ping_min = imitation_ping_min
-#         self.imitation_ping_max = imitation_ping_max
-#
-#         # Базовая директория для сохранения файлов:
-#         self.base_folder_save = base_folder_save
-#
-#     #     self._shop_data_collector = ShopDataCollector()
-#     #     self._product_counter = ProductCounter()
-#     #
-#     # def get_shop_data(self):
-#     #     return self._shop_data_collector.get_shop_data()
-#     #
-#     # def count_products(self):
-#     #     return self._product_counter.count_products()
+class MvPars(СategoryDat):
+    """Парсинг количества товаров на остатке по филиалам по расписанию."""
+    _SCHEDULE = schedule
+    # ------------------------------------------------------
+    def __init__(self):
+        pass
 
-    # Сохраняем в бд:
-    # ----------------------------------------------------------
-    # Функция сохраняет датафрейм в базу данных, предварительно загрузив дамп результатов парсинга:
-    load_result_pars_in_db(_name_branch_dump)
+    @classmethod
+    def _set_schedule(cls):
+        """Планируем задачу на каждую субботу в 00:00 (полночь)."""
+
+        # Передаем ссылку на метод, а не вызываем его сразу (run_one_cycle_pars - без скобок)
+        cls._SCHEDULE.every().saturday.at("00:00").do(self.run_one_cycle_pars)
+
+    # __________________________________________________________________ WEEK_PARS_CYCLE
+    @classmethod
+    def run_week_cycle_pars(cls):
+        """Метод запука полного цикла парсинга (с добычей данных по филиалам и остатка товара по категориям на них)
+        с сохранением результатов в базу данных."""
+
+        # Цикл для выполнения запланированных задач
+        while True:
+            cls._SCHEDULE.run_pending()
+            time.sleep(60)  # Проверяем расписание каждую минуту
+    # __________________________________________________________________
 # ----------------------------------------------------------------------------------------------------------------------
-prs = BranchesDat()
-prs.set_base_folder_save('../data2/')
-# a = prs.get_city_data()
-# print(a)
-# prs.set_ping_limits(0.5, 1б)
-prs.get_shops()
+
+pars = MvPars()
+pars.set_ping_limits(2.5, 3.5)
+pars.set_base_folder_save('../data2/')
+pars.run_one_cycle_pars()
 
 
+
+
+# MvPars.run_week_cycle_pars() — вызывает метод на уровне класса. Подходит для методов,
+# которые должны работать с общими для класса данными, а не с данными конкретного экземпляра.
+
+# MvPars().run_week_cycle_pars() — создает экземпляр класса, а затем вызывает метод.
+# Этот вариант используется, когда метод работает с атрибутами конкретного экземпляра (если бы метод не был классовым).
 
 # # a = prs.get_headers()
 # prs.get_imitation_ping_min(1)
 # #a = prs.get_shops()
 # prs.get_shops()
 # print(a)
+
+# prs.set_base_folder_save('../data2/')
+# # a = prs.get_city_data()
+# # print(a)
+# # prs.set_ping_limits(0.5, 1б)
+# prs.get_shops()
