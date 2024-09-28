@@ -498,7 +498,7 @@
 #
 # # ----------------------------------------------------------------------------------------------------------------------
 # prs = BranchesDat()
-# prs.get_file_name_branch_dump('../data2/df_branch_data.joblib')
+# prs.get_file_name_branch_dump('../data/df_branch_data.joblib')
 # # a = prs.get_headers()
 # prs.get_imitation_ping_min(1)
 # #a = prs.get_shops()

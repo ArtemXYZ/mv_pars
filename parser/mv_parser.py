@@ -1,5 +1,5 @@
 """
-
+Парсинг данных с сайта МВидео через API.
 """
 # ----------------------------------------------------------------------------------------------------------------------
 import os
@@ -776,7 +776,7 @@ class MvPars(СategoryDat):
 
 pars = MvPars()
 pars.set_ping_limits(2.5, 3.5)
-pars.set_base_folder_save('../data2/')
+# pars.set_base_folder_save('../data/') +
 pars.run_one_cycle_pars()
 
 
@@ -794,7 +794,7 @@ pars.run_one_cycle_pars()
 # prs.get_shops()
 # print(a)
 
-# prs.set_base_folder_save('../data2/')
+# prs.set_base_folder_save('../data/')
 # # a = prs.get_city_data()
 # # print(a)
 # # prs.set_ping_limits(0.5, 1б)
