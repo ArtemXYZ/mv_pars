@@ -17,6 +17,9 @@ from bs4 import BeautifulSoup
 from joblib import dump
 from joblib import load
 from tqdm import tqdm
+from typing import Union
+
+
 
 from parser.params_bank import *  # Все куки хедеры и параметры
 # from settings.configs import engine_mart_sv
@@ -225,7 +228,7 @@ class ParsAPI:
 
 
 
-
+    # ------------------------------------------- Nwe
 
 
 
@@ -254,13 +257,41 @@ class ParsAPI:
     #     value_encoded = self.url_encoded(value)
     #     return (key, value_encoded)
     # __________________________________________________________________
+    # __________________________________________________________________ validation_input_value
+    def args_validation(self,
+                        key: str,
+                        value: Union[str, int, float, tuple[Union[str, int, float]], list[Union[str, int, float]]]
+                        ) -> str:
+        """На вход элемент картежа (for in *args)"""
+        tmp_params_list = []
+        param_string = None
+
+        # Если на вход обычные (str, int, float) - просто кодируем:
+        if isinstance(value, (str, int, float)):
+            param_string = self.encoded_param_string(key, value)
+
+        # Если на вход (tuple, list), - перебираем по элементам и кодируем:
+        elif isinstance(value, (tuple, list)):
+            for v in value:
+                if not isinstance(v, (str, int, float)):
+                    raise ValueError(f"Неподдерживаемый тип данных: {type(v)} в итерируемом объекте {value}. "
+                                     f"Элементы должны быть str, int или float.")
+
+                param_string_tmp = self.encoded_param_string(key, v)
+                tmp_params_list.append(param_string_tmp)
+            param_string = ''.join(tmp_params_list)
+
+        # Не пропускаем другие типы данных:
+        else:
+            raise ValueError(f"Неподдерживаемый тип данных для входного значения: {type(value)}. "
+                             f"Ожидались str, int, float, tuple или list.")
+        return param_string
+    # __________________________________________________________________
     # __________________________________________________________________ encoded_params_methods
-    def encoded_params_list(self, key: str, *values: str) -> list[tuple]:
+    def encoded_params_list(self, key: str, *values: str | int | float) -> list[tuple]:
         """Mетод кодирования параметров в base64 по типу единый ключ: множество значений \
         {ключ 0: значение 0, ключ 0: значение 1, ...}.
-
         Формирователь параметров: 1.0 если все ключи одинаковые, тогда формируем список картежей.
-
         Одинаковый ключ: Не все сервисы корректно принимают параметры с одинаковыми ключами. \
         Хотя requests корректно формирует URL с повторяющимися параметрами, сервер может их неправильно обрабатывать.
         filter_params = [
@@ -270,29 +301,39 @@ class ParsAPI:
         """
         result_params_list = []
         for value in values:  # Перебираем все значения в *values
-            value_encoded = self.url_encoded(value)
-            param_string = (key, value_encoded)
+            validation_value_encoded = self.args_validation(key, value)  # url_encoded(value) old
+            param_string = (validation_value_encoded)  # param_string = (key, value_encoded) old
             result_params_list.append(param_string)
         return result_params_list
 
-    def encoded_params_monostring(self, key: str, *values: str) -> str:
+    def encoded_params_monostring(self, key: str, *values: str | int | float) -> str:
         """Mетод кодирования параметров в base64 по типу единый ключ: множество значений \
-        {ключ 0: значение 0, ключ 0: значение 1, ...}.
-
+        params_string = '&ключ_0=значение_0&ключ_0=значение_1& ...'.
         Формирователь параметров: 1 если все ключи одинаковые, тогда формируем строку и встраиваем ее в url.
         """
         temp_params_list  = []
         # Перебираем все значения в *values
         for value in values:
-            param_string = f'{key}={self._encoded(value)}'
+            param_string = self.args_validation(key, value)  # f'&{key}={self._encoded(value)}' old
             temp_params_list.append(param_string)
-
-        result_params = '&'.join(temp_params_list)
+        result_params = ''.join(temp_params_list)
         return result_params
 
+    def encoded_params_dict(self, key: str, *values: str | int | float) -> dict[str, str]:
+        pass
 
+
+    # __________________________________________________________________
+
+
+
+
+
+# Union[
 # result_params_dict = []
-#
+# tuple[str | int | float] | list
+
+
 
     # нужно авторазбиение урл строки и выделение тех частей что будут динамически изменяемы.
     # url_count = f'https://www.mvideo.ru/bff/products/listing?categoryId={category_id}&offset=0&limit=1'
@@ -420,3 +461,6 @@ class ParsAPI:
     #     'filterParams2': results_keys_value[1],
     # }
 
+prs = ParsAPI()
+a = prs.encoded_params_monostring('qwe',  [2, [3, 4]], (6,(3,)), 45)
+print(a)
