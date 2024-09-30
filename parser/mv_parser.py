@@ -29,8 +29,8 @@ class ParsTools:
 
     # Создаём сессию:
     _SESSION = requests.Session()
-    _NAME_TABLE='current_stock_mvideo'
-    _SCHEMA='inlet'
+    _NAME_TABLE = 'current_stock_mvideo'
+    _SCHEMA = 'inlet'
     # _CON=engine_mart_sv
 
     _CITY_DATA = CITY_DATA
@@ -172,7 +172,7 @@ class ParsTools:
 
 
     @classmethod
-    def _save_data(cls, df, path_file_dump, path_file_excel):
+    def _save_data(cls, df: DataFrame, path_file_dump, path_file_excel):
         """
         Перед сохранением результатов работы парсера проверяем наличие существования директории, если таковой нет,
         то создается.
@@ -600,7 +600,7 @@ class СategoryDat(BranchesDat):
 
         # Создаем целевой  итоговый датафрейм, куда будут сохранены данные типа: код магазина, категория (имя),
         # количество.
-        df_fin_category_data = pd.DataFrame(columns=['id_branch','name_category','count', 'category_id'])
+        df_fin_category_data = pd.DataFrame(columns=['id_branch', 'name_category', 'count', 'category_id'])
 
         # Bключать только когда необходимо повторно собрать данные.
         if load_damp is False:
@@ -759,12 +759,12 @@ class MvPars(СategoryDat):
         """Планируем задачу на каждую субботу в 00:00 (полночь)."""
 
         # Передаем ссылку на метод, а не вызываем его сразу (run_one_cycle_pars - без скобок)
-        cls._SCHEDULE.every().saturday.at("00:00").do(self.run_one_cycle_pars)
+        cls._SCHEDULE.every().saturday.at("00:00").do(cls.run_one_cycle_pars)
 
     # __________________________________________________________________ WEEK_PARS_CYCLE
     @classmethod
     def run_week_cycle_pars(cls):
-        """Метод запука полного цикла парсинга (с добычей данных по филиалам и остатка товара по категориям на них)
+        """Метод запуcка полного цикла парсинга (с добычей данных по филиалам и остатка товара по категориям на них)
         с сохранением результатов в базу данных."""
 
         # Цикл для выполнения запланированных задач
