@@ -19,145 +19,183 @@ from joblib import load
 from tqdm import tqdm
 
 from parser.params_bank import *  # Все куки хедеры и параметры
-# from settings.configs import engine_mart_sv
+from settings.configs import ENGINE
 
 
 # ----------------------------------------------------------------------------------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
-class ParsTools:
-    """Вспомогательные методы вынесены в отдельный класс."""
+class BaseProperty:
+    """Базовый класс для общих атрибутов библиотеки."""
 
-    # Создаём сессию:
-    _SESSION = requests.Session()
-    _NAME_TABLE = 'current_stock_mvideo'
-    _SCHEMA = 'inlet'
-    # _CON=engine_mart_sv
-
-    _CITY_DATA = CITY_DATA
-    _CATEGORY_ID_DATA = CATEGORY_ID_DATA
-
-    _BASE_FOLDER_SAVE = '../data/'
-
-    # Переменные для расширений сохраняемых итоговых файлов:
+    # Расширения сохраняемых итоговых файлов (не мутабельные):
     _EXTENSION_FILE_DUMP = '.joblib'
     _EXTENSION_FILE_EXCEL = '.xlsx'
 
-    _FILE_NAME_BRANCH = 'df_branch_data'
-    _FILE_NAME_CATEGORY = 'df_category_data'
-
-    _IMITATION_PING_MIN = 0.5
-    _IMITATION_PING_MAX = 2.5
-
-    # В заголовках необходимо указать Юзер Агент для корректных запросов.
-    _BASE_HEADERS: dict = BASE_HEADERS
-    # ------------------------------------------------------------------------------------------------------------------
     def __init__(self):
-        pass
-    # ------------------------------------------------------------------------------------------------------------------
-    # __________________________________________________________________ CITY_DATA
+        # _________________________________________________ Служебные переменные (обеспечивающие сторонние библиотеки)
+        self._SESSION = requests.Session()  # Экземпляр сессии:
+        self._CON = ENGINE
+        self._NAME_TABLE: str = 'current_stock_mvideo'
+        self._SCHEMA: str = 'inlet'
+        # _________________________________________________ Входные параметры
+        self._CITY_DATA: list[tuple] = CITY_DATA
+        self._CATEGORY_ID_DATA: tuple = CATEGORY_ID_DATA
+        self._BASE_HEADERS: dict = BASE_HEADERS
+        self._BASE_FOLDER_SAVE: str = '../data/'
+        self._FILE_NAME_BRANCH: str = 'df_branch_data'
+        self._FILE_NAME_CATEGORY: str = 'df_category_data'
+        self._IMITATION_PING_MIN: float | int = 0.5
+        self._IMITATION_PING_MAX: float | int = 2.5
+# ----------------------------------------------------------------------------------------------------------------------
+# ***
+# ----------------------------------------------------------------------------------------------------------------------
+class ServiceTools(BaseProperty):
+    """Вспомогательные методы вынесены в отдельный класс."""
+
+    def __init__(self):
+        super().__init__()  # Наследуем атрибуты из BaseProperty
+
+    # _________________________________________________
     @classmethod
-    def get_city_data(cls):
+    def _get_method_name(cls, method):
+        """Возвращает имя метода."""
+        return method.__name__
+
+    @staticmethod
+    def _validation_params(value: any, check_type: any, fanc_name: str):
+        """Валидация параметров метода 'activate'."""
+        if value:
+            if isinstance(value, check_type):
+                return value
+            else:
+                raise TypeError(f'Недопустимый тип данных для параметра: {value} в {fanc_name}')
+        else:
+            raise ValueError(f'Не был передан обязательный параметр: {value} в {fanc_name}')
+
+    # _________________________________________________
+    # @staticmethod
+    # def _check_types(value: any, check_type: any, fanc_name: str):
+    #     """Валидация параметров метода 'activate'."""
+    #
+    #         if isinstance(value, check_type):
+    #             return value
+    #         else:
+    #             raise TypeError(f'Недопустимый тип данных для параметра: {value} в {fanc_name}')
+
+    # __________________________________________________________________ CITY_DATA
+    @property
+    def city_data(self):
         """Возвращает текущие значения переменной CITY_DATA \
         (набор исходных данных, необходимый для работы методов парсера (геттер).
         """
-        return cls._CITY_DATA
+        return self._CITY_DATA
 
-    @classmethod
-    def set_city_data(cls, new_city_data):
+    @property.setter
+    def city_data(self, new_city_data):
         """Обновляет значения по умолчанию переменной CITY_DATA \
         (набор исходных данных, необходимый для работы методов парсера (геттер).
         """
-        if isinstance(new_city_data, dict):
-            cls._CITY_DATA = new_city_data
-        else:
-            raise ValueError('Неверный тип данных у перданной переменной в "set_city_data". Ожидается словарь')
+        # if isinstance(new_city_data, dict):
+        #     self._CITY_DATA = new_city_data
+        # else:
+        #     raise ValueError('Неверный тип данных у переданной переменной в "set_city_data". Ожидается словарь')
+
+        self._CITY_DATA = self._validation_params(new_city_data,
+                                                  (list, tuple),
+                                                  self._get_method_name(self.city_data)
+                                                  )
+
     # __________________________________________________________________
     # __________________________________________________________________ BASE_FOLDER
-    @classmethod
-    def get_base_folder_save(cls):
+    @property
+    def base_folder_save(self):
         """Возвращает текущие значения имени папки для сохранения результатов работы парсера (геттер)."""
-        return cls._BASE_FOLDER_SAVE
+        return self._BASE_FOLDER_SAVE
 
-    @classmethod
-    def set_base_folder_save(cls, new_folder):
+    @property.setter
+    def base_folder_save(self, new_folder):
         """Обновляет значения по умолчанию имени папки для сохранения результатов работы парсера (геттер)."""
         if isinstance(new_folder, str):
-            cls._BASE_FOLDER_SAVE = new_folder
+            self._BASE_FOLDER_SAVE = new_folder
             print(f'Новое значение папки для сохранения результатов установлено: {new_folder}')
         else:
-            raise ValueError('Неверный тип данных у перданной переменной в "set_base_folder_save". Ожидается строка')
-    # __________________________________________________________________
-    # __________________________________________________________________ HEADERS
-    @classmethod
-    def get_headers(cls):
-        """Возвращает текущие значения загаловков (геттер)."""
-        return cls._BASE_HEADERS
+            raise ValueError('Неверный тип данных у перeданной переменной в "set_base_folder_save". Ожидается строка')
 
-    @classmethod
-    def set_headers(cls, headers: dict):
-        """Устанавливает новые значения загаловков (cеттер)."""
+    # __________________________________________________________________
+
+    # __________________________________________________________________ HEADERS
+    @property
+    def headers(self):
+        """Возвращает текущие значения заголовков (геттер)."""
+        return self._BASE_HEADERS
+
+    @property.setter
+    def headers(self, headers: dict):
+        """Устанавливает новые значения заголовков (cеттер)."""
         if not isinstance(headers, dict):
             raise ValueError("Заголовки должны быть представлены в виде словаря.")
-        cls._BASE_HEADERS = headers
+        self._BASE_HEADERS = headers
+
     # __________________________________________________________________
     # __________________________________________________________________ NAME_BRANCH / NAME_CATEGORY
-    @classmethod
-    def get_unified_names_files_for_branches(cls):
+    @property
+    def unified_names_files_for_branches(self):
         """Возвращает текущие значения имен итоговых выходных файлов метода получения филиалов (get_shops) (геттер)."""
-        return cls._FILE_NAME_BRANCH
+        return self._FILE_NAME_BRANCH
 
-    @classmethod
-    def set_unified_names_files_for_branches(cls, name_file: str):
+    @property.setter
+    def unified_names_files_for_branches(self, name_file: str):
         """Устанавливает новые значения имен итоговых выходных файлов метода получения филиалов (get_shops) (cеттер)."""
         if not isinstance(name_file, str):
             raise ValueError("Новое имя для группы итоговых файлов (get_shops()) должно быть строкой.")
-        cls._FILE_NAME_BRANCH = name_file
+        self._FILE_NAME_BRANCH = name_file
 
     # __________________________
-    @classmethod
-    def get_unified_names_files_for_category(cls):
+    @property
+    def unified_names_files_for_category(self):
         """
         Возвращает текущие значения имен итоговых выходных файлов метода получения категорий (count_product) (геттер).
         """
-        return cls._FILE_NAME_CATEGORY
+        return self._FILE_NAME_CATEGORY
 
-    @classmethod
-    def set_unified_names_files_for_category(cls, name_file: str):
+    @property.setter
+    def unified_names_files_for_category(self, name_file: str):
         """
         Устанавливает новые значения имен итоговых выходных файлов метода получения категорий (count_product) (cеттер).
         """
         if not isinstance(name_file, str):
             raise ValueError("Новое имя для группы итоговых файлов (get_shops()) должно быть строкой.")
-        cls._FILE_NAME_CATEGORY = name_file
+        self._FILE_NAME_CATEGORY = name_file
+
     # __________________________________________________________________
     # __________________________________________________________________ PINGS
-    @classmethod
-    def get_ping_limits(cls):
+    @property
+    def ping_limits(self):
         """Возвращает текущие значения имитации задержки (геттер)."""
-        return cls._IMITATION_PING_MIN, cls._IMITATION_PING_MAX
+        return self._IMITATION_PING_MIN, self._IMITATION_PING_MAX
 
-    @classmethod
-    def set_ping_limits(cls, min_ping, max_ping):
+    @property.setter
+    def ping_limits(self, min_ping, max_ping):
         """Устанавливает и проверяет новые значения пределов задержки (cеттер)."""
         if min_ping < 0.5 or max_ping > 60:
             raise ValueError("Минимальное значение должно быть >= 0.5, а максимальное <= 60.")
         if min_ping > max_ping:
             raise ValueError("Минимальное значение не может быть больше максимального.")
 
-        cls._IMITATION_PING_MIN = min_ping
-        cls._IMITATION_PING_MAX = max_ping
-        print(f'Устанановлены новые значения пределов задержки: {min_ping} - {max_ping}')
+        self._IMITATION_PING_MIN = min_ping
+        self._IMITATION_PING_MAX = max_ping
+        print(f'Установлены новые значения пределов задержки: {min_ping} - {max_ping}')
 
-    @classmethod
-    def _set_time_sleep_random(cls):
+    @property.setter
+    def _set_time_sleep_random(self):
         """Случайная задержка для имитации человека во время парсинга."""
-        min_ping, max_ping = cls.get_ping_limits()
+        min_ping, max_ping = self.ping_limits()
         time.sleep(random.uniform(min_ping, max_ping))
 
     # __________________________________________________________________
     # __________________________________________________________________ TOOLS
-    @classmethod
-    def _check_path_file(cls, path_file):
+    @staticmethod
+    def _check_path_file(path_file):
         """
         Перед сохранением результатов работы парсера проверяем наличие существования директории, если таковой нет,
         то создается.
@@ -170,58 +208,42 @@ class ParsTools:
         if not os.path.exists(path_dir):
             os.makedirs(path_dir)
 
-
-    @classmethod
-    def _save_data(cls, df: DataFrame, path_file_dump, path_file_excel):
+    def _save_data(self, df: DataFrame, path_file_dump, path_file_excel):
         """
         Перед сохранением результатов работы парсера проверяем наличие существования директории, если таковой нет,
-        то создается.
+        то создаётся.
         """
         # ________________________________________________ CHECK
-        cls._check_path_file(path_file_dump)
-        cls._check_path_file(path_file_excel)
+        self._check_path_file(path_file_dump)
+        self._check_path_file(path_file_excel)
         # ________________________________________________ SAVE
         # Сохраняем результат парсинга в дамп и в эксель:
+        dump(df, path_file_dump)  # _name_dump = '../data/df_full_branch_data.joblib'
+        df.to_excel(path_file_excel, index=False)  # _name_excel = '../data/df_full_branch_data.xlsx'
 
-        # _name_dump = '../data/df_full_branch_data.joblib'
-        dump(df, path_file_dump)
-
-        # _name_excel = '../data/df_full_branch_data.xlsx'
-        df.to_excel(path_file_excel, index=False)
-
-
-    @classmethod
-    def _get_response(cls, url: str,
-                     headers: dict = None, params: dict = None, cookies: dict = None, session=None,
-                     json_type=True) -> object:
+    def _get_response(self, url: str, params: dict = None, cookies: dict = None, json_type=True) -> object:
         """Универсальная функция для запросов с передаваемыми параметрами. """
 
         # Устанавливаем куки в сессии
-        if session and cookies:
-            session.cookies.update(cookies)
+        if self._SESSION and cookies:
+            self._SESSION.cookies.update(cookies)
 
         # Обычный запрос или сессия:
-        if session:
-            response = session.get(url, headers=headers, params=params)
+        if self._SESSION:
+            response = self._SESSION.get(url, headers=self._BASE_HEADERS, params=params)
 
         else:
-            response = requests.get(url, headers=headers, params=params, cookies=cookies)
+            response = requests.get(url, headers=self._BASE_HEADERS, params=params, cookies=cookies)
 
         # Выполнение запроса:
         if response.status_code == 200:
-
             if json_type:
-                # Если ответ нужен в json:
-                data = response.json()
-
+                data = response.json()  # Если ответ нужен в json:
             elif not json_type:
-                # Если ответ нужен в html:
-                data = response.text
-
+                data = response.text  # Если ответ нужен в html:
         else:
             data = None
             print(f"Ошибка: {response.status_code} - {response.text}")
-
         return data
 
     @staticmethod
@@ -233,15 +255,11 @@ class ParsTools:
         :return:
         :rtype:
         """
-
         try:
-
             # Шаг 1: URL-декодирование
             url_param_string_decoded = urllib.parse.unquote(url_param_string)
-
             # Шаг 2: Base64-декодирование
             base64_decoded_string = base64.b64decode(url_param_string_decoded).decode('utf-8')
-
             return base64_decoded_string
         except Exception as e:
             print(f'Ошибка декодирования: {e}')
@@ -291,8 +309,7 @@ class ParsTools:
 
         return filter_params
 
-    @classmethod
-    def _count_product_request(cls, category_id, id_branch, city_id, region_id, region_shop_id, timezone_offset):
+    def _count_product_request(self, category_id, id_branch, city_id, region_id, region_shop_id, timezone_offset):
 
         """
         # ---------------- Расшифрованные filterParams:
@@ -309,7 +326,7 @@ class ParsTools:
         """
 
         # Формирование закодированных параметров фильтрации в запросе:
-        result_filters_params = cls._encoded_request_input_params(id_branch, region_shop_id)
+        result_filters_params = self._encoded_request_input_params(id_branch, region_shop_id)
 
         # --------------------------------------- Переменные:
         # Базовая строка подключения:
@@ -326,60 +343,56 @@ class ParsTools:
 
         # Полная строка с фильтрами:
         full_url = f'{url_count}{result_filters_params}'
-        # --------------------------------------- Переменные:
-
+        # ---------------------------------------
         # ---------------------------------------- Выполняем основной запрос:
         # Запрос на извлечение count_product (на вход бязательны: \
         # MVID_CITY_ID, MVID_REGION_ID, MVID_REGION_SHOP, MVID_TIMEZONE_OFFSET):
-        data = cls._get_response(url=full_url, headers=cls._BASE_HEADERS, params=None,  # косяк в result_filters_params
-                                   cookies=cookies_count_product, session=cls._SESSION)
-
+        data = self._get_response(url=full_url, cookies=cookies_count_product)
         return data
     # __________________________________________________________________
-    # @classmethod
-    # def load_result_pars_in_db(cls, name_path_file_dump):
-    #     """
-    #     Метод сохраняет датафрейм в базу данных, предварительно загрузив дамп результатов парсинга.
-    #     """
-    #
-    #     # ------------------------------------ Загрузка дампа результатов парсинга ------------------------------------
-    #     if os.path.isfile(name_path_file_dump):  # Если файл существует,тогда: True
-    #         # ------------------------------------
-    #         load_damp_df = load(name_path_file_dump)  # Тогда загружаем дамп
-    #         print("Дамп успешно загружен!")
-    #
-    #         current_time  = datetime.now()
-    #
-    #         # Форматируем время в строку
-    #         formatted_time = current_time.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
-    #         # Добавляем новые колонки со значением 0:
-    #         load_damp_df['dt_load'] = formatted_time
-    #         # print(load_damp_df)
-    #         # ------------------------------------
-    #         print("Загрузка DataFrame в базу данных.")
-    #         # ------------------------------------
-    #         # Загрузка итогового DataFrame в базу данных:
-    #         load_damp_df.to_sql(name=cls._NAME_TABLE, schema=cls._SCHEMA, con=cls._CON,
-    #                             if_exists='replace', index=False, method='multi')
-    #         # Выбираем метод 'replace' для перезаписи таблицы или 'append' для добавления данных
-    #         # method='multi' используется для оптимизации вставки большого объема данных.
-    #
-    #         # Закрытие соединения
-    #         cls._CON.dispose()
-    #
-    #         print("Данные успешно сохранены в базу данных!")
-    #
-    #     else:
-    #         load_damp_df = None
-    #         print(f'Отсутствует файл дампа в директории: "{name_path_file_dump}"!')
+    def load_result_pars_in_db(self, name_path_file_dump):
+        """
+        Метод сохраняет датафрейм в базу данных, предварительно загрузив дамп результатов парсинга.
+        """
+        # ------------------------------------ Загрузка дампа результатов парсинга ------------------------------------
+        if os.path.isfile(name_path_file_dump):  # Если файл существует,тогда: True
+            # ------------------------------------
+            load_damp_df = load(name_path_file_dump)  # Тогда загружаем дамп
+            print("Дамп успешно загружен!")
+
+            current_time = datetime.now()
+
+            # Форматируем время в строку
+            formatted_time = current_time.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
+            # Добавляем новые колонки со значением 0:
+            load_damp_df['dt_load'] = formatted_time
+            # print(load_damp_df)
+            # ------------------------------------
+            print("Загрузка DataFrame в базу данных.")
+            # ------------------------------------
+            # Загрузка итогового DataFrame в базу данных:
+            load_damp_df.to_sql(name=self._NAME_TABLE, schema=self._SCHEMA, con=self._CON,
+                                if_exists='replace', index=False, method='multi')
+            # Выбираем метод 'replace' для перезаписи таблицы или 'append' для добавления данных
+            # method='multi' используется для оптимизации вставки большого объема данных.
+
+            # Закрытие соединения
+            self._CON.dispose()
+
+            print("Данные успешно сохранены в базу данных!")
+
+        else:
+            load_damp_df = None
+            print(f'Отсутствует файл дампа в директории: "{name_path_file_dump}"!')
 # ----------------------------------------------------------------------------------------------------------------------
 # ***
 # ----------------------------------------------------------------------------------------------------------------------
-class BranchesDat(ParsTools):
+class BranchesDat(ServiceTools):
     """Получаем данные о филиалах."""
 
     def __init__(self):
         pass
+
     # ------------------------------------------------------------------------------------------------------------------
     # __________________________________________________________________ PATH_FILES
     @classmethod
@@ -552,29 +565,30 @@ class BranchesDat(ParsTools):
         self._save_data(df=df_full_branch_data, path_file_dump=dump_path, path_file_excel=excel_path)
 
         return df_full_branch_data
+
+
 # ----------------------------------------------------------------------------------------------------------------------
 # ***
 # ----------------------------------------------------------------------------------------------------------------------
 class СategoryDat(BranchesDat):
     """Получаем данные о филиалах."""
 
-
     def __init__(self):
         pass
 
     # __________________________________________________________________ PATH_FILES
-    @classmethod
-    def get_path_file_category_dump(cls):
-        """Формирует путь для сохранения дампа по категориям."""
-        return f"{cls._BASE_FOLDER_SAVE}{cls._FILE_NAME_CATEGORY}{cls._EXTENSION_FILE_DUMP}"
-
-    @classmethod
-    def get_path_file_category_excel(cls):
-        """Формирует путь для сохранения файла excel по категориям."""
-        return f"{cls._BASE_FOLDER_SAVE}{cls._FILE_NAME_CATEGORY}{cls._EXTENSION_FILE_EXCEL}"
+    # @classmethod
+    # def get_path_file_category_dump(cls):
+    #     """Формирует путь для сохранения дампа по категориям."""
+    #     return f"{cls._BASE_FOLDER_SAVE}{cls._FILE_NAME_CATEGORY}{cls._EXTENSION_FILE_DUMP}"
+    #
+    # @classmethod
+    # def get_path_file_category_excel(cls):
+    #     """Формирует путь для сохранения файла excel по категориям."""
+    #     return f"{cls._BASE_FOLDER_SAVE}{cls._FILE_NAME_CATEGORY}{cls._EXTENSION_FILE_EXCEL}"
     # __________________________________________________________________
     # __________________________________________________________________ ONE_PARS_CYCLE (CATEGORY)
-    def run_one_cycle_pars(self, load_damp=True): # get_category
+    def run_one_cycle_pars(self, load_damp=True):  # get_category
         """
         Метод запука полного цикла парсинга (с добычей данных по API с сайта МВидео по филиалам и остатка товара
         по категориям на них) с сохранением результатов в базу данных.
@@ -623,11 +637,10 @@ class СategoryDat(BranchesDat):
                 df_full_branch_data = load(_dump_path)  # Тогда загружаем дамп
             else:
                 df_full_branch_data = None
-                reason =(f'Отсутствует файл дампа в директории: {_dump_path}.\n'
-                         f'Запустите функцию повторно, установив параметр "load_damp: bool=False", что бы запустить '
-                         f'парсинг о филиалах.\n'
-                         f'Это необходимо для выполнения основного ззапроса к данным о количестве товара по категориям')
-
+                reason = (f'Отсутствует файл дампа в директории: {_dump_path}.\n'
+                          f'Запустите функцию повторно, установив параметр "load_damp: bool=False", что бы запустить '
+                          f'парсинг о филиалах.\n'
+                          f'Это необходимо для выполнения основного ззапроса к данным о количестве товара по категориям')
 
         # Если есть результат загрузки дампа данных по филиалам или парсинга таких данных:
         if df_full_branch_data is not None:
@@ -649,10 +662,10 @@ class СategoryDat(BranchesDat):
 
             # for row in CATEGORY_ID_DATA:
 
-            for row in tqdm(self._CATEGORY_ID_DATA,  total=len(self._CATEGORY_ID_DATA), ncols=80, ascii=True,
+            for row in tqdm(self._CATEGORY_ID_DATA, total=len(self._CATEGORY_ID_DATA), ncols=80, ascii=True,
                             desc=f'==================== Обработка данных по категории ===================='):
 
-                time.sleep(0.1) #\n
+                time.sleep(0.1)  # \n
                 # Забирает id категории:
                 category_id = row
 
@@ -661,9 +674,9 @@ class СategoryDat(BranchesDat):
 
                 # 3.1.1) Итерируем по филиалам и по конкретной категории:
                 for index, row in df_branch_not_null.iterrows():
-                # for index, row in tqdm(df_branch_not_null.iterrows(), ncols=80, ascii=True,
-                #          desc=f'=================================================================='):
-                         # desc=f'==================== Обработка данных филиала ===================='):
+                    # for index, row in tqdm(df_branch_not_null.iterrows(), ncols=80, ascii=True,
+                    #          desc=f'=================================================================='):
+                    # desc=f'==================== Обработка данных филиала ===================='):
 
                     # Достаем данные из строки датафрейма:
                     id_branch = row.get('id_branch')
@@ -714,7 +727,7 @@ class СategoryDat(BranchesDat):
                             print(f'По category_id {category_id} - нет нужных тегов, пропускаем ее.')
 
                             # Добавление в общий кортеж багов.
-                            bag_category_tuple =  bag_category_tuple + (category_id,)
+                            bag_category_tuple = bag_category_tuple + (category_id,)
 
                     # Итог код магазина, категория, количество. ['id_branch','name_category','count']
                     # ----------------------------------------------------------
@@ -744,12 +757,15 @@ class СategoryDat(BranchesDat):
         # Итог код магазина, категория, количество. ['id_branch','name_category','count']
         return df_fin_category_data
     # __________________________________________________________________
+
+
 # ----------------------------------------------------------------------------------------------------------------------
 # ***
 # ----------------------------------------------------------------------------------------------------------------------
 class MvPars(СategoryDat):
     """Парсинг количества товаров на остатке по филиалам по расписанию."""
     _SCHEDULE = schedule
+
     # ------------------------------------------------------
     def __init__(self):
         pass
@@ -759,7 +775,7 @@ class MvPars(СategoryDat):
         """Планируем задачу на каждую субботу в 00:00 (полночь)."""
 
         # Передаем ссылку на метод, а не вызываем его сразу (run_one_cycle_pars - без скобок)
-        cls._SCHEDULE.every().saturday.at("00:00").do(cls.run_one_cycle_pars)
+        cls._SCHEDULE.every().thursday.at("10:07").do(cls.run_one_cycle_pars())
 
     # __________________________________________________________________ WEEK_PARS_CYCLE
     @classmethod
@@ -767,21 +783,36 @@ class MvPars(СategoryDat):
         """Метод запуcка полного цикла парсинга (с добычей данных по филиалам и остатка товара по категориям на них)
         с сохранением результатов в базу данных."""
 
+        # Передаем ссылку на метод, а не вызываем его сразу (run_one_cycle_pars - без скобок)
+        cls._SCHEDULE.every().thursday.at("10:08").do(self.run_one_cycle_pars())
+
         print('Полный цикл парсинга по расписанию запущен.')
         # Цикл для выполнения запланированных задач
         while True:
             cls._SCHEDULE.run_pending()
             time.sleep(60)  # Проверяем расписание каждую минуту
     # __________________________________________________________________
+
+
 # ----------------------------------------------------------------------------------------------------------------------
 
 pars = MvPars()
 pars.set_ping_limits(2.5, 3.5)
 # pars.set_base_folder_save('../data/') +
-pars.run_one_cycle_pars()
+# pars.run_one_cycle_pars()
 
 
+# Активация выдачи информации о текущих параметрах
+pars.info.get_headers().get_imitation_ping_min()  # (1й класс, иногда из других классов в зависимости от логики принадлежности по функциональности) + другие свойства.
 
+# Активация установки новых параметров
+pars.set_property.set_base_folder_save('../data/').set_ping_limits(2.5,
+                                                                   3.5)  # (1й класс, иногда из других классов в зависимости от логики принадлежности по функциональности) + другие свойства.
+
+# Активация работы основных функций.
+pars.activate.get_shops()  # (2й класс)
+pars.run_one_cycle_pars()  # (3й класс)
+pars.activate.run_week_cycle_pars()  # (4й класс)
 
 # MvPars.run_week_cycle_pars() — вызывает метод на уровне класса. Подходит для методов,
 # которые должны работать с общими для класса данными, а не с данными конкретного экземпляра.
@@ -800,3 +831,5 @@ pars.run_one_cycle_pars()
 # # print(a)
 # # prs.set_ping_limits(0.5, 1б)
 # prs.get_shops()
+
+# def __init__(self, session, connection, name_table, schema, city_data, category_id_data,                 ):

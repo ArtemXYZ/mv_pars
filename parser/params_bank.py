@@ -35,7 +35,7 @@ BASE_HEADERS = {
 
 
 # https://www.mvideo.ru/bff/region/getShops  +
-CITY_DATA = [
+CITY_DATA: list[tuple] = [
     ('Бузулук',	'CityDE_31010',	'4', 'S972', '4'),
     ('Новокуйбышевск', 'CityCZ_3744', '4', 'S972', '4'),
     ('Самара', 'CityCZ_1780', '4', 'S972', '4'),
