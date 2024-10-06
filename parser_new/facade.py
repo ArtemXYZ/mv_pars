@@ -155,15 +155,6 @@ class MvPars:
         self.set = PropertyManager()
         self.activate = ActivateManager()
 
-    # def info(self):
-    #     return self.info
-    #
-    # def set(self):
-    #     return self.set
-    #
-    # def activate(self):
-    #     return self.activate
-
     def __repr__(self):
         print('Класс фаcад.')
 
