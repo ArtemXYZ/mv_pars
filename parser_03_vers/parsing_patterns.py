@@ -1,5 +1,5 @@
-from parser_new.service_tools import ServiceTools
-from parser_new.base_property import BaseProperty
+from parser_03_vers.service_tools import ServiceTools
+from parser_03_vers.base_property import BaseProperty
 
 import os
 import pandas as pd
