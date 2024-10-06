@@ -5,16 +5,19 @@ from parser_new.parsing_patterns import ParsingPatterns
 # from parser_new.service_tools import ServiceTools
 
 
-
-
-
 # ----------------------------------------------------------------------------------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
 class InfoManager(BaseProperty):
-    """Класс для управления информацией, такой как заголовки запросов."""
+    """
+    Класс для управления информацией, такой как заголовки запросов.
+    """
 
-    # def __init__(self):
-    #     super().__init__()
+    def __init__(self):
+        super().__init__()  # Обязательно нужен, т.к. используется привызове в MvPars()
+
+    @property
+    def get_category_id_data(self):
+        return self._get_category_id_data()
 
     @property
     def get_connect(self):
@@ -64,13 +67,20 @@ class InfoManager(BaseProperty):
     def get_time_sleep_random(self):
         return self._get_time_sleep_random()
 
+
 # ----------------------------------------------------------------------------------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
 class PropertyManager(BaseProperty):
-    """Класс для управления свойствами парсера."""
-#
-#     def __init__(self):
-#         pass  # super().__init__()
+    """
+    Класс для управления свойствами парсера.
+    """
+
+    def __init__(self):
+        super().__init__()  # Обязательно нужен, т.к. используется привызове в MvPars()
+
+    def set_category_id_data(self, new_category_data):
+        self._set_category_id_data(new_category_data)
+        return self
 
     def set_new_connect(self, new_connect_obj):
         self._set_connect(new_connect_obj)
@@ -108,36 +118,55 @@ class PropertyManager(BaseProperty):
         self._set_ping_limits(min_ping, max_ping)
         return self
 
+
 # ----------------------------------------------------------------------------------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
 class ActivateManager(ParsingPatterns):
-    """Класс для активации и управления выполнением задач."""
+    """
+    Класс для активации и управления выполнением задач.
+    """
 
     def __init__(self):
-        super().__init__()
+        super().__init__()  # Обязательно нужен, т.к. используется привызове в MvPars()
 
-    def get_shops(self):
-        return self.get_branches_dat()
+    def get_branches_dat(self):
+        return self._get_branches_dat()
 
     def run_one_cycle_pars(self):
-        return self.run_one_cycle_pars()
+        return self._run_one_cycle_pars()
 
     def run_week_cycle_pars(self):
         # Расписание работы
-        return self.run_week_cycle_pars()
+        return self._run_week_cycle_pars()
+
 
 # ----------------------------------------------------------------------------------------------------------------------
 # ***
 # ----------------------------------------------------------------------------------------------------------------------
 class MvPars:
-    """Парсинг количества товаров на остатке по филиалам по расписанию."""
+    """
+    Парсинг количества товаров на остатке по филиалам по расписанию.
+    """
 
     # ------------------------------------------------------
     def __init__(self):
+        # super().__init__()
         self.info = InfoManager()
         self.set = PropertyManager()
         self.activate = ActivateManager()
 
+    # def info(self):
+    #     return self.info
+    #
+    # def set(self):
+    #     return self.set
+    #
+    # def activate(self):
+    #     return self.activate
+
     def __repr__(self):
-        print('Класс фазад.')
+        print('Класс фаcад.')
+
+
 # ----------------------------------------------------------------------------------------------------------------------
+

@@ -20,13 +20,13 @@ class ServiceTools(BaseProperty):
     """Вспомогательные методы вынесены в отдельный класс."""
 
     def __init__(self):
-        # super().__init__()  # Наследуем атрибуты из BaseProperty
+        super().__init__()  # Наследуем атрибуты из BaseProperty
 
         self.__session = self._get_session()  # Экземпляр сессии:
         self.__base_headers = self._get_headers()
         self.__name_table = self._get_name_table()
         self.__schema = self._get_name_schem()
-        self.__con = self._set_connect()
+        self.__con = self._get_connect()
         # pass
     # __________________________________________________________________ TOOLS
     @staticmethod

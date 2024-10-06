@@ -5,7 +5,7 @@
 # import os
 # import pandas as pd
 # from pandas import DataFrame
-# import time
+import time
 # from datetime import datetime
 # import json
 # import base64
@@ -34,7 +34,7 @@ class BaseProperty:
     __EXTENSION_FILE_DUMP = '.joblib'
     __EXTENSION_FILE_EXCEL = '.xlsx'
     __SESSION: Session = requests.Session()  # Экземпляр сессии:
-    __SCHEDULE = schedule
+    # __SCHEDULE = schedule
     def __init__(self):
         # _________________________________________________ Служебные переменные (обеспечивающие сторонние библиотеки)
         # self._SCHEDULE = schedule
@@ -70,31 +70,50 @@ class BaseProperty:
 
     # _________________________________________________
     # _________________________________________________
+    def _get_category_id_data(self):
+        """Возвращает категории на сайте для поиска подкатегорий парсингом (геттер)."""
+        return self.__CATEGORY_ID_DATA
+
+    def _set_category_id_data(self, new_category_data: tuple):
+        """Передача новых значений категорий для поиска подкатегорий парсингом."""
+        self.__CATEGORY_ID_DATA = self._validation_params(new_category_data, tuple, '_set_category_id_data')
+    # _________________________________________________
+    # _________________________________________________
     @classmethod
     def _get_session(cls):
         """Возвращает экземпляр сессии (геттер)."""
-        return self.__SESSION
+        return cls.__SESSION
 
     # Нет сеттора для session!
     # _________________________________________________
     # _________________________________________________
     def _get_connect(self):
-        """Возвращает экземпляр подключения к базе данных (геттер)."""
+        """
+        Возвращает экземпляр подключения к базе данных (геттер).
+        """
         return self.__CON
 
     def _set_connect(self, new_connect_obj):
-        """Передача нового объекта подключения к базе данных."""
+        """
+        Передача нового объекта подключения к базе данных.
+        """
         self.__CON = self._validation_params(new_connect_obj, Session, '_set_connect')
 
     # _________________________________________________
     # _________________________________________________
     def _get_name_table(self):
-        """Возвращает имя таблицы определенную по умолчанию для сохранения результатов парсинга (геттер)."""
+        """
+        Возвращает имя таблицы в базе данных определенную по умолчанию для сохранения результатов парсинга (геттер).
+        """
         return self.__NAME_TABLE
 
     def _set_name_table(self, new_name_table):
-        """Передача нового объекта подключения к базе данных."""
+        """
+        Установка нового имени таблицы в базе данных для сохранения результатов парсинга.
+        """
         self.__NAME_TABLE = self._validation_params(new_name_table, str, '_set_name_table')
+        print(f'Установлено новое значение имени таблицы в базе данных для сохранения результатов парсинга:'
+              f' {self.__NAME_TABLE}')
 
     # _________________________________________________
     # _________________________________________________

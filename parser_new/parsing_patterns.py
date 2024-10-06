@@ -14,14 +14,15 @@ class ParsingPatterns(ServiceTools, BaseProperty):
     """Частные конструкции для парсинга на основе ServiceTools методов и других сторонних библиотек."""
 
     def __init__(self):
-        # super().__init__()  # Наследуем атрибуты из ServiceTools
-        self.__city_data = self._get_city_data()
-        self.__base_headers = self._get_headers()
-        self.__session = self._get_session()
-
+        super().__init__()  # Наследуем атрибуты из ServiceTools
+        # self.__city_data = self._get_city_data()
+        # self.__category_id_data = self._get_category_id_data()
+        # self.__base_headers = self._get_headers()
+        # self.__session = self._get_session()
+        # pass
     # ------------------------------------------------------------------------------------------------------------------
     # __________________________________________________________________ GET_SHOPS
-    def get_branches_dat(self):
+    def _get_branches_dat(self):
         """
         # Парсинг кодов магазинов и адресов, необходимых для целевого запроса. Необходимо передать куки.
         :param session:
@@ -79,8 +80,8 @@ class ParsingPatterns(ServiceTools, BaseProperty):
 
             # 6. Выполняем основной запрос на извлечение филиалов в конкретном городе:
             # (на вход бязательны: # MVID_CITY_ID, MVID_REGION_ID, MVID_REGION_SHOP, MVID_TIMEZONE_OFFSET):
-            data: json = self._get_response(url=url_get_branches, headers=self.__base_headers, cookies=cookies_shops,
-                                            session=self.__session)
+            data: json = self._get_response(url=url_get_branches,  cookies=cookies_shops)
+            # headers=self.__base_headers, ,  session=self.__session
             # print(f'data = {data}, {cookies_shops}')
 
             print(f'\n'
@@ -180,9 +181,9 @@ class ParsingPatterns(ServiceTools, BaseProperty):
 
         return df_full_branch_data
     # __________________________________________________________________ ONE_PARS_CYCLE (CATEGORY)
-    def run_one_cycle_pars(self, load_damp=True):  # get_category
+    def _run_one_cycle_pars(self, load_damp=True):  # get_category
         """
-        Метод запука полного цикла парсинга (с добычей данных по API с сайта МВидео по филиалам и остатка товара
+        Метод запуcка полного цикла парсинга (с добычей данных по API с сайта МВидео по филиалам и остатка товара
         по категориям на них) с сохранением результатов в базу данных.
         :param session:
         :type session:
@@ -197,11 +198,11 @@ class ParsingPatterns(ServiceTools, BaseProperty):
         """
 
         if not isinstance(load_damp, bool):
-            raise ValueError('Параметр "load_damp" должн иметь тип данных bool.')
+            raise ValueError('Параметр "load_damp" должен иметь тип данных bool.')
 
         _dump_path = self._get_path_file_branch_dump()
 
-        # Кортеж категорий на исключяение (наполнение через итерации):
+        # Кортеж категорий на исключение (наполнение через итерации):
         bag_category_tuple = ()
 
         # Создаем целевой итоговый датафрейм, куда будут сохранены данные типа: код магазина, категория (имя),
@@ -213,7 +214,7 @@ class ParsingPatterns(ServiceTools, BaseProperty):
 
             # 1) Подготовка данных (атрибуты филиалов) для основной функции count_product_request:
             # ----------------------------------------------------------
-            df_full_branch_data = self.get_branches_dat()
+            df_full_branch_data = self._get_branches_dat()
             if df_full_branch_data is None:
                 reason = (f'Работа функции "get_shops" завершилась неудачей.')
             # pr.pprint(df_full_branch_data)
@@ -223,7 +224,7 @@ class ParsingPatterns(ServiceTools, BaseProperty):
         elif load_damp is True:
 
             # _name_dump = '../data/df_full_branch_data.joblib'
-            if os.path.isfile(_dump_path):  # Если файл существует,тогда: True
+            if os.path.isfile(_dump_path):  # Если файл существует, тогда: True
 
                 # _name_dump = '../data/df_full_branch_data.joblib'
                 df_full_branch_data = load(_dump_path)  # Тогда загружаем дамп
@@ -232,7 +233,7 @@ class ParsingPatterns(ServiceTools, BaseProperty):
                 reason = (f'Отсутствует файл дампа в директории: {_dump_path}.\n'
                           f'Запустите функцию повторно, установив параметр "load_damp: bool=False", что бы запустить '
                           f'парсинг о филиалах.\n'
-                          f'Это необходимо для выполнения основного ззапроса к данным о количестве товара по категориям')
+                          f'Это необходимо для выполнения основного запроса к данным о количестве товара по категориям')
 
         # Если есть результат загрузки дампа данных по филиалам или парсинга таких данных:
         if df_full_branch_data is not None:
@@ -254,7 +255,7 @@ class ParsingPatterns(ServiceTools, BaseProperty):
 
             # for row in CATEGORY_ID_DATA:
 
-            for row in tqdm(self._CATEGORY_ID_DATA, total=len(self._CATEGORY_ID_DATA), ncols=80, ascii=True,
+            for row in tqdm(self._get_category_id_data(), total=len(self._get_category_id_data()), ncols=80, ascii=True,
                             desc=f'==================== Обработка данных по категории ===================='):
 
                 time.sleep(0.1)  # \n
@@ -279,9 +280,9 @@ class ParsingPatterns(ServiceTools, BaseProperty):
                     timezone_offset = row.get('timezone_offset')
 
                     # Случайная задержка для имитации человека:
-                    self._set_time_sleep_random()
+                    self._get_time_sleep_random()
 
-                    # 3.1.1.1) Основной запрос (возвращает json (айтон)):
+                    # 3.1.1.1) Основной запрос (возвращает json (пайтон)):
                     json_python = self._count_product_request(category_id, id_branch, city_id, region_id,
                                                               region_shop_id, timezone_offset)
                     # print(json_python)
@@ -290,7 +291,7 @@ class ParsingPatterns(ServiceTools, BaseProperty):
                     # 4) Обработка и сохранение результатов (достаем нужные категории и сохраняем в итоговый датафрейм)
                     # ----------------------------------------------------------
                     if json_python:
-                        # Обращаемся к родительскому ключу где хранятся категории товаров:
+                        # Обращаемся к родительскому ключу, где хранятся категории товаров:
                         all_category_in_html = json_python['body']['filters'][0]['criterias']
                         # print(f'Все категории на странице: {all_category_in_html}')
 
@@ -298,7 +299,7 @@ class ParsingPatterns(ServiceTools, BaseProperty):
                             # Перебираем родительскую директорию, забираем значения категорий и количество:
                             for row_category in all_category_in_html:
                                 count = row_category['count']  # Количество по категории (если != 'Да' \
-                                # то здесь все равно будет None,  условие проверки не нужно, опускаем)
+                                # то здесь все равно будет None, условие проверки не нужно, опускаем)
 
                                 # Наименование категории: если count равно 'Да', то name_category также будет None
                                 name_category = None if row_category['name'] == 'Да' else row_category['name']
@@ -324,13 +325,13 @@ class ParsingPatterns(ServiceTools, BaseProperty):
                     # Итог код магазина, категория, количество. ['id_branch','name_category','count']
                     # ----------------------------------------------------------
 
-            # Если по конкретной категории не нашлись нужные теги, такая категория добавится в стписок.
+            # Если по конкретной категории не нашлись нужные теги, такая категория добавится в список.
             # Далее эти категории можно исключить из парсинга.
             print(f'Список лишних категорий: {bag_category_tuple}.')
 
             # Получаем пути к файлам:
-            dump_path = self.get_path_file_category_dump()
-            excel_path = self.get_path_file_category_excel()
+            dump_path = self._get_path_file_category_dump()
+            excel_path = self._get_path_file_category_excel()
 
             # # Сохраняем результат парсинга в дамп и в эксель:
             self._save_data(df=df_fin_category_data, path_file_dump=dump_path, path_file_excel=excel_path)
@@ -350,7 +351,7 @@ class ParsingPatterns(ServiceTools, BaseProperty):
         return df_fin_category_data
     # __________________________________________________________________
     # __________________________________________________________________ WEEK_PARS_CYCLE
-    # def run_week_cycle_pars(self):
+    # def _run_week_cycle_pars(self):
     #     """Метод запуcка полного цикла парсинга (с добычей данных по филиалам и остатка товара по категориям на них)
     #     с сохранением результатов в базу данных."""
     #
