@@ -15,7 +15,7 @@ import time
 # from joblib import load
 # from tqdm import tqdm
 import requests
-import schedule
+# import schedule
 import random
 
 from parser.params_bank import *  # Все куки хедеры и параметры

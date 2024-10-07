@@ -20,7 +20,7 @@ from joblib import load
 from tqdm import tqdm
 
 from parser.params_bank import * # Все куки хедеры и параметры
-from settings.configs import engine_mart_sv
+from settings.configs import ENGINE   # engine_mart_sv
 
 # from requests import Response
 # from requests import
