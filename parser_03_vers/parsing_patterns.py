@@ -165,7 +165,7 @@ class ParsingPatterns(ServiceTools, BaseProperty):
                     # need to add reference cities
                     bug_list_city_data.append(city_name_branch)
 
-                # print(f'В родительском датафрейме отсутствуют справочные данныфе для города ({bug_list_city_data})')
+                # print(f'В родительском датафрейме отсутствуют справочные данные для города ({bug_list_city_data})')
                 # f'для сопоставления новых найденных филиалов.')
 
         print(f'В родительском датафрейме отсутствуют справочные данныфе для города ({bug_list_city_data})')

@@ -20,8 +20,8 @@ from parser_03_vers.facade import MvPars
 # ----------------------------------------------------------------------------------------------------------------------
 pars = MvPars()
 # pars.set.set_ping_limits(2.5, 3.5)
-pars.activate.get_branches_dat()   # +
-# pars.activate.run_one_cycle_pars()
+# pars.activate.get_branches_dat()   # +
+pars.activate.run_one_cycle_pars()
 
 
 
