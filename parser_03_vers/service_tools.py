@@ -97,6 +97,7 @@ class ServiceTools(BaseProperty):
             try:
                 # Основной запрос:
                 self._get_response(self, url, params=params, cookies=cookies) #, json_type=json_type
+                # raise requests.exceptions.ConnectionError("Принудительное отключение соединения для теста.") # тест +
 
             except (requests.exceptions.ConnectionError,
                     requests.exceptions.Timeout,
@@ -112,8 +113,9 @@ class ServiceTools(BaseProperty):
                 # Обработка любых других ошибок, связанных с запросами
                 print(f"Непредвиденная ошибка: {e}. Прерывание.")
                 return None  # Остановка при других ошибках
-            print("Не удалось выполнить запрос после нескольких попыток.")
-            return None  # Если все попытки исчерпаны
+        # Этот блок должен быть вне цикла while, чтобы выводилось только после всех попыток
+        print("Не удалось выполнить запрос после нескольких попыток.")
+        return None  # Если все попытки исчерпаны (нужен ли он тут?)
 
 
     @staticmethod
@@ -265,3 +267,5 @@ class ServiceTools(BaseProperty):
 
 # ----------------------------------------------------------------------------------------------------------------------
 
+a = ServiceTools()
+a._get_no_disconnect_request(None)
