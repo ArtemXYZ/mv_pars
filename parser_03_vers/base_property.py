@@ -52,7 +52,7 @@ class BaseProperty:
         self.__IMITATION_PING_MIN: float | int = 0.5
         self.__IMITATION_PING_MAX: float | int = 2.5
         self.__RETRIES: int = 20  # retries requests
-        self.__TIMEOUT: int = 120  # timeout
+        self.__TIMEOUT: int = 120  # timeout 120
         # _________________________________________________
 
     # ------------------------------------------------------------------------------------------------------------------

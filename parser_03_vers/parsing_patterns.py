@@ -47,7 +47,7 @@ class ParsingPatterns(ServiceTools, BaseProperty):
         url_get_branches = "https://www.mvideo.ru/bff/region/getShops"
 
         # 1. Преобразуем список картежей CITY_DATA в датафрейм:
-        df_city_data = pd.DataFrame(self.__city_data,
+        df_city_data = pd.DataFrame(self._get_city_data(),
                                     columns=['city_name', 'city_id', 'region_id', 'region_shop_id',
                                              'timezone_offset'])
 
@@ -80,7 +80,7 @@ class ParsingPatterns(ServiceTools, BaseProperty):
 
             # 6. Выполняем основной запрос на извлечение филиалов в конкретном городе:
             # (на вход бязательны: # MVID_CITY_ID, MVID_REGION_ID, MVID_REGION_SHOP, MVID_TIMEZONE_OFFSET):
-            data: json = self._get_no_disconnect_request(url=url_get_branches,  cookies=cookies_shops)
+            data: json = self._get_response(url_get_branches,  cookies=cookies_shops)
             # headers=self.__base_headers, ,  session=self.__session
             # print(f'data = {data}, {cookies_shops}')
 
@@ -168,7 +168,7 @@ class ParsingPatterns(ServiceTools, BaseProperty):
                 # print(f'В родительском датафрейме отсутствуют справочные данные для города ({bug_list_city_data})')
                 # f'для сопоставления новых найденных филиалов.')
 
-        print(f'В родительском датафрейме отсутствуют справочные данныфе для города ({bug_list_city_data})')
+        print(f'В родительском датафрейме отсутствуют справочные данные для города ({bug_list_city_data})')
 
         df_full_branch_data = df_branch_data
 

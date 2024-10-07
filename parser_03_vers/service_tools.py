@@ -81,7 +81,7 @@ class ServiceTools(BaseProperty):
             print(f"Ошибка: {response.status_code} - {response.text}")
         return data
 
-    def _get_no_disconnect_request(self, url, params_=None, cookies=None):  # , json_type=True, retries=20, timeout=120
+    def _get_no_disconnect_request(self, url, params=None, cookies=None):  # , json_type=True, retries=20, timeout=120
         """
         requests.exceptions.ReadTimeout: если сервер долго не отвечает.
         requests.exceptions.ChunkedEncodingError: разрыв соединения в процессе передачи данных.
@@ -96,7 +96,7 @@ class ServiceTools(BaseProperty):
         while attempt < self._get_retries():
             try:
                 # Основной запрос:
-                self._get_response(url, params=params_, cookies=cookies) #, json_type=json_type
+                self._get_response(url, params=params, cookies=cookies) #, json_type=json_type
                 # raise requests.exceptions.ConnectionError("Принудительное отключение соединения для теста.") # тест +
 
             except (requests.exceptions.ConnectionError,
@@ -115,7 +115,7 @@ class ServiceTools(BaseProperty):
                 return None  # Остановка при других ошибках
         # Этот блок должен быть вне цикла while, чтобы выводилось только после всех попыток
         print("Не удалось выполнить запрос после нескольких попыток.")
-        return None  # Если все попытки исчерпаны (нужен ли он тут?)
+        # return None  # Если все попытки исчерпаны (нужен ли он тут?)
 
 
     @staticmethod
