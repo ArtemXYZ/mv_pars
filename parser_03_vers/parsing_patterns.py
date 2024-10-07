@@ -80,7 +80,7 @@ class ParsingPatterns(ServiceTools, BaseProperty):
 
             # 6. Выполняем основной запрос на извлечение филиалов в конкретном городе:
             # (на вход бязательны: # MVID_CITY_ID, MVID_REGION_ID, MVID_REGION_SHOP, MVID_TIMEZONE_OFFSET):
-            data: json = self._get_response(url=url_get_branches,  cookies=cookies_shops)
+            data: json = self._get_no_disconnect_request(url=url_get_branches,  cookies=cookies_shops)
             # headers=self.__base_headers, ,  session=self.__session
             # print(f'data = {data}, {cookies_shops}')
 

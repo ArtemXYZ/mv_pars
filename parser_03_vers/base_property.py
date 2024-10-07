@@ -51,6 +51,8 @@ class BaseProperty:
         self.__FILE_NAME_CATEGORY: str = 'df_category_data'
         self.__IMITATION_PING_MIN: float | int = 0.5
         self.__IMITATION_PING_MAX: float | int = 2.5
+        self.__RETRIES: int = 20  # retries requests
+        self.__TIMEOUT: int = 120  # timeout
         # _________________________________________________
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -68,6 +70,29 @@ class BaseProperty:
             raise ValueError(
                 f'Не был передан обязательный аргумент для одного из параметров в методе: {fanc_name_str}.')
 
+    # _________________________________________________
+    # _________________________________________________
+    def _get_retries(self):
+        """
+        Возвращает заданное количество попыток для повторного подключения, в случае сбоев (обрыв соединения и тд.).
+        (геттер).
+        """
+        return self.__RETRIES
+
+    def _set_retries(self, new_retries_param: int):
+        """Передача новых значений количества попыток для повторного подключения, в случае сбоев."""
+        self.__RETRIES = self._validation_params(new_retries_param, int, '_set_retries')
+
+    def _get_timeout(self):
+        """
+        Возвращает заданный промежуток времени между повторными подключениями, в случае сбоев (обрыв соединения и тд.).
+        (геттер).
+        """
+        return self.__TIMEOUT
+
+    def _set_timeout(self, new_timeout_param: int):
+        """Передача нового значения промежутка времени между повторными подключениями, в случае сбоев."""
+        self.__TIMEOUT = self._validation_params(new_timeout_param, int, '_set_timeout')
     # _________________________________________________
     # _________________________________________________
     def _get_category_id_data(self):

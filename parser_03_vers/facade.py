@@ -16,6 +16,14 @@ class InfoManager(BaseProperty):
         super().__init__()  # Обязательно нужен, т.к. используется привызове в MvPars()
 
     @property
+    def get_retries(self):
+        return self._get_retries()
+
+    @property
+    def get_timeout(self):
+        return self._get_timeout()
+
+    @property
     def get_category_id_data(self):
         return self._get_category_id_data()
 
@@ -77,6 +85,14 @@ class PropertyManager(BaseProperty):
 
     def __init__(self):
         super().__init__()  # Обязательно нужен, т.к. используется привызове в MvPars()
+
+    def set_timeout(self, new_timeout_param):
+        self._set_timeout(new_timeout_param)
+        return self
+
+    def set_retries(self, new_retries_param):
+        self._set_retries(new_retries_param)
+        return self
 
     def set_category_id_data(self, new_category_data):
         self._set_category_id_data(new_category_data)

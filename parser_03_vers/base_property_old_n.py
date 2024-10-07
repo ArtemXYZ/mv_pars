@@ -47,6 +47,7 @@ class BaseProperty:
         self._FILE_NAME_CATEGORY: str = 'df_category_data'
         self._IMITATION_PING_MIN: float | int = 0.5
         self._IMITATION_PING_MAX: float | int = 2.5
+
         # _________________________________________________
 
     # ------------------------------------------------------------------------------------------------------------------

@@ -81,6 +81,41 @@ class ServiceTools(BaseProperty):
             print(f"Ошибка: {response.status_code} - {response.text}")
         return data
 
+    def _get_no_disconnect_request(self, url, params=None, cookies=None):  # , json_type=True, retries=20, timeout=120
+        """
+        requests.exceptions.ReadTimeout: если сервер долго не отвечает.
+        requests.exceptions.ChunkedEncodingError: разрыв соединения в процессе передачи данных.
+        requests.exceptions.RequestException: общее исключение для отлова любых других ошибок,
+        связанных с запросами, включая неожиданные сбои.
+
+        Обработка непредвиденных ошибок: Если возникает ошибка, не связанная с потерей соединения или таймаутом,
+        она будет обработана блоком except requests.exceptions.RequestException, что предотвратит аварийное
+        завершение программы
+        """
+        attempt = 0  # Количество попыток
+        while attempt < self._get_retries():
+            try:
+                # Основной запрос:
+                self._get_response(self, url, params=params, cookies=cookies) #, json_type=json_type
+
+            except (requests.exceptions.ConnectionError,
+                    requests.exceptions.Timeout,
+                    requests.exceptions.ReadTimeout,
+                    requests.exceptions.ChunkedEncodingError) as e:
+                # Обработка ошибки соединения или таймаута
+                attempt += 1
+                print(f"Ошибка соединения: {e}. Попытка {attempt}/{self._get_retries()}. "
+                      f"Повтор через {self._get_timeout() // 60} минут.")
+                time.sleep(self._get_timeout())  # Таймаут в 2 минуты
+
+            except requests.exceptions.RequestException as e:
+                # Обработка любых других ошибок, связанных с запросами
+                print(f"Непредвиденная ошибка: {e}. Прерывание.")
+                return None  # Остановка при других ошибках
+            print("Не удалось выполнить запрос после нескольких попыток.")
+            return None  # Если все попытки исчерпаны
+
+
     @staticmethod
     def _base64_decoded(url_param_string):
         """
@@ -182,7 +217,7 @@ class ServiceTools(BaseProperty):
         # ---------------------------------------- Выполняем основной запрос:
         # Запрос на извлечение count_product (на вход бязательны: \
         # MVID_CITY_ID, MVID_REGION_ID, MVID_REGION_SHOP, MVID_TIMEZONE_OFFSET):
-        data = self._get_response(url=full_url, cookies=cookies_count_product)
+        data = self._get_no_disconnect_request(url=full_url, cookies=cookies_count_product)
         return data
 
     # __________________________________________________________________
