@@ -107,7 +107,8 @@ class ServiceTools(BaseProperty):
 
 
 
-    def _get_no_disconnect_request(self, url: str = None, params: dict = None, cookies: dict = None):  # , json_type=True, retries=20, timeout=120
+    def _get_no_disconnect_request(self, url: str = None, params: dict = None, cookies: dict = None):
+        # , json_type=True, retries=20, timeout=120
         """
         requests.exceptions.ReadTimeout: если сервер долго не отвечает.
         requests.exceptions.ChunkedEncodingError: разрыв соединения в процессе передачи данных.
@@ -131,7 +132,8 @@ class ServiceTools(BaseProperty):
                 # Обработка ошибок соединения
                 attempt += 1
                 print(
-                    f"Ошибка соединения: {e}. Попытка {attempt}/{self._get_retries()}. Повтор через {self._get_timeout()} сек.")
+                    f"Ошибка соединения: {e}. Попытка {attempt}/{self._get_retries()}."
+                    f" Повтор через {self._get_timeout()} сек.")
                 time.sleep(self._get_timeout())  # Тайм-аут перед повторной попыткой
 
             except requests.exceptions.HTTPError as e:

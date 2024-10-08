@@ -326,6 +326,11 @@ class ParsingPatterns(ServiceTools, BaseProperty):
                             # Добавление в общий кортеж багов.
                             bag_category_tuple = bag_category_tuple + (category_id,)
 
+                    else:
+                        # row_bag_iter = new_row
+                        print(f'Пропуск итерации для: {id_branch} city_name_branch {city_name_branch}')
+                        continue
+
                     # Итог код магазина, категория, количество. ['id_branch','name_category','count']
                     # ----------------------------------------------------------
 
