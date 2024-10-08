@@ -79,10 +79,14 @@ class ParsingPatterns(ServiceTools, BaseProperty):
             self._get_time_sleep_random()
 
             # 6. Выполняем основной запрос на извлечение филиалов в конкретном городе:
-            # (на вход бязательны: # MVID_CITY_ID, MVID_REGION_ID, MVID_REGION_SHOP, MVID_TIMEZONE_OFFSET):
-            data: json = self._get_response(url_get_branches,  cookies=cookies_shops)
-            # headers=self.__base_headers, ,  session=self.__session
+            # (на вход обязательны: # MVID_CITY_ID, MVID_REGION_ID, MVID_REGION_SHOP, MVID_TIMEZONE_OFFSET):
+            data: json = self._get_no_disconnect_request(url=url_get_branches,  cookies=cookies_shops)
+            # headers=self.__base_headers,  session=self.__session
             # print(f'data = {data}, {cookies_shops}')
+
+            # Если запрос вернул None (по причине ошибок), тогда пропускаем итерацию:
+            if data is None:
+                continue
 
             print(f'\n'
                   f'Перебираем все филиалы в теле ответа GET запроса (json) для: {city_name_parent}')

@@ -56,32 +56,58 @@ class ServiceTools(BaseProperty):
         dump(df, path_file_dump)  # _name_dump = '../data/df_full_branch_data.joblib'
         df.to_excel(path_file_excel, index=False)  # _name_excel = '../data/df_full_branch_data.xlsx'
 
-    def _get_response(self, url: str, params: dict = None, cookies: dict = None, json_type=True) -> object:
-        """Универсальная функция для запросов с передаваемыми параметрами. """
+    # def _get_response(self, url: str, params: dict = None, cookies: dict = None, json_type=True) -> object:
+    #     """Универсальная функция для запросов с передаваемыми параметрами. """
+    #
+    #     # Устанавливаем куки в сессии
+    #     if self.__session and cookies:
+    #         self.__session.cookies.update(cookies)
+    #
+    #     # Обычный запрос или сессия:
+    #     if self.__session:
+    #         response = self.__session.get(url, headers=self.__base_headers, params=params)
+    #
+    #     else:
+    #         response = requests.get(url, headers=self.__base_headers, params=params, cookies=cookies)
+    #
+    #     # Выполнение запроса:
+    #     if response.status_code == 200:
+    #         if json_type:
+    #             data = response.json()  # Если ответ нужен в json:
+    #         elif not json_type:
+    #             data = response.text  # Если ответ нужен в html:
+    #     else:
+    #         data = None
+    #         print(f"Ошибка: {response.status_code} - {response.text}")
+    #     return data
 
-        # Устанавливаем куки в сессии
-        if self.__session and cookies:
+    def _get_response_json(self, url: str = None, params: dict = None, cookies: dict = None) -> object:
+        """Функция для запросов с мутабельными параметрами. """
+
+        # Устанавливаем куки в сессии (если были переданы):
+        if cookies:
             self.__session.cookies.update(cookies)
 
-        # Обычный запрос или сессия:
-        if self.__session:
-            response = self.__session.get(url, headers=self.__base_headers, params=params)
+        try:
+            # Выполнение запроса с сессией
+            response = self.__session.get(url=url, headers=self.__base_headers, params=params)
+            # Проверка кода ответа
+            if response.status_code == 200:
+                data = response.json()  # Ответ в формате JSON
 
-        else:
-            response = requests.get(url, headers=self.__base_headers, params=params, cookies=cookies)
+            else:
+                # Обработка некорректных HTTP ответов
+                raise requests.exceptions.HTTPError( f"Ошибка HTTP: {response.status_code} - {response.text}")
 
-        # Выполнение запроса:
-        if response.status_code == 200:
-            if json_type:
-                data = response.json()  # Если ответ нужен в json:
-            elif not json_type:
-                data = response.text  # Если ответ нужен в html:
-        else:
-            data = None
-            print(f"Ошибка: {response.status_code} - {response.text}")
+        # Перехватываем любые ошибки, включая сетевые и прочие исключения
+        except Exception as error_connect:
+            raise  # Передача исключения на верхний уровень для обработки
         return data
 
-    def _get_no_disconnect_request(self, url, params=None, cookies=None):  # , json_type=True, retries=20, timeout=120
+
+
+
+    def _get_no_disconnect_request(self, url: str = None, params: dict = None, cookies: dict = None):  # , json_type=True, retries=20, timeout=120
         """
         requests.exceptions.ReadTimeout: если сервер долго не отвечает.
         requests.exceptions.ChunkedEncodingError: разрыв соединения в процессе передачи данных.
@@ -96,26 +122,31 @@ class ServiceTools(BaseProperty):
         while attempt < self._get_retries():
             try:
                 # Основной запрос:
-                self._get_response(url, params=params, cookies=cookies) #, json_type=json_type
-                # raise requests.exceptions.ConnectionError("Принудительное отключение соединения для теста.") # тест +
+                data = self._get_response_json(url=url, params=params, cookies=cookies)
+                return data  # Возвращаем данные, если успешен
 
             except (requests.exceptions.ConnectionError,
                     requests.exceptions.Timeout,
-                    requests.exceptions.ReadTimeout,
                     requests.exceptions.ChunkedEncodingError) as e:
-                # Обработка ошибки соединения или таймаута
+                # Обработка ошибок соединения
                 attempt += 1
-                print(f"Ошибка соединения: {e}. Попытка {attempt}/{self._get_retries()}. "
-                      f"Повтор через {self._get_timeout() // 60} минут.")
-                time.sleep(self._get_timeout())  # Таймаут в 2 минуты
+                print(
+                    f"Ошибка соединения: {e}. Попытка {attempt}/{self._get_retries()}. Повтор через {self._get_timeout()} сек.")
+                time.sleep(self._get_timeout())  # Тайм-аут перед повторной попыткой
 
-            except requests.exceptions.RequestException as e:
-                # Обработка любых других ошибок, связанных с запросами
+            except requests.exceptions.HTTPError as e:
+                # Обработка HTTP ошибок
+                print(f"HTTP ошибка: {e}. Попытка {attempt + 1}/{self._get_retries()}.")
+                attempt += 1
+                time.sleep(self._get_timeout())
+
+            except Exception as e:
+                # Обработка любых других ошибок
                 print(f"Непредвиденная ошибка: {e}. Прерывание.")
-                return None  # Остановка при других ошибках
-        # Этот блок должен быть вне цикла while, чтобы выводилось только после всех попыток
-        print("Не удалось выполнить запрос после нескольких попыток.")
-        # return None  # Если все попытки исчерпаны (нужен ли он тут?)
+                return None
+
+            print("Не удалось выполнить запрос после нескольких попыток.")
+            return None
 
 
     @staticmethod
