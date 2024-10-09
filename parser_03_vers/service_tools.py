@@ -10,7 +10,7 @@ import requests
 import pandas as pd
 from pandas import DataFrame
 import time
-from bs4 import BeautifulSoup
+# from bs4 import BeautifulSoup
 from joblib import dump
 from joblib import load
 # from apscheduler.triggers.cron import CronTrigger
