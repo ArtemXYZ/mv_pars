@@ -116,6 +116,7 @@ class PropertyManager(BaseProperty):
 
     def set_base_folder_save(self, new_folder):
         self._set_base_folder_save(new_folder)
+        print(f'Установлено новое значение имени папки для сохранения результатов работы парсера: {new_folder}')
         return self
 
     def set_headers(self, new_headers):

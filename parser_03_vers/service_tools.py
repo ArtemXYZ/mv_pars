@@ -2,9 +2,9 @@ from parser_03_vers.base_property import BaseProperty
 
 import requests
 import json
-import base64
-import urllib.parse
-from datetime import datetime
+import base64  # переопределяется (зацикливание)
+import urllib.parse  # переопределяется (зацикливание)
+from datetime import datetime  # переопределяется (зацикливание)
 import os
 import requests
 import pandas as pd

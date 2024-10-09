@@ -1,4 +1,5 @@
 from parser_03_vers.facade import MvPars
+from data.dir import base_dir
 
 # Справочно:
 # ----------------------------------------------------------------------------------------------------------------------
@@ -27,7 +28,7 @@ pars = MvPars()
 # pars.activate.get_branches_dat()   # +
 pars.activate.run_one_cycle_pars(load_damp=True)
 # pars.activate.run_week_cycle_pars(day_of_week='wed',hour=9, minute=9) # 'sun'
-
+pars.set.set_base_folder_save(base_dir)
 
 
 
