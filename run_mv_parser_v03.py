@@ -25,7 +25,7 @@ pars = MvPars()
 # pars.set.set_ping_limits(2.5, 3.5)
 # pars.info.get_timeout
 # pars.activate.get_branches_dat()   # +
-# pars.activate.run_one_cycle_pars(load_damp=True)
+pars.activate.run_one_cycle_pars(load_damp=True)
 # pars.activate.run_week_cycle_pars(day_of_week='wed',hour=9, minute=9) # 'sun'
 
 

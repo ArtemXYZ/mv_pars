@@ -18,7 +18,7 @@ import requests
 # import schedule
 import random
 
-from parser_02_vers.params_bank import *  # Все куки хедеры и параметры
+from parser_03_vers.params_bank import *  # Все куки хедеры и параметры
 from settings.configs import ENGINE
 
 from sqlalchemy.engine import Engine
