@@ -13,7 +13,7 @@ class InfoManager(BaseProperty):
     """
 
     def __init__(self):
-        super().__init__()  # Обязательно нужен, т.к. используется привызове в MvPars()
+        super().__init__()  # Обязательно нужен, т.к. используется при вызове в MvPars()
 
     @property
     def get_retries(self):
@@ -84,7 +84,7 @@ class PropertyManager(BaseProperty):
     """
 
     def __init__(self):
-        super().__init__()  # Обязательно нужен, т.к. используется привызове в MvPars()
+        super().__init__()  # Обязательно нужен, т.к. используется при вызове в MvPars()
 
     def set_timeout(self, new_timeout_param):
         self._set_timeout(new_timeout_param)
@@ -144,7 +144,7 @@ class ActivateManager(ParsingPatterns):
     """
 
     def __init__(self):
-        super().__init__()  # Обязательно нужен, т.к. используется привызове в MvPars()
+        super().__init__()  # Обязательно нужен, т.к. используется при вызове в MvPars()
 
     def get_branches_dat(self):
         return self._get_branches_dat()
@@ -182,8 +182,5 @@ class MvPars:
         self.activate = ActivateManager()
 
     def __repr__(self):
-        print('Класс фаcад.')
-
-
+        print('Класс фасад.')
 # ----------------------------------------------------------------------------------------------------------------------
-

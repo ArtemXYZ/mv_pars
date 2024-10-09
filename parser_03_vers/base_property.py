@@ -16,7 +16,7 @@ import time
 # from tqdm import tqdm
 import requests
 # import schedule
-import random # переопределяется (зацикливание)
+import random   # переопределяется (зацикливание)
 
 from parser_03_vers.params_bank import *  # Все куки хедеры и параметры
 from settings.configs import ENGINE
