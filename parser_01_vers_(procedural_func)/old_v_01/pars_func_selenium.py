@@ -17,7 +17,7 @@
 # #
 # # import json
 # #
-# # from parser.params_bank import * # Все куки хедеры и параметры
+# # from parser_02_vers.params_bank import * # Все куки хедеры и параметры
 #
 #
 # # from run_mv_pars import session
@@ -164,7 +164,7 @@
 #
 #     # Исключаем ошибку, если вдруг забыли передать параметр (json_type=не json):
 #     if json_type is False:
-#         result = BeautifulSoup(result, "html.parser")  # soup
+#         result = BeautifulSoup(result, "html.parser_02_vers")  # soup
 #     else:
 #         result
 #
@@ -329,7 +329,7 @@
 # #
 # #     if url is not None:
 # #         page: Response = requests.get(url)  # При помощи requests.get мы совершаем запрос к веб страничке.
-# #         soup: BeautifulSoup = BeautifulSoup(page.content, "html.parser")
+# #         soup: BeautifulSoup = BeautifulSoup(page.content, "html.parser_02_vers")
 # #         # Сама функция возвращает ответ от сервера (200, 404 и т.д.),
 # #         # а page.content предоставляет нам полный код загруженной страницы.
 # #         # Возвращаемое значение: первичный "суп" из тегов.

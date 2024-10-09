@@ -148,8 +148,8 @@ class ActivateManager(ParsingPatterns):
     def get_branches_dat(self):
         return self._get_branches_dat()
 
-    def run_one_cycle_pars(self):
-        return self._run_one_cycle_pars()
+    def run_one_cycle_pars(self, load_damp=True):
+        return self._run_one_cycle_pars(load_damp=load_damp)
 
     def run_week_cycle_pars(self, day_of_week=None, hour=None, minute=None):   # cron_string=None):
         # Работаем со значениями по умолчанию:

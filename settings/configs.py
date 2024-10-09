@@ -28,4 +28,4 @@ connection_string_mart_sv = f'postgresql://{username}:{password}@{host}:{port}/{
 # # Создаем объект engine для подключения через SQLAlchemy engine_mart_sv
 ENGINE = create_engine(connection_string_mart_sv)
 
-# ENGINE = None
+

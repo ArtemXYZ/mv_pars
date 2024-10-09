@@ -5,8 +5,8 @@ import requests
 import pprint
 # from bs4 import BeautifulSoup as bs
 
-from parser.pars_func_request import *
-from parser.params_bank import *  # Все куки хедеры и параметры
+from parser_02_vers.pars_func_request import *
+from parser_02_vers.params_bank import *  # Все куки хедеры и параметры
 
 pr = pprint.PrettyPrinter(indent=4, width=80, compact=False)
 

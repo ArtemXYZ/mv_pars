@@ -3,8 +3,8 @@
 # import pprint
 #
 #
-# from parser.pars_func import *
-# from parser.params_bank import * # Все куки хедеры и параметры
+# from parser_02_vers.pars_func import *
+# from parser_02_vers.params_bank import * # Все куки хедеры и параметры
 #
 # pr = pprint.PrettyPrinter(indent=4, width=80, compact=False)
 #

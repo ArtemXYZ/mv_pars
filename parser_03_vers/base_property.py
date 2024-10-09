@@ -18,7 +18,7 @@ import requests
 # import schedule
 import random
 
-from parser.params_bank import *  # Все куки хедеры и параметры
+from parser_02_vers.params_bank import *  # Все куки хедеры и параметры
 from settings.configs import ENGINE
 
 from sqlalchemy.engine import Engine
@@ -65,7 +65,7 @@ class BaseProperty:
         self.__CITY_DATA: list[tuple] = CITY_DATA
         self.__CATEGORY_ID_DATA: tuple = CATEGORY_ID_DATA
         self.__BASE_HEADERS: dict = BASE_HEADERS
-        self.__BASE_FOLDER_SAVE: str = '../data/'
+        self.__BASE_FOLDER_SAVE: str = './data/'
         self.__FILE_NAME_BRANCH: str = 'df_branch_data'
         self.__FILE_NAME_CATEGORY: str = 'df_category_data'
         self.__IMITATION_PING_MIN: float | int = 0.5

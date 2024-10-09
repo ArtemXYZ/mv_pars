@@ -1,5 +1,5 @@
 #
-# from parser.pars_func_request import *
+# from parser_02_vers.pars_func_request import *
 #
 # # создадим словарь с перечнем url
 # input_list_url = {

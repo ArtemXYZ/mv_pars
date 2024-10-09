@@ -16,6 +16,9 @@ from parser_03_vers.facade import MvPars
 # pars.activate.get_branches()
 # pars.activate.run_one_cycle_pars()
 # pars.activate.run_week_cycle_pars()
+
+# wed - среда
+# sun -
 # ----------------------------------------------------------------------------------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
 pars = MvPars()
@@ -23,34 +26,17 @@ pars = MvPars()
 # pars.info.get_timeout
 # pars.activate.get_branches_dat()   # +
 # pars.activate.run_one_cycle_pars(load_damp=True)
-pars.activate.run_week_cycle_pars(day_of_week='tue',hour=17, minute=12 )
+# pars.activate.run_week_cycle_pars(day_of_week='wed',hour=9, minute=9) # 'sun'
 
 
-# 'sun'
 
 
 
 # ----------------------------------------------------------------------------------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
 
-# def __init__(self, session, connection, name_table, schema, city_data, category_id_data,                 ):
 
 
-#     @classmethod
-#     def _check_path_file(cls, path_file):
-#         """
-#         Перед сохранением результатов работы парсера проверяем наличие существования директории, если таковой нет,
-#         то создается.
-#         """
-#         # ________________________________________________ CHECK
-#         # Получаем директорию из пути:
-#         path_dir = os.path.dirname(path_file)
-#
-#         # Проверка, существует ли директория, создание её, если нет:
-#         if not os.path.exists(path_dir):
-#
-#             print(f'Директории не существует, будет создана новая по указанному адресу.')
-#             os.makedirs(path_dir)
 
 
 

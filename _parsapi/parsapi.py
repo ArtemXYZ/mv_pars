@@ -21,7 +21,7 @@ from typing import Union
 
 
 
-from parser.params_bank import *  # Все куки хедеры и параметры
+from parser_02_vers.params_bank import *  # Все куки хедеры и параметры
 # from settings.configs import engine_mart_sv
 
 
@@ -128,8 +128,8 @@ class ParsAPI:
         """
         result_params_list = []
         for value in values:  # Перебираем все значения в *values
-            validation_value_encoded = self.args_validation(key, value)  # url_encoded(value) old
-            param_string = (validation_value_encoded)  # param_string = (key, value_encoded) old
+            validation_value_encoded = self.args_validation(key, value)  # url_encoded(value) parser_01_vers_(procedural_func)
+            param_string = (validation_value_encoded)  # param_string = (key, value_encoded) parser_01_vers_(procedural_func)
             result_params_list.append(param_string)
         return result_params_list
 
@@ -154,7 +154,7 @@ class ParsAPI:
         temp_params_list  = []
         # Перебираем все значения в *values
         for value in values:
-            param_string = self.args_validation(key, value)  # f'&{key}={self._encoded(value)}' old
+            param_string = self.args_validation(key, value)  # f'&{key}={self._encoded(value)}' parser_01_vers_(procedural_func)
             temp_params_list.append(param_string)
         result_params = ''.join(temp_params_list)
         return result_params

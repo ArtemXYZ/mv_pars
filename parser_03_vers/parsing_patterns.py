@@ -333,10 +333,10 @@ class ParsingPatterns(ServiceTools, BaseProperty):
                         # row_bag_iter = new_row
                         print(f'Пропуск итерации для: {id_branch} city_name_branch {city_name_branch}')
                         continue
-                    break
+                    break  #  Для теста - оба брейка нужны
                     # Итог код магазина, категория, количество. ['id_branch','name_category','count']
                     # ----------------------------------------------------------
-                break
+                break #  Для теста - оба брейка нужны
             # Если по конкретной категории не нашлись нужные теги, такая категория добавится в список.
             # Далее эти категории можно исключить из парсинга.
             print(f'Список лишних категорий: {bag_category_tuple}.')
@@ -344,7 +344,8 @@ class ParsingPatterns(ServiceTools, BaseProperty):
             # Получаем пути к файлам:
             dump_path = self._get_path_file_category_dump()
             excel_path = self._get_path_file_category_excel()
-            print(f'dump_path: {dump_path}, excel_path: {excel_path},')
+            print(f'dump_path: {dump_path}\n'
+                  f'excel_path: {excel_path}')
 
             # # Сохраняем результат парсинга в дамп и в эксель:
             self._save_data(df=df_fin_category_data, path_file_dump=dump_path, path_file_excel=excel_path)
@@ -409,5 +410,3 @@ class ParsingPatterns(ServiceTools, BaseProperty):
 # ***
 # ----------------------------------------------------------------------------------------------------------------------
 
-asa = ParsingPatterns()
-asa._run_one_cycle_pars()

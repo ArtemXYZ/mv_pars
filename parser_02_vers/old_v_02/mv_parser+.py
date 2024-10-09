@@ -21,7 +21,7 @@
 #
 # from tqdm import tqdm
 #
-# from parser.params_bank import *  # Все куки хедеры и параметры
+# from parser_02_vers.params_bank import *  # Все куки хедеры и параметры
 # # from settings.configs import engine_mart_sv
 #
 #

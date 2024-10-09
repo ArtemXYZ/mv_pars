@@ -19,7 +19,7 @@ from joblib import load
 
 from tqdm import tqdm
 
-from parser.params_bank import * # Все куки хедеры и параметры
+from parser_02_vers.params_bank import * # Все куки хедеры и параметры
 from settings.configs import ENGINE   # engine_mart_sv
 
 # from requests import Response
@@ -142,7 +142,7 @@ def get_request_sup_by_html_category(branch, region_shop, catygory_part, session
 
     # Исключаем ошибку, если вдруг забыли передать параметр (json_type=не json):
     if json_type is False:
-        result = BeautifulSoup(result, "html.parser")  # soup
+        result = BeautifulSoup(result, "html.parser_02_vers")  # soup
     else:
         result
 
@@ -762,7 +762,7 @@ def load_result_pars_in_db(name_branch_dump='../data/df_category_data.joblib'):
 #
 #     if url is not None:
 #         page: Response = requests.get(url)  # При помощи requests.get мы совершаем запрос к веб страничке.
-#         soup: BeautifulSoup = BeautifulSoup(page.content, "html.parser")
+#         soup: BeautifulSoup = BeautifulSoup(page.content, "html.parser_02_vers")
 #         # Сама функция возвращает ответ от сервера (200, 404 и т.д.),
 #         # а page.content предоставляет нам полный код загруженной страницы.
 #         # Возвращаемое значение: первичный "суп" из тегов.
