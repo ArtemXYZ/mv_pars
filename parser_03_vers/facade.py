@@ -151,9 +151,18 @@ class ActivateManager(ParsingPatterns):
     def run_one_cycle_pars(self):
         return self._run_one_cycle_pars()
 
-    def run_week_cycle_pars(self):
-        # Расписание работы
-        return self._run_week_cycle_pars()
+    def run_week_cycle_pars(self, day_of_week=None, hour=None, minute=None):   # cron_string=None):
+        # Работаем со значениями по умолчанию:
+        # if cron_string is None:
+        if (day_of_week is None) and (hour is None) and (minute is None):
+            # 5 14 * * 2
+            # Расписание работы
+            self._run_week_cycle_pars()
+        else:
+            print(f'Для планировщика обновлено значение запуска '
+                  f'day_of_week: {day_of_week}, hour: {hour}, minute: {minute},.')
+            # self._run_week_cycle_pars(cron_string)
+            self._run_week_cycle_pars(day_of_week=day_of_week, hour=hour, minute=minute)
 
 
 # ----------------------------------------------------------------------------------------------------------------------

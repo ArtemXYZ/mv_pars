@@ -9,6 +9,8 @@ import json
 import time
 from joblib import dump
 from joblib import load
+
+from apscheduler.schedulers.background import BlockingScheduler
 # ----------------------------------------------------------------------------------------------------------------------
 class ParsingPatterns(ServiceTools, BaseProperty):
     """Частные конструкции для парсинга на основе ServiceTools методов и других сторонних библиотек."""
@@ -319,6 +321,7 @@ class ParsingPatterns(ServiceTools, BaseProperty):
                                 # Добавляем новую строку с помощью loc[], где индексом будет len(df_fin_category_data)
                                 df_fin_category_data.loc[len(df_fin_category_data)] = new_row
 
+
                         except (KeyError, IndexError):
                             # Срабатывает, если ключ 'criterias' не существует или его невозможно получить
                             print(f'По category_id {category_id} - нет нужных тегов, пропускаем ее.')
@@ -330,10 +333,10 @@ class ParsingPatterns(ServiceTools, BaseProperty):
                         # row_bag_iter = new_row
                         print(f'Пропуск итерации для: {id_branch} city_name_branch {city_name_branch}')
                         continue
-
+                    break
                     # Итог код магазина, категория, количество. ['id_branch','name_category','count']
                     # ----------------------------------------------------------
-
+                break
             # Если по конкретной категории не нашлись нужные теги, такая категория добавится в список.
             # Далее эти категории можно исключить из парсинга.
             print(f'Список лишних категорий: {bag_category_tuple}.')
@@ -341,10 +344,11 @@ class ParsingPatterns(ServiceTools, BaseProperty):
             # Получаем пути к файлам:
             dump_path = self._get_path_file_category_dump()
             excel_path = self._get_path_file_category_excel()
+            print(f'dump_path: {dump_path}, excel_path: {excel_path},')
 
             # # Сохраняем результат парсинга в дамп и в эксель:
             self._save_data(df=df_fin_category_data, path_file_dump=dump_path, path_file_excel=excel_path)
-
+            # print('Результат парсинга успешно сохранен в дамп и в эксель файлы.')
             # Сохраняем в бд:
             # ----------------------------------------------------------
             # Функция сохраняет датафрейм в базу данных, предварительно загрузив дамп результатов парсинга:
@@ -360,21 +364,50 @@ class ParsingPatterns(ServiceTools, BaseProperty):
         return df_fin_category_data
     # __________________________________________________________________
     # __________________________________________________________________ WEEK_PARS_CYCLE
-    # def _run_week_cycle_pars(self):
-    #     """Метод запуcка полного цикла парсинга (с добычей данных по филиалам и остатка товара по категориям на них)
-    #     с сохранением результатов в базу данных."""
-    #
-    #     # Передаем ссылку на метод, а не вызываем его сразу (run_one_cycle_pars - без скобок)
-    #     self._SCHEDULE.every().thursday.at("10:08").do(self.run_one_cycle_pars())
-    #
-    #     print('Полный цикл парсинга по расписанию запущен.')
-    #     # Цикл для выполнения запланированных задач
-    #     while True:
-    #         self._SCHEDULE.run_pending()
-    #         time.sleep(60)  # Проверяем расписание каждую минуту
+    def _run_week_cycle_pars(self, day_of_week='sun', hour=23, minute=30):
+        # cron_string='41 14 * * 2'):  # '0 23 * * 0'
+        """
+        Метод запуска полного цикла парсинга (с добычей данных по филиалам и остатка товара по категориям на них)
+        с сохранением результатов в базу данных.
+        0 — минута (00).
+        23 — час (23:00).
+        * — любой день месяца.
+        * — любой месяц.
+        7 — воскресенье (день недели).
+        """
+        # if cron_string:
+        if  day_of_week and hour and minute:
+            # 'Передаем ссылку на метод, а не вызываем его сразу (run_one_cycle_pars - без скобок)'
+            # scheduler_instance: BlockingScheduler = self._set_schedule(self._run_one_cycle_pars, cron_string)
+            scheduler_instance: BlockingScheduler = self._set_schedule(
+                self._run_one_cycle_pars,
+                day_of_week=day_of_week, hour=hour, minute=minute)
+
+            print(f'Запуск по расписанию активирован. '
+                  f'Ожидаемое время начала работы полного цикла парсинга:'
+                  f' day_of_week: {day_of_week}, hour: {hour}, minute: {minute}.')
+            scheduler_instance.start()
+
+
+            # Проверяем, что задачи планировщика добавлены и планировщик готов к запуску
+            # if not scheduler_instance.get_jobs():
+            #     raise RuntimeError("Не удалось добавить задачу в планировщик.")
+            #
+            # # Запуск планировщика
+            # try:
+            #     scheduler_instance.start()
+            # except (KeyboardInterrupt, SystemExit):
+            #     print(' Остановка планировщика при выходе из программы')
+            #     # Остановка планировщика при выходе из программы
+            #     scheduler_instance.shutdown()
+        else:
+            raise ValueError(f'Ошибка: {cron_string} не может быть пустым.')
+
     # __________________________________________________________________
     # ------------------------------------------------------------------------------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
 # ***
 # ----------------------------------------------------------------------------------------------------------------------
 
+asa = ParsingPatterns()
+asa._run_one_cycle_pars()

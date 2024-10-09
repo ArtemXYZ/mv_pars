@@ -19,12 +19,14 @@ from parser_03_vers.facade import MvPars
 # ----------------------------------------------------------------------------------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
 pars = MvPars()
-pars.set.set_ping_limits(2.5, 3.5)
+# pars.set.set_ping_limits(2.5, 3.5)
+# pars.info.get_timeout
 # pars.activate.get_branches_dat()   # +
-pars.activate.run_one_cycle_pars()
+# pars.activate.run_one_cycle_pars(load_damp=True)
+pars.activate.run_week_cycle_pars(day_of_week='tue',hour=17, minute=12 )
 
 
-
+# 'sun'
 
 
 

@@ -13,6 +13,7 @@ import time
 from bs4 import BeautifulSoup
 from joblib import dump
 from joblib import load
+# from apscheduler.triggers.cron import CronTrigger
 
 # ----------------------------------------------------------------------------------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
@@ -27,7 +28,12 @@ class ServiceTools(BaseProperty):
         self.__name_table = self._get_name_table()
         self.__schema = self._get_name_schem()
         self.__con = self._get_connect()
+        # self.__bloc_scheduler = self._get_scheduler()
+        # self.__cron_trigger = self._get_cron_trigger
+
+
         # pass
+
     # __________________________________________________________________ TOOLS
     @staticmethod
     def _check_path_file(path_file):
@@ -42,6 +48,7 @@ class ServiceTools(BaseProperty):
         # Проверка, существует ли директория, создание её, если нет:
         if not os.path.exists(path_dir):
             os.makedirs(path_dir)
+            print(f'Создана новая дирректория для сохранения файлов: {path_dir}')
 
     def _save_data(self, df: DataFrame, path_file_dump, path_file_excel):
         """
@@ -55,6 +62,7 @@ class ServiceTools(BaseProperty):
         # Сохраняем результат парсинга в дамп и в эксель:
         dump(df, path_file_dump)  # _name_dump = '../data/df_full_branch_data.joblib'
         df.to_excel(path_file_excel, index=False)  # _name_excel = '../data/df_full_branch_data.xlsx'
+        print('Результат парсинга успешно сохранен в дамп и в эксель файлы.')
 
     # def _get_response(self, url: str, params: dict = None, cookies: dict = None, json_type=True) -> object:
     #     """Универсальная функция для запросов с передаваемыми параметрами. """
@@ -97,15 +105,12 @@ class ServiceTools(BaseProperty):
 
             else:
                 # Обработка некорректных HTTP ответов
-                raise requests.exceptions.HTTPError( f"Ошибка HTTP: {response.status_code} - {response.text}")
+                raise requests.exceptions.HTTPError(f"Ошибка HTTP: {response.status_code} - {response.text}")
 
         # Перехватываем любые ошибки, включая сетевые и прочие исключения
         except Exception as error_connect:
             raise  # Передача исключения на верхний уровень для обработки
         return data
-
-
-
 
     def _get_no_disconnect_request(self, url: str = None, params: dict = None, cookies: dict = None):
         # , json_type=True, retries=20, timeout=120
@@ -149,7 +154,6 @@ class ServiceTools(BaseProperty):
 
             print("Не удалось выполнить запрос после нескольких попыток.")
             return None
-
 
     @staticmethod
     def _base64_decoded(url_param_string):
@@ -291,14 +295,41 @@ class ServiceTools(BaseProperty):
             load_damp_df = None
             print(f'Отсутствует файл дампа в директории: "{name_path_file_dump}"!')
 
-    # def _set_schedule(cls):
-    #     """Планируем задачу на каждую субботу в 00:00 (полночь)."""
+    # def _set_schedule(self, func, cron_string=None):
+    #     """
+    #     Панировщик запуска задач.
+    #     Cron — это система для автоматизации выполнения задач по расписанию в UNIX-подобных операционных системах.
+    #     Она использует так называемые cron-выражения для задания времени и частоты выполнения задач.
+    #     Классическое cron-выражение состоит из пяти полей, каждое из которых определяет единицу времени:
     #
-    #     # Передаем ссылку на метод, а не вызываем его сразу (run_one_cycle_pars - без скобок)
-    #     cls._SCHEDULE.every().thursday.at("10:07").do(cls.run_one_cycle_pars())
+    #     'cron' - для задания расписания на основе cron-выражений:
+    #     (my_function, 'cron', minute=0, hour=12)  # Каждый день в 12:00
+    #
+    #
+    #     'date' - для задания одной задачи на определенную дату и время:
+    #     (my_function, 'date', run_date=datetime.now() + timedelta(days=1))  # Через один день
+    #
+    #      'interval' - для задания задач с регулярным интервалом (например, каждые N минут, секунд и т.д.).
+    #     (my_function, 'interval', minutes=10)  # Каждые 10 минут/
+    #
+    #     :param func: пердаваемая функция \ метод.
+    #     :type func: object
+    #     :param cron_string: крон выражение ('0 12 * * *'  # Каждый день в 12:00).
+    #     :type cron_string: str
+    #     :return: запуск метода по расписанию.
+    #     :rtype: object
+    #     """
+    #
+    #     cron_string_check = self._validation_params(cron_string, str, '_set_schedule')
+    #     func_check = self._validation_params(func, callable, '_set_schedule')
+    #
+    #     if func_check and cron_string_check:
+    #         cron_trigger = CronTrigger.from_crontab(cron_string)
+    #         self.__bloc_scheduler.add_job(func, trigger=cron_trigger)
+    #         self.__bloc_scheduler.start()
+    #     # else:
+    #     #     raise ValueError(f'Ошибка: {cron_string} не может быть пустым.')
 
 
 # ----------------------------------------------------------------------------------------------------------------------
 
-# a = ServiceTools()
-# a._get_no_disconnect_request(None)
