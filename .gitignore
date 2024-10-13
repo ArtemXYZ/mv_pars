@@ -7,3 +7,4 @@ config_bot.py
 .idea/inspectionProfiles/profiles_settings.xml
 data/*.*
 driver/*.*
+/.idea/inspectionProfiles/Project_Default.xml
