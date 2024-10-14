@@ -260,7 +260,7 @@ class ServiceTools(BaseProperty):
         return data
 
     # __________________________________________________________________
-    def load_result_pars_in_db(self, name_path_file_dump):
+    def load_result_pars_in_db(self, name_path_file_dump, if_exists='replace'):
         """
         Метод сохраняет датафрейм в базу данных, предварительно загрузив дамп результатов парсинга.
         """
@@ -282,7 +282,7 @@ class ServiceTools(BaseProperty):
             # ------------------------------------
             # Загрузка итогового DataFrame в базу данных:
             load_damp_df.to_sql(name=self.__name_table, schema=self.__schema, con=self.__con,
-                                if_exists='replace', index=False, method='multi')
+                                if_exists=if_exists, index=False, method='multi')
             # Выбираем метод 'replace' для перезаписи таблицы или 'append' для добавления данных
             # method='multi' используется для оптимизации вставки большого объема данных.
 

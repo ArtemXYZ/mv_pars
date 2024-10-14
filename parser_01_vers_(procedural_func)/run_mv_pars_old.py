@@ -27,7 +27,7 @@ get_shops(session, CITY_DATA, imitation_ping_min = 0.5, ping_max = 1.5,
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Раскоментировать для начала парсинга: +
-# df_fin_category_data = pars_cycle(session, load_damp=True, imitation_ping_min=1.5, imitation_ping_ping_max=3.5)
+df_fin_category_data = pars_cycle(session, load_damp=True, imitation_ping_min=1.5, imitation_ping_ping_max=3.5)
 #
 # print(df_fin_category_data)
 

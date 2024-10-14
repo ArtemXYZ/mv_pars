@@ -187,7 +187,7 @@ class ParsingPatterns(ServiceTools, BaseProperty):
 
         return df_full_branch_data
     # __________________________________________________________________ ONE_PARS_CYCLE (CATEGORY)
-    def _run_one_cycle_pars(self, load_damp=True):  # get_category
+    def _run_one_cycle_pars(self, load_damp=True, if_exists='replace'):  # get_category
         """
         Метод запуcка полного цикла парсинга (с добычей данных по API с сайта МВидео по филиалам и остатка товара
         по категориям на них) с сохранением результатов в базу данных.
@@ -333,10 +333,10 @@ class ParsingPatterns(ServiceTools, BaseProperty):
                         # row_bag_iter = new_row
                         print(f'Пропуск итерации для: {id_branch} city_name_branch {city_name_branch}')
                         continue
-                    break  #  Для теста - оба брейка нужны
+                    # break  #  Для теста - оба брейка нужны
                     # Итог код магазина, категория, количество. ['id_branch','name_category','count']
                     # ----------------------------------------------------------
-                break #  Для теста - оба брейка нужны
+                # break #  Для теста - оба брейка нужны
             # Если по конкретной категории не нашлись нужные теги, такая категория добавится в список.
             # Далее эти категории можно исключить из парсинга.
             print(f'Список лишних категорий: {bag_category_tuple}.')
@@ -353,7 +353,7 @@ class ParsingPatterns(ServiceTools, BaseProperty):
             # Сохраняем в бд:
             # ----------------------------------------------------------
             # Функция сохраняет датафрейм в базу данных, предварительно загрузив дамп результатов парсинга:
-            self.load_result_pars_in_db(dump_path)
+            self.load_result_pars_in_db(dump_path, if_exists=if_exists)
 
 
         # Парсинг остановлен по причине отсутствия файла дампа или подготовка данных в "get_shops" завершилась неудачей:
