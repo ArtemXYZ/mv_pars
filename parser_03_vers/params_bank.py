@@ -92,27 +92,35 @@ CITY_DATA: list[tuple] = [
 
 # Эти есть в базе
 ID_DATA = ()
-
+exceptions = ()
 
 
 # Генерирует пропущенные значения в масииве:
 def search_gaps_numb(ID_DATA: tuple,  exceptions: tuple): # , min=None, max=None
     "Функция генерирует пропущенные значения в масииве, учитывая значения, которые необходимо исключить из поиска."
+
     gaps = []
     for index, numb in enumerate(ID_DATA, start=1):
-        if index == len(ID_DATA):
+
+        # начала проверяем есть ли это значение в исключениях, пропускаем, если да:
+        if numb in exceptions:
             pass
-
+        # Ищем, если нет в исключениях:
         else:
-            next_numb = int(numb) + 1
-            numb_str = str(next_numb)
-
-            if numb_str in ID_DATA:
-                # print(f"Значение {numb_str} есть в кортеже.")
+            # Если это последнее число в выборке (не ищем больше пропуски):
+            if index == len(ID_DATA):
                 pass
+
             else:
-                gaps.append(next_numb)
-                # print(f"Значение {numb_str} отсутствует в кортеже.")
+                next_numb = int(numb) + 1
+                numb_str = str(next_numb)
+
+                if numb_str in ID_DATA:
+                    # print(f"Значение {numb_str} есть в кортеже.")
+                    pass
+                else:
+                    gaps.append(next_numb)
+                    # print(f"Значение {numb_str} отсутствует в кортеже.")
 
 
     print(f'Значения, отсутствующие в кортеже:\n'
