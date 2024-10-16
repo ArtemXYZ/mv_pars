@@ -94,42 +94,95 @@ CITY_DATA: list[tuple] = [
 ID_DATA = ()
 exceptions = ()
 
+class ArraySearcher:
 
-# Генерирует пропущенные значения в масииве:
-def search_gaps_numb(ID_DATA: tuple,  exceptions: tuple): # , min=None, max=None
-    "Функция генерирует пропущенные значения в масииве, учитывая значения, которые необходимо исключить из поиска."
+    def __init(self):
+        self.gaps = []  # Пропуски
 
-    gaps = []
-    for index, numb in enumerate(ID_DATA, start=1):
+    # 1
+    def tuple_to_list(self, in_tuple):  # кортеж в список
+        """Преобразование кортежа в список."""
+        return list(in_tuple) # data_list
 
-        # начала проверяем есть ли это значение в исключениях, пропускаем, если да:
-        if numb in exceptions:
-            pass
-        # Ищем, если нет в исключениях:
-        else:
-            # Если это последнее число в выборке (не ищем больше пропуски):
-            if index == len(ID_DATA):
-                pass
+    # 2
+    def distinct_value(self, in_list: list):
+        """Удаляем дубликаты в списке. Сортируем по возрастапнию"""
+        unique_value = list(dict.fromkeys(in_list))  # Словарь автоматически удаляет дубли
+        return sorted(unique_value)
 
+    # 3
+    def exclude_exceptions(self, in_id_data: list, in_exceptions: list):
+        """
+        Создаем новый список с учетом исключений
+        (игнорируем при генерации нового списка значения из in_exceptions).
+        """
+        new_id_data = [numb for numb in in_id_data if numb not in in_exceptions]
+        return sorted(new_id_data)
+
+    # 4/0
+    def core(self, in_id_data: list): # in_numb: int,
+        """
+        Основная функция,
+        генерирует пропущенные значения в масииве, учитывая значения, которые необходимо исключить из поиска.
+        """
+        for numb in in_id_data:
+            # Если достигнут конец массива (не ищем больше пропуски):
+            if numb == in_id_data[-1]:
+                return  # выходим из рекурсии
             else:
                 next_numb = int(numb) + 1
                 numb_str = str(next_numb)
+                if numb_str not in in_id_data:
+                    self.gaps.append(next_numb)  # Добавляем в список пропусков.
+                    in_id_data.append(next_numb)  # Добавляем в проверяемый список.
+                    self.core(in_id_data)
+        return self.gaps
 
-                if numb_str in ID_DATA:
-                    # print(f"Значение {numb_str} есть в кортеже.")
-                    pass
-                else:
-                    gaps.append(next_numb)
-                    # print(f"Значение {numb_str} отсутствует в кортеже.")
+    # 4
+    def search_gaps_(self, in_id_data: list):
+        result_gaps = self.core(in_id_data)
+        print(f'Значения, отсутствующие в кортеже:\n'
+              f'{result_gaps}')
 
 
-    print(f'Значения, отсутствующие в кортеже:\n'
-          f'{gaps}')
 
-# Сравнивает значения 2х массивов:
-def search_gaps_numb_in_array(ID_DATA_1: tuple, ID_DATA_2: tuple):
-
-    pass
+# Генерирует пропущенные значения в масииве:
+# def search_gaps_numb(ID_DATA: tuple,  exceptions: tuple): # , min=None, max=None
+#     "Функция генерирует пропущенные значения в масииве, учитывая значения, которые необходимо исключить из поиска."
+#
+#     gaps = []
+#     for numb in ID_DATA:
+#
+#         # начала проверяем есть ли это значение в исключениях, пропускаем, если да:
+#         if numb in exceptions:
+#             pass
+#
+#         # Ищем, если нет в исключениях:
+#         else:
+#             # Основная функция:
+#             # Если это последнее число в выборке (не ищем больше пропуски):
+#             if numb == ID_DATA[-1]:
+#                 pass
+#
+#             else:
+#                 next_numb = int(numb) + 1
+#                 numb_str = str(next_numb)
+#
+#                 if numb_str in ID_DATA:
+#                     # print(f"Значение {numb_str} есть в кортеже.")
+#                     pass
+#                 else:
+#                     gaps.append(next_numb)
+#                     # print(f"Значение {numb_str} отсутствует в кортеже.")
+#
+#
+#     print(f'Значения, отсутствующие в кортеже:\n'
+#           f'{gaps}')
+#
+# # Сравнивает значения 2х массивов:
+# def search_gaps_numb_in_array(ID_DATA_1: tuple, ID_DATA_2: tuple):
+#
+#     pass
 
 
 # search_gaps_numb(ID_DATA)
