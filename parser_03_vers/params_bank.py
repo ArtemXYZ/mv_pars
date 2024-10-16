@@ -98,7 +98,7 @@ class ArraySearcher:
 
     def __init__(self):
         self.gaps = []  # Пропуски
-        self.id_data_list_tmp = []
+        # self.id_data_list_tmp = []
 
 
     # 0/1
@@ -151,13 +151,10 @@ class ArraySearcher:
 
     def iter_recurs(self, id_data_list_tmp: list, limit: int, len_id_data: int, gaps: list):
 
-        # Итерируемся по рабочему списку:
-        for numb in id_data_list_tmp:
+        while len_id_data < limit:
 
-            # Если достигнут конец массива (не ищем больше пропуски):
-            if len_id_data <= limit:
-                return  # выходим из рекурсии
-            else:
+            # Итерируемся по рабочему списку:
+            for numb in id_data_list_tmp:
                 numb += 1
                 if numb not in id_data_list_tmp:  # numb_str != limit and
 
@@ -166,6 +163,27 @@ class ArraySearcher:
 
                     id_data_list_tmp.append(numb)  # Добавляем в проверяемый список.
                     print(f'in_id_data {id_data_list_tmp}')
+
+        # # Итерируемся по рабочему списку:
+        # for numb in id_data_list_tmp:
+        #
+        #      if len_id_data < limit:
+        #         numb += 1
+        #         if numb not in id_data_list_tmp:  # numb_str != limit and
+        #
+        #             gaps.append(numb)  # Добавляем в список пропусков.
+        #             print(f'gaps {gaps}')
+        #
+        #             id_data_list_tmp.append(numb)  # Добавляем в проверяемый список.
+        #             print(f'in_id_data {id_data_list_tmp}')
+        #
+        #
+        #     # Если достигнут конец массива (не ищем больше пропуски):
+        #      elif len_id_data == limit:
+        #         print(f'выходим из рекурсии {len_id_data}')
+        #         return  # выходим из рекурсии
+
+
 
             # self.core(in_id_data)
         return gaps
@@ -176,15 +194,17 @@ class ArraySearcher:
         Основная функция,
         генерирует пропущенные значения в масииве, учитывая значения, которые необходимо исключить из поиска.
         """
-        # Пересохраняем исходный список в рабочий список:
-        self.id_data_list_tmp = in_id_data
+        # Копируем исходный список в рабочий список:
+        id_data_list_tmp = in_id_data.copy()
+        print(f'copy {id_data_list_tmp}')
 
         # Определяем предел итераций:
         limit = max(in_id_data)
         # Определяем длинну массива (списка):
-        len_id_data = len(self.id_data_list_tmp)
+        len_id_data = len(id_data_list_tmp)
+        print(f'len_id_data {len_id_data}')
 
-        return self.iter_recurs(self.id_data_list_tmp, limit, len_id_data, self.gaps)
+        return self.iter_recurs(id_data_list_tmp=id_data_list_tmp, limit=limit, len_id_data=len_id_data, gaps=self.gaps)
 
     # 4
     def search_gaps(self, in_id_data: list, in_exceptions: list=None):
@@ -196,7 +216,7 @@ class ArraySearcher:
         distinct_id_data_list = self.distinct_value(int_id_data_list)
         # print(f'distinct_id_data_list {distinct_id_data_list}')
 
-        if in_exceptions:
+        if not in_exceptions is None:
             job_list = self.exclude_exceptions(distinct_id_data_list, in_exceptions)
             # print(f'job_list {job_list}')
         else:
