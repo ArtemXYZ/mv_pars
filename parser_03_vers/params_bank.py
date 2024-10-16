@@ -151,23 +151,10 @@ class ArraySearcher:
 
     def iter_recurs(self, id_data_list_tmp: list, limit: int, len_id_data: int, gaps: list):
 
-        while len_id_data < limit:
-
-            # Итерируемся по рабочему списку:
-            for numb in id_data_list_tmp:
-                numb += 1
-                if numb not in id_data_list_tmp:  # numb_str != limit and
-
-                    gaps.append(numb)  # Добавляем в список пропусков.
-                    print(f'gaps {gaps}')
-
-                    id_data_list_tmp.append(numb)  # Добавляем в проверяемый список.
-                    print(f'in_id_data {id_data_list_tmp}')
-
-        # # Итерируемся по рабочему списку:
-        # for numb in id_data_list_tmp:
+        # while len_id_data < limit:
         #
-        #      if len_id_data < limit:
+        #     # Итерируемся по рабочему списку:
+        #     for numb in id_data_list_tmp:
         #         numb += 1
         #         if numb not in id_data_list_tmp:  # numb_str != limit and
         #
@@ -176,14 +163,32 @@ class ArraySearcher:
         #
         #             id_data_list_tmp.append(numb)  # Добавляем в проверяемый список.
         #             print(f'in_id_data {id_data_list_tmp}')
-        #
-        #
-        #     # Если достигнут конец массива (не ищем больше пропуски):
-        #      elif len_id_data == limit:
-        #         print(f'выходим из рекурсии {len_id_data}')
-        #         return  # выходим из рекурсии
+
+        # # Определяем длинну массива (списка):
+        # len_id_data = len(id_data_list_tmp)
+        # print(f'len_id_data {len_id_data}')
 
 
+        # Итерируемся по рабочему списку:
+        for numb in id_data_list_tmp:
+
+             if not len_id_data <= limit:
+                numb += 1
+                if numb not in id_data_list_tmp:  # numb_str != limit and
+
+                    gaps.append(numb)  # Добавляем в список пропусков.
+                    print(f'gaps {gaps}')
+
+
+
+                    id_data_list_tmp.append(numb)  # Добавляем в проверяемый список.
+                    print(f'in_id_data {id_data_list_tmp}')
+
+            # Если достигнут конец массива (не ищем больше пропуски):
+             else:
+             # elif len_id_data == limit:
+                print(f'выходим из рекурсии {len_id_data}')
+                return  # выходим из рекурсии
 
             # self.core(in_id_data)
         return gaps
@@ -200,9 +205,10 @@ class ArraySearcher:
 
         # Определяем предел итераций:
         limit = max(in_id_data)
-        # Определяем длинну массива (списка):
-        len_id_data = len(id_data_list_tmp)
-        print(f'len_id_data {len_id_data}')
+
+        # # Определяем длинну массива (списка):
+        # len_id_data = len(id_data_list_tmp)
+        # print(f'len_id_data {len_id_data}')
 
         return self.iter_recurs(id_data_list_tmp=id_data_list_tmp, limit=limit, len_id_data=len_id_data, gaps=self.gaps)
 
