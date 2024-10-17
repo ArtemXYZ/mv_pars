@@ -187,7 +187,7 @@ class ParsingPatterns(ServiceTools, BaseProperty):
 
         return df_full_branch_data
     # __________________________________________________________________ ONE_PARS_CYCLE (CATEGORY)
-    def _run_one_cycle_pars(self, load_damp=True, if_exists='replace'):  # get_category
+    def _run_one_cycle_pars(self, load_damp=False, if_exists='replace'):  # get_category
         """
         Метод запуcка полного цикла парсинга (с добычей данных по API с сайта МВидео по филиалам и остатка товара
         по категориям на них) с сохранением результатов в базу данных.
@@ -365,7 +365,7 @@ class ParsingPatterns(ServiceTools, BaseProperty):
         return df_fin_category_data
     # __________________________________________________________________
     # __________________________________________________________________ WEEK_PARS_CYCLE
-    def _run_week_cycle_pars(self, day_of_week='sun', hour=23, minute=30):
+    def _run_week_cycle_pars(self, day_of_week='sun', hour=6, minute=00):
         # cron_string='41 14 * * 2'):  # '0 23 * * 0'
         """
         Метод запуска полного цикла парсинга (с добычей данных по филиалам и остатка товара по категориям на них)

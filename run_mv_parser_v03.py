@@ -18,8 +18,9 @@ from data.dir import base_dir
 # pars.activate.run_one_cycle_pars()
 # pars.activate.run_week_cycle_pars()
 
+# Точные сокращения для планировщика:
 # wed - среда
-# sun -
+# sun - воскресенье
 # ----------------------------------------------------------------------------------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
 pars = MvPars()
@@ -29,10 +30,10 @@ pars = MvPars()
 
 # Выбираем метод 'replace' для перезаписи таблицы или 'append' для добавления данных,
 # по умолчанию всегда 'replace' (можно не указывать)
-pars.activate.run_one_cycle_pars(load_damp=True, if_exists='append')
+pars.activate.run_one_cycle_pars(load_damp=True, if_exists='append')  # , if_exists='append'
 
 # pars.activate.run_week_cycle_pars(day_of_week='wed',hour=9, minute=9) # 'sun'
-pars.set.set_base_folder_save(base_dir)
+# pars.set.set_base_folder_save(base_dir)
 
 
 
