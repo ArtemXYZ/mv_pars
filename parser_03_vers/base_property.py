@@ -90,7 +90,7 @@ class BaseProperty:
         #     raise ValueError(
         #         f'Не был передан обязательный аргумент для одного из параметров в методе: {fanc_name_str}.')
 
-        if value:
+        if value is not None:  # is not None
             if check_type == callable:  # Проверка, если передан тип callable
                 if callable(value):
                     return value
@@ -157,10 +157,10 @@ class BaseProperty:
     #     """Возвращает cron_trigger (геттер)."""
     #     return cls.__CRON_TRIGGER
 
-    def _set_schedule(self, func, day_of_week, hour, minute):
+    def _set_schedule(self, set_func, set_week, set_hour, set_minute):
         # def _set_schedule(self, func, cron_string=None):
         """
-        Панировщик запуска задач.
+        Планировщик запуска задач.
         Cron — это система для автоматизации выполнения задач по расписанию в UNIX-подобных операционных системах.
         Она использует так называемые cron-выражения для задания времени и частоты выполнения задач.
         Классическое cron-выражение состоит из пяти полей, каждое из которых определяет единицу времени:
@@ -183,10 +183,11 @@ class BaseProperty:
         :rtype: callable
         """
 
-        func_check = self._validation_params(func, callable, '_set_schedule')
-        day_of_week_check = self._validation_params(day_of_week, str, '_set_schedule')
-        hour_check = self._validation_params(hour, int, '_set_schedule')
-        minute_check = self._validation_params(minute, int, '_set_schedule')
+        func_check = self._validation_params(set_func, callable, '_set_schedule')
+        day_of_week_check = self._validation_params(set_week, str, '_set_schedule')
+        hour_check = self._validation_params(set_hour, int, '_set_schedule')
+        minute_check = self._validation_params(set_minute, int, '_set_schedule')
+        # print(minute_check)
 
         if func_check and day_of_week_check and hour_check and minute_check:
             # cron_trigger = CronTrigger.from_crontab(cron_string)

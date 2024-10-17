@@ -365,7 +365,7 @@ class ParsingPatterns(ServiceTools, BaseProperty):
         return df_fin_category_data
     # __________________________________________________________________
     # __________________________________________________________________ WEEK_PARS_CYCLE
-    def _run_week_cycle_pars(self, day_of_week='sun', hour=6, minute=00):
+    def _run_week_cycle_pars(self, week='sun', hour=6, minute=1):
         # cron_string='41 14 * * 2'):  # '0 23 * * 0'
         """
         Метод запуска полного цикла парсинга (с добычей данных по филиалам и остатка товара по категориям на них)
@@ -377,16 +377,16 @@ class ParsingPatterns(ServiceTools, BaseProperty):
         7 — воскресенье (день недели).
         """
         # if cron_string:
-        if  day_of_week and hour and minute:
+        if (week is not None) and (hour is not None) and (minute is not None):
             # 'Передаем ссылку на метод, а не вызываем его сразу (run_one_cycle_pars - без скобок)'
             # scheduler_instance: BlockingScheduler = self._set_schedule(self._run_one_cycle_pars, cron_string)
             scheduler_instance: BlockingScheduler = self._set_schedule(
                 self._run_one_cycle_pars,
-                day_of_week=day_of_week, hour=hour, minute=minute)
+                set_week=week, set_hour=hour, set_minute=minute)
 
             print(f'Запуск по расписанию активирован. '
                   f'Ожидаемое время начала работы полного цикла парсинга:'
-                  f' day_of_week: {day_of_week}, hour: {hour}, minute: {minute}.')
+                  f' day_of_week: {week}, hour: {hour}, minute: {minute}.')
             scheduler_instance.start()
 
 
@@ -402,7 +402,7 @@ class ParsingPatterns(ServiceTools, BaseProperty):
             #     # Остановка планировщика при выходе из программы
             #     scheduler_instance.shutdown()
         else:
-            raise ValueError(f'Ошибка в "_run_week_cycle_pars": ходные параметры не были переданы '
+            raise ValueError(f'Ошибка в "_run_week_cycle_pars": исходные параметры не были переданы '
                              f'(day_of_week, hour, minute).')
 
     # __________________________________________________________________

@@ -30,9 +30,9 @@ pars = MvPars()
 
 # Выбираем метод 'replace' для перезаписи таблицы или 'append' для добавления данных,
 # по умолчанию всегда 'replace' (можно не указывать)
-pars.activate.run_one_cycle_pars(load_damp=True, if_exists='append')  # , if_exists='append'
+# pars.activate.run_one_cycle_pars(load_damp=True, if_exists='append')  # , if_exists='append'
 
-# pars.activate.run_week_cycle_pars(day_of_week='wed',hour=9, minute=9) # 'sun'
+pars.activate.run_week_cycle_pars(day_of_week='wed',h=9, m=0) # 'sun'
 # pars.set.set_base_folder_save(base_dir)
 
 
