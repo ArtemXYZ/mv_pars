@@ -10,7 +10,8 @@ import time
 from joblib import dump
 from joblib import load
 
-from apscheduler.schedulers.background import BlockingScheduler
+# from apscheduler.schedulers.background import BlockingScheduler
+# from apscheduler.triggers.cron import CronTrigger
 # ----------------------------------------------------------------------------------------------------------------------
 class ParsingPatterns(ServiceTools, BaseProperty):
     """Частные конструкции для парсинга на основе ServiceTools методов и других сторонних библиотек."""
@@ -405,9 +406,40 @@ class ParsingPatterns(ServiceTools, BaseProperty):
             raise ValueError(f'Ошибка в "_run_week_cycle_pars": исходные параметры не были переданы '
                              f'(day_of_week, hour, minute).')
 
+
+
+    def _run_week_pars_cron(self, cron_string):  # 5 14 * * 2
+
+        scheduler = self._get_scheduler()
+        # scheduler = BlockingScheduler()
+        # cron = CronTrigger()
+
+        if cron_string:
+
+            cron_trigger = self._set_cron(cron_string)
+            print(cron_trigger)
+
+
+            print(f'Запуск по расписанию активирован. '
+                  f'Ожидаемое время начала работы полного цикла парсинга: {cron_string}')
+
+            # Запускаем планировщик, если он ещё не запущен
+            if not scheduler.running:
+                scheduler.start()
+
+        # else:
+        #     raise ValueError(f'Ошибка в "_run_week_cycle_pars": исходные параметры не были переданы '
+        #                      f'(cron_string = {cron_string}).')
+
+        # cron_trigger = cron.from_crontab(cron_string)
+        # self._get_scheduler().add_job(self._run_one_cycle_pars, cron_trigger)
+        # self._get_scheduler().start()
+        # scheduler.add_job(self._run_one_cycle_pars, cron_trigger)
     # __________________________________________________________________
     # ------------------------------------------------------------------------------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
 # ***
 # ----------------------------------------------------------------------------------------------------------------------
 
+# sch = ParsingPatterns()
+# sch._run_week_pars_cron('27 16 * * 5')

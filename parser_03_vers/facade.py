@@ -166,6 +166,20 @@ class ActivateManager(ParsingPatterns):
             print(f'Для планировщика обновлено значение запуска '
                   f'day_of_week: {day_of_week}, hour: {h}, minute: {m}.')
 
+    def run_week_cycle_pars_cron(self, cron_string=None):  # 5 14 * * 2
+        # Работаем со значениями по умолчанию:
+        if not cron_string:  # if cron_string is None:
+            # Если не назначены значения времени, то вызываем метод (со значениями по умолчанию):
+            self._run_week_cycle_pars_cron()
+        else:
+            # self._run_week_cycle_pars(cron_string)
+            self._run_week_cycle_pars_cron(cron_string=cron_string)
+            print(f'Для планировщика обновлено значение запуска: {cron_string}')
+
+    def run_week_pars_cron(self, cron_string='00 23 * * 6'):
+        self._run_week_pars_cron(cron_string=cron_string)
+
+
 # ----------------------------------------------------------------------------------------------------------------------
 # ***
 # ----------------------------------------------------------------------------------------------------------------------

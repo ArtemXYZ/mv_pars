@@ -199,10 +199,55 @@ class BaseProperty:
             # return self
             return self._get_scheduler()
 
+    # def _set_schedule_cron(self, func, cron_string):  # cron_string=None
+    #     """
+    #     Планировщик запуска задач.
+    #     Cron — это система для автоматизации выполнения задач по расписанию в UNIX-подобных операционных системах.
+    #     Она использует так называемые cron-выражения для задания времени и частоты выполнения задач.
+    #     Классическое cron-выражение состоит из пяти полей, каждое из которых определяет единицу времени:
+    #
+    #     'cron' - для задания расписания на основе cron-выражений:
+    #     (my_function, 'cron', minute=0, hour=12)  # Каждый день в 12:00
+    #
+    #
+    #     'date' - для задания одной задачи на определенную дату и время:
+    #     (my_function, 'date', run_date=datetime.now() + timedelta(days=1))  # Через один день
+    #
+    #      'interval' - для задания задач с регулярным интервалом (например, каждые N минут, секунд и т.д.).
+    #     (my_function, 'interval', minutes=10)  # Каждые 10 минут/
+    #
+    #     :param func: передаваемая функция, метод.
+    #     :type func: callable
+    #     :param cron_string: крон выражение ('0 12 * * *'  # Каждый день в 12:00).
+    #     :type cron_string: str
+    #     :return: запуск метода по расписанию.
+    #     :rtype: callable
+    #     """
+    #
+    #     func_check = self._validation_params(func, callable, '_set_schedule_cron')
+    #     cron_string = self._validation_params(cron_string, str, '_set_schedule_cron')
+    #
+    #     # print(minute_check)
+    #
+    #     if func_check and cron_string:
+    #         cron_trigger = CronTrigger.from_crontab(cron_string)
+    #         # print(f'test cron_trigger: {cron_trigger}') ++
+    #         scheduler = self._get_scheduler().add_job(func, cron_trigger)
+    #         return scheduler  #self._get_scheduler()
 
 
+    def _set_cron(self, cron_string):  # cron_string=None
+        """
+        """
+        cron_string = self._validation_params(cron_string, str, '_set_cron')
 
+        if cron_string:
+            cron_trigger = CronTrigger()
+            return cron_trigger.from_crontab(cron_string) # +
+        else:
+            raise ValueError(f'Ошибка в "_set_cron": параметры не были переданы (cron_string = {cron_string}).')
 
+        # return cron_trigger
 
     # def _set_schedule_____(self, func): # , cron_string
     #
