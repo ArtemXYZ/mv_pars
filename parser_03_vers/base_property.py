@@ -24,8 +24,8 @@ from settings.configs import ENGINE
 from sqlalchemy.engine import Engine
 from requests import Session
 
-from apscheduler.triggers.cron import CronTrigger
-from apscheduler.schedulers.blocking import BlockingScheduler  # Блокирующий:
+# from apscheduler.triggers.cron import CronTrigger
+# from apscheduler.schedulers.blocking import BlockingScheduler  # Блокирующий:
 # BlockingScheduler блокирует выполнение основного потока программы, пока работает планировщик.
 # Это значит, что после вызова scheduler.start(), код ниже не будет выполняться, пока планировщик не завершит
 # свою работу (что обычно не происходит в течение обычной работы программы).
@@ -51,7 +51,8 @@ class BaseProperty:
     __EXTENSION_FILE_DUMP = '.joblib'
     __EXTENSION_FILE_EXCEL = '.xlsx'
     __SESSION: Session = requests.Session()  # Экземпляр сессии:
-    __BLOC_SCHEDULER = BlockingScheduler()  # __bloc_scheduler
+
+    # __BLOC_SCHEDULER = BlockingScheduler()  # __bloc_scheduler
     # __CRON_TRIGGER = CronTrigger  # - не работает
 
     def __init__(self):
@@ -146,10 +147,10 @@ class BaseProperty:
     # Нет сеттора для session!
     # _________________________________________________
     # _________________________________________________
-    @classmethod
-    def _get_scheduler(cls):
-        """Возвращает экземпляр scheduler (планировщик) (геттер)."""
-        return cls.__BLOC_SCHEDULER
+    # @classmethod
+    # def _get_scheduler(cls):
+    #     """Возвращает экземпляр scheduler (планировщик) (геттер)."""
+    #     return cls.__BLOC_SCHEDULER
 
 
     # @classmethod
@@ -157,47 +158,47 @@ class BaseProperty:
     #     """Возвращает cron_trigger (геттер)."""
     #     return cls.__CRON_TRIGGER
 
-    def _set_schedule(self, set_func, set_week, set_hour, set_minute):
-        # def _set_schedule(self, func, cron_string=None):
-        """
-        Планировщик запуска задач.
-        Cron — это система для автоматизации выполнения задач по расписанию в UNIX-подобных операционных системах.
-        Она использует так называемые cron-выражения для задания времени и частоты выполнения задач.
-        Классическое cron-выражение состоит из пяти полей, каждое из которых определяет единицу времени:
-
-        'cron' - для задания расписания на основе cron-выражений:
-        (my_function, 'cron', minute=0, hour=12)  # Каждый день в 12:00
-
-
-        'date' - для задания одной задачи на определенную дату и время:
-        (my_function, 'date', run_date=datetime.now() + timedelta(days=1))  # Через один день
-
-         'interval' - для задания задач с регулярным интервалом (например, каждые N минут, секунд и т.д.).
-        (my_function, 'interval', minutes=10)  # Каждые 10 минут/
-
-        :param func: передаваемая функция, метод.
-        :type func: callable
-        :param cron_string: крон выражение ('0 12 * * *'  # Каждый день в 12:00).
-        :type cron_string: str
-        :return: запуск метода по расписанию.
-        :rtype: callable
-        """
-
-        func_check = self._validation_params(set_func, callable, '_set_schedule')
-        day_of_week_check = self._validation_params(set_week, str, '_set_schedule')
-        hour_check = self._validation_params(set_hour, int, '_set_schedule')
-        minute_check = self._validation_params(set_minute, int, '_set_schedule')
-        # print(minute_check)
-
-        if func_check and day_of_week_check and hour_check and minute_check:
-            # cron_trigger = CronTrigger.from_crontab(cron_string)
-            # self._get_scheduler().add_job(func, trigger=cron_trigger)
-            self._get_scheduler().add_job(func_check, 'cron',
-                                          day_of_week=day_of_week_check, hour=hour_check, minute=minute_check)
-
-            # self._get_scheduler().start()
-            # return self
-            return self._get_scheduler()
+    # def _set_schedule(self, set_func, set_week, set_hour, set_minute):
+    #     # def _set_schedule(self, func, cron_string=None):
+    #     """
+    #     Планировщик запуска задач.
+    #     Cron — это система для автоматизации выполнения задач по расписанию в UNIX-подобных операционных системах.
+    #     Она использует так называемые cron-выражения для задания времени и частоты выполнения задач.
+    #     Классическое cron-выражение состоит из пяти полей, каждое из которых определяет единицу времени:
+    #
+    #     'cron' - для задания расписания на основе cron-выражений:
+    #     (my_function, 'cron', minute=0, hour=12)  # Каждый день в 12:00
+    #
+    #
+    #     'date' - для задания одной задачи на определенную дату и время:
+    #     (my_function, 'date', run_date=datetime.now() + timedelta(days=1))  # Через один день
+    #
+    #      'interval' - для задания задач с регулярным интервалом (например, каждые N минут, секунд и т.д.).
+    #     (my_function, 'interval', minutes=10)  # Каждые 10 минут/
+    #
+    #     :param func: передаваемая функция, метод.
+    #     :type func: callable
+    #     :param cron_string: крон выражение ('0 12 * * *'  # Каждый день в 12:00).
+    #     :type cron_string: str
+    #     :return: запуск метода по расписанию.
+    #     :rtype: callable
+    #     """
+    #
+    #     func_check = self._validation_params(set_func, callable, '_set_schedule')
+    #     day_of_week_check = self._validation_params(set_week, str, '_set_schedule')
+    #     hour_check = self._validation_params(set_hour, int, '_set_schedule')
+    #     minute_check = self._validation_params(set_minute, int, '_set_schedule')
+    #     # print(minute_check)
+    #
+    #     if func_check and day_of_week_check and hour_check and minute_check:
+    #         # cron_trigger = CronTrigger.from_crontab(cron_string)
+    #         # self._get_scheduler().add_job(func, trigger=cron_trigger)
+    #         self._get_scheduler().add_job(func_check, 'cron',
+    #                                       day_of_week=day_of_week_check, hour=hour_check, minute=minute_check)
+    #
+    #         # self._get_scheduler().start()
+    #         # return self
+    #         return self._get_scheduler()
 
     # def _set_schedule_cron(self, func, cron_string):  # cron_string=None
     #     """
@@ -236,27 +237,18 @@ class BaseProperty:
     #         return scheduler  #self._get_scheduler()
 
 
-    def _set_cron(self, cron_string):  # cron_string=None
-        """
-        """
-        cron_string = self._validation_params(cron_string, str, '_set_cron')
-
-        if cron_string:
-            cron_trigger = CronTrigger()
-            return cron_trigger.from_crontab(cron_string) # +
-        else:
-            raise ValueError(f'Ошибка в "_set_cron": параметры не были переданы (cron_string = {cron_string}).')
-
-        # return cron_trigger
-
-    # def _set_schedule_____(self, func): # , cron_string
+    # def _set_cron(self, cron_string):  # cron_string=None  (работает)
+    #     """
+    #     """
+    #     cron_string = self._validation_params(cron_string, str, '_set_cron')
     #
-    #     # cron_trigger = CronTrigger.from_crontab(cron_string)
-    #     # self._get_scheduler().add_job(func, 'interval', seconds=1)
-    #     # self._get_scheduler().add_job(func, trigger=cron_trigger)
-    #     # self._get_scheduler().add_job(func, day_of_week='sun', hour=23, minute=30)
-    #     self._get_scheduler().add_job(func, 'cron', day_of_week='tue', hour=16, minute=48)
-    #     self._get_scheduler().start()
+    #     if cron_string:
+    #         cron_trigger = CronTrigger()
+    #         return cron_trigger.from_crontab(cron_string) # +
+    #     else:
+    #         raise ValueError(f'Ошибка в "_set_cron": параметры не были переданы (cron_string = {cron_string}).')
+
+
 
     # _________________________________________________
     # _________________________________________________
@@ -412,34 +404,3 @@ class BaseProperty:
 # ----------------------------------------------------------------------------------------------------------------------
 # ***
 # ----------------------------------------------------------------------------------------------------------------------
-# def jasd():
-#     print('jhgjghl')
-
-# Создаем экземпляр BackgroundScheduler
-# scheduler = BackgroundScheduler()
-#
-# # Добавляем задачу
-# scheduler.add_job(jasd, 'interval', seconds=3)
-#
-# # Запускаем планировщик
-# scheduler.start()
-#
-# # Бесконечный цикл для удержания программы в работе
-# try:
-#     while True:
-#         time.sleep(1)  # Ждем 1 секунду
-# except (KeyboardInterrupt, SystemExit):
-#     # Останавливаем планировщик при выходе
-#     scheduler.shutdown()
-
-# scheduler = BlockingScheduler()
-#
-# # Добавление задачи с интервалом в 3 секунды
-# scheduler.add_job(jasd, 'interval', seconds=3)
-# scheduler.start()
-
-# sd = BaseProperty()
-# # cron_trigger = CronTrigger.from_crontab('55 15 * * 2') # +
-# # print(cron_trigger) '*/1 * * * *'
-#
-# sd._set_schedule_____(jasd)

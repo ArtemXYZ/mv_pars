@@ -23,6 +23,7 @@ class ParsingPatterns(ServiceTools, BaseProperty):
         # self.__base_headers = self._get_headers()
         # self.__session = self._get_session()
         # pass
+
     # ------------------------------------------------------------------------------------------------------------------
     # __________________________________________________________________ GET_SHOPS
     def _get_branches_dat(self):
@@ -366,66 +367,49 @@ class ParsingPatterns(ServiceTools, BaseProperty):
         return df_fin_category_data
     # __________________________________________________________________
     # __________________________________________________________________ WEEK_PARS_CYCLE
-    def _run_week_cycle_pars(self, week='sun', hour=6, minute=1):
-        # cron_string='41 14 * * 2'):  # '0 23 * * 0'
-        """
-        Метод запуска полного цикла парсинга (с добычей данных по филиалам и остатка товара по категориям на них)
-        с сохранением результатов в базу данных.
-        0 — минута (00).
-        23 — час (23:00).
-        * — любой день месяца.
-        * — любой месяц.
-        7 — воскресенье (день недели).
-        """
-        # if cron_string:
-        if (week is not None) and (hour is not None) and (minute is not None):
-            # 'Передаем ссылку на метод, а не вызываем его сразу (run_one_cycle_pars - без скобок)'
-            # scheduler_instance: BlockingScheduler = self._set_schedule(self._run_one_cycle_pars, cron_string)
-            scheduler_instance: BlockingScheduler = self._set_schedule(
-                self._run_one_cycle_pars,
-                set_week=week, set_hour=hour, set_minute=minute)
-
-            print(f'Запуск по расписанию активирован. '
-                  f'Ожидаемое время начала работы полного цикла парсинга:'
-                  f' day_of_week: {week}, hour: {hour}, minute: {minute}.')
-            scheduler_instance.start()
-
-
-            # Проверяем, что задачи планировщика добавлены и планировщик готов к запуску
-            # if not scheduler_instance.get_jobs():
-            #     raise RuntimeError("Не удалось добавить задачу в планировщик.")
-            #
-            # # Запуск планировщика
-            # try:
-            #     scheduler_instance.start()
-            # except (KeyboardInterrupt, SystemExit):
-            #     print(' Остановка планировщика при выходе из программы')
-            #     # Остановка планировщика при выходе из программы
-            #     scheduler_instance.shutdown()
-        else:
-            raise ValueError(f'Ошибка в "_run_week_cycle_pars": исходные параметры не были переданы '
-                             f'(day_of_week, hour, minute).')
-
-
-
-    def _run_week_pars_cron(self, cron_string):  # 5 14 * * 2
-
-        scheduler = self._get_scheduler()
-        # scheduler = BlockingScheduler()
-        # cron = CronTrigger()
-
-        if cron_string:
-
-            cron_trigger = self._set_cron(cron_string)
-            print(cron_trigger)
+    # def _run_week_cycle_pars(self, week='sun', hour=6, minute=1):
+    #     # cron_string='41 14 * * 2'):  # '0 23 * * 0'
+    #     """
+    #     Метод запуска полного цикла парсинга (с добычей данных по филиалам и остатка товара по категориям на них)
+    #     с сохранением результатов в базу данных.
+    #     0 — минута (00).
+    #     23 — час (23:00).
+    #     * — любой день месяца.
+    #     * — любой месяц.
+    #     7 — воскресенье (день недели).
+    #     """
+    #     # if cron_string:
+    #     if (week is not None) and (hour is not None) and (minute is not None):
+    #         # 'Передаем ссылку на метод, а не вызываем его сразу (run_one_cycle_pars - без скобок)'
+    #         # scheduler_instance: BlockingScheduler = self._set_schedule(self._run_one_cycle_pars, cron_string)
+    #         scheduler_instance: BlockingScheduler = self._set_schedule(
+    #             self._run_one_cycle_pars,
+    #             set_week=week, set_hour=hour, set_minute=minute)
+    #
+    #         print(f'Запуск по расписанию активирован. '
+    #               f'Ожидаемое время начала работы полного цикла парсинга:'
+    #               f' day_of_week: {week}, hour: {hour}, minute: {minute}.')
+    #         scheduler_instance.start()
+    #
+    #
+    #         # Проверяем, что задачи планировщика добавлены и планировщик готов к запуску
+    #         # if not scheduler_instance.get_jobs():
+    #         #     raise RuntimeError("Не удалось добавить задачу в планировщик.")
+    #         #
+    #         # # Запуск планировщика
+    #         # try:
+    #         #     scheduler_instance.start()
+    #         # except (KeyboardInterrupt, SystemExit):
+    #         #     print(' Остановка планировщика при выходе из программы')
+    #         #     # Остановка планировщика при выходе из программы
+    #         #     scheduler_instance.shutdown()
+    #     else:
+    #         raise ValueError(f'Ошибка в "_run_week_cycle_pars": исходные параметры не были переданы '
+    #                          f'(day_of_week, hour, minute).')
 
 
-            print(f'Запуск по расписанию активирован. '
-                  f'Ожидаемое время начала работы полного цикла парсинга: {cron_string}')
 
-            # Запускаем планировщик, если он ещё не запущен
-            if not scheduler.running:
-                scheduler.start()
+
 
         # else:
         #     raise ValueError(f'Ошибка в "_run_week_cycle_pars": исходные параметры не были переданы '
@@ -440,6 +424,3 @@ class ParsingPatterns(ServiceTools, BaseProperty):
 # ----------------------------------------------------------------------------------------------------------------------
 # ***
 # ----------------------------------------------------------------------------------------------------------------------
-
-# sch = ParsingPatterns()
-# sch._run_week_pars_cron('27 16 * * 5')

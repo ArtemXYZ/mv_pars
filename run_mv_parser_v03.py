@@ -1,5 +1,5 @@
 from parser_03_vers.facade import MvPars
-from data.dir import base_dir
+# from data.dir import base_dir
 
 # Справочно:
 # ----------------------------------------------------------------------------------------------------------------------
@@ -16,11 +16,19 @@ from data.dir import base_dir
 # 3) Активация работы основных функций:
 # pars.activate.get_branches()
 # pars.activate.run_one_cycle_pars()
+
+# ----------------------------------------------------------  устарело:
 # pars.activate.run_week_cycle_pars()
 
 # Точные сокращения для планировщика:
 # wed - среда
 # sun - воскресенье
+
+# pars.activate.run_week_cycle_pars(day_of_week='wed',h=9, m=0) # 'sun'
+# pars.set.set_base_folder_save(base_dir)
+
+# крон не работает только интервал в 7 дней (проблема в сторонней библиотеке)
+
 # ----------------------------------------------------------------------------------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
 pars = MvPars()
@@ -32,11 +40,10 @@ pars = MvPars()
 # по умолчанию всегда 'replace' (можно не указывать)
 # pars.activate.run_one_cycle_pars(load_damp=True, if_exists='append')  # , if_exists='append'
 
-# pars.activate.run_week_cycle_pars(day_of_week='wed',h=9, m=0) # 'sun'
-# pars.set.set_base_folder_save(base_dir)
 
-pars.activate._run_week_pars_cron('50 16 * * 5')   # todo: проблема при наследовании классов
-# без проблем все работает в самом классе, в мв парс вызов получает проблемы
+
+pars.activate.run_week_pars_interval(7)   # todo: крон не работает только интервал в 7 дней
+
 
 
 
