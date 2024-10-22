@@ -1,65 +1,41 @@
-# Это библиотека предназначена для парсинга одной из торговой сети бытовой техники. #
----
-В данном инструменте используются как вспомогательные библиотеки:
+<!-- Ссылка на проект: https://github.com/ArtemXYZ/mv_pars.git -->
 
-   * SQLAlchemy,
-   * APScheduler,
-   * requests,
-   * urllib
-
-
-
-
-<!-- Improved compatibility of back to top link: See: https://github.com/othneildrew/Best-README-Template/pull/73 -->
+<!-- "<a id="readme-top"></a>" - это Якорь (ищет в документе эту конструкцию при нажатии на
+"[Вернуться наверх](#readme-top)": "ссылка наверх" в документе,  -->
 <a id="readme-top"></a>
+
+
+<!-- PROJECT MAIN LOGO | ГЛАВНОЕ ЛОГО ПРОЕКТА С КРАТКИМ ОПИСАНИЕМ -->
+
+[![Product main_logo][main_logo]](https://github.com/ArtemXYZ/mv_pars)
+
+<!-- PROJECT SHIELDS | ШИЛЬДИКИ-ССЫЛКИ -->
 <!--
-*** Thanks for checking out the Best-README-Template. If you have a suggestion
-*** that would make this better, please fork the repo and create a pull request
-*** or simply open an issue with the tag "enhancement".
-*** Don't forget to give the project a star!
--->
-
-
-
-<!-- PROJECT SHIELDS -->
-<!--
-*** I'm using markdown "reference style" links for readability.
-*** Reference links are enclosed in brackets [ ] instead of parentheses ( ).
-*** See the bottom of this document for the declaration of the reference variables
-*** for contributors-url, forks-url, etc. This is an optional, concise syntax you may use.
-*** https://www.markdownguide.org/basic-syntax/#reference-style-links
+Здесь размещены ШИЛЬДИКИ-ССЫЛКИ на важные разделы документа.
+Конструкция ссылок сделана по типу: ссылка на ссылку.
+Переменные которые ссылаются на данную конструкцию, расположены внизу документа.
 -->
 [![Contributors][contributors-shield]][contributors-url]
 [![Forks][forks-shield]][forks-url]
 [![Stargazers][stars-shield]][stars-url]
 [![Issues][issues-shield]][issues-url]
 [![MIT License][license-shield]][license-url]
-[![LinkedIn][linkedin-shield]][linkedin-url]
+<!-- [![LinkedIn][linkedin-shield]][linkedin-url] -->
 
 
-
-<!-- PROJECT LOGO -->
+<p align="center">
+An awesome README template to jumpstart your projects!
 <br />
-<div align="center">
-  <a href="https://github.com/othneildrew/Best-README-Template">
-    <img src="images/logo.png" alt="Logo" width="80" height="80">
-  </a>
+<a href="https://github.com/othneildrew/Best-README-Template"><strong>Explore the docs »</strong></a>
+<br />
+<br />
+<a href="https://github.com/othneildrew/Best-README-Template">View Demo</a>
+·
+<a href="https://github.com/othneildrew/Best-README-Template/issues/new?labels=bug&template=bug-report---.md">Report Bug</a>
+·
+<a href="https://github.com/othneildrew/Best-README-Template/issues/new?labels=enhancement&template=feature-request---.md">Request Feature</a>
+</p>
 
-  <h3 align="center">Best-README-Template</h3>
-
-  <p align="center">
-    An awesome README template to jumpstart your projects!
-    <br />
-    <a href="https://github.com/othneildrew/Best-README-Template"><strong>Explore the docs »</strong></a>
-    <br />
-    <br />
-    <a href="https://github.com/othneildrew/Best-README-Template">View Demo</a>
-    ·
-    <a href="https://github.com/othneildrew/Best-README-Template/issues/new?labels=bug&template=bug-report---.md">Report Bug</a>
-    ·
-    <a href="https://github.com/othneildrew/Best-README-Template/issues/new?labels=enhancement&template=feature-request---.md">Request Feature</a>
-  </p>
-</div>
 
 
 
@@ -94,7 +70,7 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-[![Product Name Screen Shot][product-screenshot]](https://example.com)
+[![Product Name Screen Shot][product-screenshot]](https://github.com/ArtemXYZ/mv_pars)
 
 There are many great README templates available on GitHub; however, I didn't find one that really suited my needs so I created this enhanced one. I want to create a README template so amazing that it'll be the last one you ever need -- I think this is it.
 
@@ -241,39 +217,47 @@ Project Link: [https://github.com/your_username/repo_name](https://github.com/yo
 
 
 
-<!-- ACKNOWLEDGMENTS -->
+<!-- ACKNOWLEDGMENTS | Благодарности -->
 ## Acknowledgments
 
 Use this space to list resources you find helpful and would like to give credit to. I've included a few of my favorites to kick things off!
 
-* [Choose an Open Source License](https://choosealicense.com)
-* [GitHub Emoji Cheat Sheet](https://www.webpagefx.com/tools/emoji-cheat-sheet)
-* [Malven's Flexbox Cheatsheet](https://flexbox.malven.co/)
-* [Malven's Grid Cheatsheet](https://grid.malven.co/)
-* [Img Shields](https://shields.io)
-* [GitHub Pages](https://pages.github.com)
-* [Font Awesome](https://fontawesome.com)
-* [React Icons](https://react-icons.github.io/react-icons/search)
+* [Choose an Open Source License](https://choosealicense.com) ! исправить
 
+
+
+
+<!-- back to top | На верх -->
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
 
-<!-- MARKDOWN LINKS & IMAGES -->
-<!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
-[contributors-shield]: https://img.shields.io/github/contributors/othneildrew/Best-README-Template.svg?style=for-the-badge
-[contributors-url]: https://github.com/othneildrew/Best-README-Template/graphs/contributors
-[forks-shield]: https://img.shields.io/github/forks/othneildrew/Best-README-Template.svg?style=for-the-badge
-[forks-url]: https://github.com/othneildrew/Best-README-Template/network/members
-[stars-shield]: https://img.shields.io/github/stars/othneildrew/Best-README-Template.svg?style=for-the-badge
-[stars-url]: https://github.com/othneildrew/Best-README-Template/stargazers
-[issues-shield]: https://img.shields.io/github/issues/othneildrew/Best-README-Template.svg?style=for-the-badge
-[issues-url]: https://github.com/othneildrew/Best-README-Template/issues
-[license-shield]: https://img.shields.io/github/license/othneildrew/Best-README-Template.svg?style=for-the-badge
-[license-url]: https://github.com/othneildrew/Best-README-Template/blob/master/LICENSE.txt
+<!-- MARKDOWN LINKS & IMAGES |  Ссылки на ресурсы (переменные для вставки в шаблоне документа) -->
+
+
+
+[contributors-shield]:  https://img.shields.io/github/contributors/ArtemXYZ/mv_pars.svg?style=for-the-badge
+[contributors-url]: https://github.com/ArtemXYZ/mv_pars/graphs/contributors
+[forks-shield]: https://img.shields.io/github/forks/ArtemXYZ/mv_pars.svg?style=for-the-badge
+[forks-url]: https://github.com/ArtemXYZ/mv_pars/network/members
+[stars-shield]: https://img.shields.io/github/stars/ArtemXYZ/mv_pars.svg?style=for-the-badge
+[stars-url]: https://github.com/ArtemXYZ/mv_pars/stargazers
+[issues-shield]: https://img.shields.io/github/issues/ArtemXYZ/mv_pars.svg?style=for-the-badge
+[issues-url]: https://github.com/ArtemXYZ/mv_pars/issues
+
+<!-- License | Лицензия -->
+[license-shield]: https://img.shields.io/github/license/ArtemXYZ/mv_pars.svg?style=for-the-badge
+[license-url]: https://github.com/ArtemXYZ/mv_pars/blob/master/LICENSE.txt
+
+<!-- linkedin | Соцсети -->
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
 [linkedin-url]: https://linkedin.com/in/othneildrew
-[product-screenshot]: images/screenshot.png
+
+<!-- Logo | Лого  + [product-screenshot]: -->
+[main_logo]: .venv/images_project/logo.png
+[logo_mini]: .venv/images_project/lg.png
+
+<!-- Logo + page home lib | Ссылки на библиотеки, используемые в разработке -->
 [Next.js]: https://img.shields.io/badge/next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white
 [Next-url]: https://nextjs.org/
 [React.js]: https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB
@@ -290,3 +274,30 @@ Use this space to list resources you find helpful and would like to give credit 
 [Bootstrap-url]: https://getbootstrap.com
 [JQuery.com]: https://img.shields.io/badge/jQuery-0769AD?style=for-the-badge&logo=jquery&logoColor=white
 [JQuery-url]: https://jquery.com
+
+<!-- 
+# Это библиотека предназначена для парсинга одной из торговой сети бытовой техники. #
+Ссылка на репозиторий https://github.com/ArtemXYZ/mv_pars.git 
+---
+В данном инструменте используются как вспомогательные библиотеки:
+
+   * SQLAlchemy,
+   * APScheduler,
+   * requests,
+   * urllib
+Данное хранилище содержит библиотеку для анализа наличия ассортимента товаров по филиалам и категориям 
+   * одной из розничных сетей бытовой техники.
+
+This repository contains a library for parsing availability of an assortment of goods by branches and categories of one of the retail network of household appliances. 
+-->
+<!-- PROJECT mini logo | Уменьшенный логотип -->
+<table align="center">
+  <tr>
+    <td align="center" style="vertical-align: middle;">
+      <img src=".venv/images_project/lg_min.gif" alt="Logo" width="50" height="45">
+    </td>
+    <td align="center" style="vertical-align: middle;">
+      <h1>mv_pars</h1>
+    </td>
+  </tr>
+</table>
