@@ -254,8 +254,8 @@ Use this space to list resources you find helpful and would like to give credit 
 [linkedin-url]: https://linkedin.com/in/othneildrew
 
 <!-- Logo | Лого  + [product-screenshot]: -->
-[main_logo]: .venv/images_project/logo.png
-[logo_mini]: .venv/images_project/lg.png
+[main_logo]: docs/images_project/logo.png
+[logo_mini]: docs/images_project/lg.png
 
 <!-- Logo + page home lib | Ссылки на библиотеки, используемые в разработке -->
 [Next.js]: https://img.shields.io/badge/next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white
