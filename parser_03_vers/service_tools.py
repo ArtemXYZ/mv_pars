@@ -275,7 +275,7 @@ class ServiceTools(BaseProperty):
             # Форматируем время в строку
             formatted_time = current_time.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
             # Добавляем новые колонки со значением 0:
-            load_damp_df['dt_load'] = formatted_time
+            load_damp_df['_dt_load'] = formatted_time  # dt_load -> _dt_load
             # print(load_damp_df)
             # ------------------------------------
             print("Загрузка DataFrame в базу данных.")

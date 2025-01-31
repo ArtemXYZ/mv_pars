@@ -189,7 +189,7 @@ class ParsingPatterns(ServiceTools, BaseProperty):
 
         return df_full_branch_data
     # __________________________________________________________________ ONE_PARS_CYCLE (CATEGORY)
-    def _run_one_cycle_pars(self, load_damp=False, if_exists='replace'):  # get_category
+    def _run_one_cycle_pars(self, load_damp=False, if_exists='append'):  # get_category
         """
         Метод запуcка полного цикла парсинга (с добычей данных по API с сайта МВидео по филиалам и остатка товара
         по категориям на них) с сохранением результатов в базу данных.
@@ -215,7 +215,15 @@ class ParsingPatterns(ServiceTools, BaseProperty):
 
         # Создаем целевой итоговый датафрейм, куда будут сохранены данные типа: код магазина, категория (имя),
         # количество.
-        df_fin_category_data = pd.DataFrame(columns=['id_branch', 'name_category', 'count', 'category_id'])
+        df_fin_category_data = pd.DataFrame(
+            columns=[
+                'id_branch',
+                'name_category',  # Подлежит удалению, добавлена будет в др. таблицу
+                'count',
+                'parent_category_id',
+                'category_id',
+            ]
+        )
 
         # Включать только когда необходимо повторно собрать данные.
         if load_damp is False:
@@ -267,10 +275,10 @@ class ParsingPatterns(ServiceTools, BaseProperty):
                             desc=f'==================== Обработка данных по категории ===================='):
 
                 time.sleep(0.1)  # \n
-                # Забирает id категории:
-                category_id = row
+                # Забирает id категории верхнего уровня (подставляется в ендпоинт, что бы получить "category_id"):
+                parent_category_id = row  # бывшая category_id
 
-                print(f'\n==================== Категория {category_id} ====================')
+                print(f'\n==================== Родительская категория {parent_category_id} ====================')
                 print(f'==================== Обработка данных филиалов  ====================')
 
                 # 3.1.1) Итерируем по филиалам и по конкретной категории:
@@ -291,7 +299,7 @@ class ParsingPatterns(ServiceTools, BaseProperty):
                     self._get_time_sleep_random()
 
                     # 3.1.1.1) Основной запрос (возвращает json (пайтон)):
-                    json_python = self._count_product_request(category_id, id_branch, city_id, region_id,
+                    json_python = self._count_product_request(parent_category_id, id_branch, city_id, region_id,
                                                               region_shop_id, timezone_offset)
                     # print(json_python)
                     # ----------------------------------------------------------
@@ -299,6 +307,9 @@ class ParsingPatterns(ServiceTools, BaseProperty):
                     # 4) Обработка и сохранение результатов (достаем нужные категории и сохраняем в итоговый датафрейм)
                     # ----------------------------------------------------------
                     if json_python:
+
+                        # category_id_
+
                         # Обращаемся к родительскому ключу, где хранятся категории товаров:
                         all_category_in_html = json_python['body']['filters'][0]['criterias']
                         # print(f'Все категории на странице: {all_category_in_html}')
@@ -306,16 +317,25 @@ class ParsingPatterns(ServiceTools, BaseProperty):
                         try:
                             # Перебираем родительскую директорию, забираем значения категорий и количество:
                             for row_category in all_category_in_html:
-                                count = row_category['count']  # Количество по категории (если != 'Да' \
-                                # то здесь все равно будет None, условие проверки не нужно, опускаем)
 
-                                # Наименование категории: если count равно 'Да', то name_category также будет None
+                                # 1. # Количество по категории (если != 'Да' \
+                                # то здесь все равно будет None, условие проверки не нужно, опускаем).
+                                count = row_category['count']
+
+                                # 2. Наименование категории: если count равно 'Да', то name_category также будет None
                                 name_category = None if row_category['name'] == 'Да' else row_category['name']
-                                # name_category = row_category['name']
-                                # Наименованеи категории:
 
-                                new_row = {'id_branch': id_branch, 'name_category': name_category, 'count': count,
-                                           'category_id': category_id}
+                                # 3. id искомой категории (получена от родительской):
+                                category_id = row_category['value']  # ключ 'value' = id
+
+
+                                new_row = {
+                                    'id_branch': id_branch,
+                                    'name_category': name_category,
+                                    'count': count,
+                                    'parent_category_id': parent_category_id,
+                                    'category_id': category_id
+                                }
 
                                 # print(f'count: {count}, name {name_category}')
                                 print(f'{index}. {new_row}')
@@ -326,10 +346,10 @@ class ParsingPatterns(ServiceTools, BaseProperty):
 
                         except (KeyError, IndexError):
                             # Срабатывает, если ключ 'criterias' не существует или его невозможно получить
-                            print(f'По category_id {category_id} - нет нужных тегов, пропускаем ее.')
+                            print(f'По parent_category_id {parent_category_id} - нет нужных тегов, пропускаем ее.')
 
                             # Добавление в общий кортеж багов.
-                            bag_category_tuple = bag_category_tuple + (category_id,)
+                            bag_category_tuple = bag_category_tuple + (parent_category_id,)
 
                     else:
                         # row_bag_iter = new_row

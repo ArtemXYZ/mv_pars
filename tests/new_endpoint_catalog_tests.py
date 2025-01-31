@@ -1,6 +1,8 @@
 """
     Исследование нового ендпоинта Мвидео на предоставление каталога товаров (по конкретному филиалу)
 """
+
+from tqdm import tqdm
 from parser_03_vers.service_tools import *
 # from parser_03_vers.parsing_patterns import ServiceTools
 from parser_03_vers.service_tools import ServiceTools
@@ -256,6 +258,142 @@ class OldUrlTest:
         return data
 
 
+    # @staticmethod
+    # def _run_one_cycle_pars(df_full_branch_data, city_id, if_exists='replace'):  # get_category append replace
+    #
+    #
+    #     # Кортеж категорий на исключение (наполнение через итерации):
+    #     bag_category_tuple = ()
+    #
+    #     # Создаем целевой итоговый датафрейм, куда будут сохранены данные типа: код магазина, категория (имя),
+    #     # количество.
+    #     df_fin_category_data = pd.DataFrame(
+    #         columns=[
+    #             'id_branch',
+    #             'name_category',  # Подлежит удалению, добавлена будет в др. таблицу
+    #             'count',
+    #             'parent_category_id',
+    #             'category_id',
+    #         ]
+    #     )
+    #
+    #
+    #     # 2) Подготовка данных (очистка и иерации):
+    #     # ----------------------------------------------------------
+    #     # Удаляем строки, где city_id равен 0
+    #     df_branch_not_null = df_full_branch_data[df_full_branch_data['city_id'] != 0]
+    #     # Если нужно удалить строки в исходном DataFrame (на месте):
+    #     # df_full_branch_data.drop(df_full_branch_data[df_full_branch_data['city_id'] == 0].index, inplace=True)
+    #
+    #     # Создаем целевой сириес для id категорий: - лишком тяжелый, проще обычный список перебрать.
+    #     # df_category_id_data = pd.DataFrame(CATEGORY_ID_DATA, columns=['category_id'])
+    #     # ----------------------------------------------------------
+    #
+    #     # 3) Основная конструкция перебирания филиалов по категориям\
+    #     # 3.1) Итерируем по категориям (на каждую категорию итерируем по филиалам) :
+    #     # ----------------------------------------------------------
+    #
+    #     # for row in CATEGORY_ID_DATA:
+    #
+    #     for row in tqdm(CATEGORY_ID_DATA, total=len(CATEGORY_ID_DATA), ncols=80, ascii=True,
+    #                     desc=f'==================== Обработка данных по категории ===================='):
+    #
+    #         time.sleep(0.1)  # \n
+    #         # Забирает id категории верхнего уровня в структуре МВидео\
+    #         # (подставляется в ендпоинт, что бы получить "category_id"):
+    #         parent_category_id = row  # бывшая category_id
+    #
+    #         print(f'\n==================== Родительская категория {parent_category_id} ====================')
+    #         print(f'==================== Обработка данных филиалов  ====================')
+    #
+    #         # 3.1.1) Итерируем по филиалам и по конкретной категории:
+    #         for index, row in df_branch_not_null.iterrows():
+    #             # for index, row in tqdm(df_branch_not_null.iterrows(), ncols=80, ascii=True,
+    #             #          desc=f'=================================================================='):
+    #             # desc=f'==================== Обработка данных филиала ===================='):
+    #
+    #             # Достаем данные из строки датафрейма:
+    #             id_branch = row.get('id_branch')
+    #             city_name_branch = row.get('city_name_branch')
+    #             city_id = row.get('city_id')
+    #             region_id = row.get('region_id')
+    #             region_shop_id = row.get('region_shop_id')
+    #             timezone_offset = row.get('timezone_offset')
+    #
+    #             # Случайная задержка для имитации человека:
+    #             self._get_time_sleep_random()
+    #
+    #             # 3.1.1.1) Основной запрос (возвращает json (пайтон)):
+    #             json_python = self._count_product_request(parent_category_id, id_branch, city_id, region_id,
+    #                                                       region_shop_id, timezone_offset)
+    #             # print(json_python)
+    #             # ----------------------------------------------------------
+    #
+    #             # 4) Обработка и сохранение результатов (достаем нужные категории и сохраняем в итоговый датафрейм)
+    #             # ----------------------------------------------------------
+    #             if json_python:
+    #
+    #                 # category_id_
+    #
+    #                 # Обращаемся к родительскому ключу, где хранятся категории товаров:
+    #                 all_category_in_html = json_python['body']['filters'][0]['criterias']
+    #                 # print(f'Все категории на странице: {all_category_in_html}')
+    #
+    #                 try:
+    #                     # Перебираем родительскую директорию, забираем значения категорий и количество:
+    #                     for row_category in all_category_in_html:
+    #
+    #                         # 1. # Количество по категории (если != 'Да' \
+    #                         # то здесь все равно будет None, условие проверки не нужно, опускаем).
+    #                         count = row_category['count']
+    #
+    #                         # 2. Наименование категории: если count равно 'Да', то name_category также будет None
+    #                         name_category = None if row_category['name'] == 'Да' else row_category['name']
+    #
+    #                         # 3. id искомой категории (получена от родительской):
+    #                         category_id = row_category['value']  # ключ 'value' = id
+    #
+    #
+    #                         new_row = {
+    #                             'id_branch': id_branch,
+    #                             'name_category': name_category,
+    #                             'count': count,
+    #                             'parent_category_id': parent_category_id,
+    #                             'category_id': category_id
+    #                         }
+    #
+    #                         # print(f'count: {count}, name {name_category}')
+    #                         print(f'{index}. {new_row}')
+    #                         # Сохраняем в целевой итоговый датафырейм:
+    #                         # Добавляем новую строку с помощью loc[], где индексом будет len(df_fin_category_data)
+    #                         df_fin_category_data.loc[len(df_fin_category_data)] = new_row
+    #
+    #
+    #                 except (KeyError, IndexError):
+    #                     # Срабатывает, если ключ 'criterias' не существует или его невозможно получить
+    #                     print(f'По parent_category_id {parent_category_id} - нет нужных тегов, пропускаем ее.')
+    #
+    #                     # Добавление в общий кортеж багов.
+    #                     bag_category_tuple = bag_category_tuple + (parent_category_id,)
+    #
+    #             else:
+    #                 # row_bag_iter = new_row
+    #                 print(f'Пропуск итерации для: {id_branch} city_name_branch {city_name_branch}')
+    #                 continue
+    #             # break  #  Для теста - оба брейка нужны
+    #             # Итог код магазина, категория, количество. ['id_branch','name_category','count']
+    #             # ----------------------------------------------------------
+    #         # break #  Для теста - оба брейка нужны
+    #     # Если по конкретной категории не нашлись нужные теги, такая категория добавится в список.
+    #     # Далее эти категории можно исключить из парсинга.
+    #     print(f'Список лишних категорий: {bag_category_tuple}.')
+    #
+    #     # Итог код магазина, категория, количество. ['id_branch','name_category','count']
+    #     return df_fin_category_data
+    # __________________________________________________________________
+
+
+
 # 3.1.1.1) Основной запрос (возвращает json (пайтон)):
 oldurl = OldUrlTest()
 
@@ -268,7 +406,14 @@ json_python = oldurl.count_product_request__(
     region_shop_id='S972',
     timezone_offset='4'
 )
-print(json_python)
+
+
+# print(json_python)
+
+# Обращаемся к родительскому ключу, где хранятся категории товаров:
+all_category_in_html = json_python['body']['filters'][0]['criterias'][0]['value']
+
+print(all_category_in_html)
 
 json_python_response = \
     {'success': True,
@@ -312,7 +457,4 @@ json_python_response = \
                   'urlFacetCrossBlock': {'excluded': []}
                   }
              ]}
-
-
-
-}
+     }
