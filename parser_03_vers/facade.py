@@ -157,7 +157,7 @@ class ActivateManager(ParsingPatterns):
         return self._get_branches_dat()
 
 
-    def run_one_cycle_pars(self, load_damp=False, if_exists='replace'):
+    def run_one_cycle_pars(self, load_damp=False, if_exists='append'): # replace
         print("Запуск метода run_one_cycle_pars!")
         return self._run_one_cycle_pars(load_damp=load_damp, if_exists=if_exists)
 

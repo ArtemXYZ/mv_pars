@@ -225,6 +225,21 @@ class ParsingPatterns(ServiceTools, BaseProperty):
             ]
         )
 
+        # todo одготовка датафрейма для словаря категорий сохраняем в таблицу  inlet."dictionary_categories_mvideo"
+        # Создаем целевой итоговый датафрейм, куда будут сохранены данные типа: категория (имя), category_id
+        df_dictionary_categories = pd.DataFrame(
+            columns=[
+                'name_category',
+                'category_id',
+            ]
+        )
+
+        # Сброс индекса и переименование его в 'id'
+        df_dictionary_categories.reset_index(drop=True, inplace=True)
+        df_dictionary_categories.index = df_dictionary_categories.index + 1  # Начинаем с 1 если нужно
+        df_dictionary_categories.rename_axis('id', inplace=True)
+
+
         # Включать только когда необходимо повторно собрать данные.
         if load_damp is False:
 
@@ -322,13 +337,21 @@ class ParsingPatterns(ServiceTools, BaseProperty):
                                 # то здесь все равно будет None, условие проверки не нужно, опускаем).
                                 count = row_category['count']
 
+
+
+
                                 # 2. Наименование категории: если count равно 'Да', то name_category также будет None
+                                # todo пеерносим в таблицу inlet."dictionary_categories_mvideo"
                                 name_category = None if row_category['name'] == 'Да' else row_category['name']
+
+
+
 
                                 # 3. id искомой категории (получена от родительской):
                                 category_id = row_category['value']  # ключ 'value' = id
 
-
+                                # ----------------------------------- начало current_stock_mvideo
+                                # _1. Готовим строку на запись в датафрейм для таблицы "current_stock_mvideo":
                                 new_row = {
                                     'id_branch': id_branch,
                                     'name_category': name_category,
@@ -342,6 +365,21 @@ class ParsingPatterns(ServiceTools, BaseProperty):
                                 # Сохраняем в целевой итоговый датафырейм:
                                 # Добавляем новую строку с помощью loc[], где индексом будет len(df_fin_category_data)
                                 df_fin_category_data.loc[len(df_fin_category_data)] = new_row
+                                # ----------------------------------- конец current_stock_mvideo
+
+                                # ----------------------------------- начало dictionary_categories_mvideo
+                                # _2. Готовим строку на запись в датафрейм для таблицы "dictionary_categories_mvideo":
+                                _new_row = {
+                                    'name_category': name_category,
+                                    'category_id': category_id
+                                }
+
+                                # Добавляем новую строку с помощью loc[], где индексом будет len(df_fin_category_data)
+                                df_dictionary_categories.loc[len(df_fin_category_data)] = _new_row
+                                # ----------------------------------- конец dictionary_categories_mvideo.
+
+
+
 
 
                         except (KeyError, IndexError):
@@ -358,7 +396,7 @@ class ParsingPatterns(ServiceTools, BaseProperty):
                     # break  #  Для теста - оба брейка нужны
                     # Итог код магазина, категория, количество. ['id_branch','name_category','count']
                     # ----------------------------------------------------------
-                # break #  Для теста - оба брейка нужны
+                # break # Для теста - оба брейка нужны
             # Если по конкретной категории не нашлись нужные теги, такая категория добавится в список.
             # Далее эти категории можно исключить из парсинга.
             print(f'Список лишних категорий: {bag_category_tuple}.')

@@ -42,10 +42,15 @@ pars = MvPars()
 
 
 
-pars.activate.run_week_pars_interval(7)   # todo: крон не работает только интервал в 7 дней
+# pars.activate.run_week_pars_interval(7)   # todo: крон не работает только интервал в 7 дней
 
 
+# print(pars.info.get_path_file_category_dump)  # ./data/df_category_data.joblib
+# print(pars.set.set_unified_names_files_for_category())
+# print(pars.info.get_path_file_category_dump)
 
+# pars.activate.load_result_pars_in_db(name_path_file_dump='./data/df_category_data.joblib', if_exists='append')  #
+# pars.activate.load_result_pars_in_db(if_exists='append')
 
 # ----------------------------------------------------------------------------------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
