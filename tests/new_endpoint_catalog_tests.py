@@ -6,7 +6,9 @@
     &offset=0&limit=1' - ни на что не влияют, но должны присутствовать в запросе.
 
 """
-from xml.etree import ElementTree as ET
+
+import re
+import xmltodict
 from tqdm import tqdm
 from parser_03_vers.service_tools import *
 # from parser_03_vers.parsing_patterns import ServiceTools
@@ -194,8 +196,13 @@ class UrlTest:
 
     def get_response_json__(
             self, url: str = None, params: dict = None, cookies: dict = None, mode: str='json'
+            # todo  stream=True) - добавить параметр для больших ответов  \
+            #  https://stackoverflow.com/questions/18308529/python-requests-package-handling-xml-response.
     ) -> object:
-        """Функция для запросов с мутабельными параметрами. """
+        """
+            Функция для запросов с мутабельными параметрами.
+
+        """
 
         # Устанавливаем куки в сессии (если были переданы):
         if cookies:
@@ -224,125 +231,7 @@ class UrlTest:
             raise  # Передача исключения на верхний уровень для обработки
         return data
 
-    @staticmethod
-    def parse_by_tags(xml_array, commands_structure: list):
-        """
-            Вспомогательный метод для рекурсивного разбора словаря тегов.
 
-            Базовая структура для распознавания логикой:
-
-                # ['url']['loc']
-                * tag_structure = [{'findall': 'url'}, {'find': 'loc'}]
-
-                ,где  management_key - ключ дает команду на вызов метода find или findall.
-
-            Логика:
-                Проходимся рекурсивно по структуре словаря и в зависимости от ключей управления "management_key"
-                вызываем соответствующий метод. Результат сохраняем в список.
-        """
-
-        # Проверка на пустоту параметров
-        if not xml_array or not commands_structure:
-            raise ValueError(
-                f'Ошибка, функция ожидает обязательные параметры: '
-                f'"xml_array" - {xml_array} и "commands_structure" - {commands_structure} не могут быть пустыми.'
-            )
-
-        # Преобразуем строку в объект XML
-        _xml_data = ET.fromstring(xml_array)
-
-        results = []
-        temp = []
-
-        # Всего уровней тегов (глубина вложенности):
-        count_sub_levels = len(commands_structure)
-
-        # Добавляем объект XML в "стек" для переменных данных:
-        temp.append(_xml_data)  # -> temp[0]
-
-        # Каждый обход - это 1 уровень вложенности:
-        for index, level in enumerate(commands_structure, start=1):
-
-            # Проверка на соответствие структуры. Если это не dict, тогда:
-            if not isinstance(level, dict):
-                raise TypeError(
-                    f'Ошибка, недопустимый тип данных элемента: {level} '
-                    f'в массиве "commands_structure": {commands_structure}.'
-                )
-
-            # Распаковываем значения (метод и тег для поиска) для очередного уровня:
-            for management_key, tag in level.items():
-
-                # Перебираем все команды управления:
-                # 1. ------------------------------- Если необходим поиск всех тегов в xml:
-                if management_key == 'findall':
-
-                    # Обращаемся к значению tag xml (например: 'url'):
-                    # Используем findall для извлечения всех элементов:
-                    elements_data = temp[0].findall(tag)
-                    print(f'elements_data: {elements_data}')
-                    # ---------------------------------------- Извлечение данных по тегу:
-                    # Если это конечная точка, подуровней нет, тогда:
-                    if index == count_sub_levels:
-                        print(f'count_sub_levels: {count_sub_levels}; index: {index}')
-                        # Добавляем значение в список для результатов:
-                        results.append(elements_data.text)
-
-                    else:
-
-                        # ------------------------- Перегружаем данные массива для последующего извлечения по тегу:
-                        # Удаляем все исходные данные:
-                        temp.clear()
-
-                        # Добавляем значение в список для промежуточных результатов (без .text - повторный обход):
-                        temp.append(elements_data)
-
-
-                # 2. ------------------------------- Если необходим поиск только 1-го тега в xml:
-                elif management_key == 'find':
-
-                    # Обращаемся к промежуточному результату (предыдущие данные):
-                    elements_data = temp[0]
-
-                    # Перебираем. В большинстве случаем это будет массив после 'findall':
-                    for element in elements_data:
-
-                        # Обращаемся к значению elements_data xml (например: 'url'):
-                        # Используем find для извлечения элемента:
-                        sub_elements_data = element.find(tag)
-                        print(f'elements_data: {sub_elements_data}')
-
-                        # ---------------------------------------- Извлечение данных по тегу:
-                        # Если это конечная точка, подуровней нет, тогда:
-                        if index == count_sub_levels:
-
-                            # Добавляем значение в список для результатов:
-                            results.append(sub_elements_data.text)
-
-                            # Удаляем все исходные данные:
-                            temp.clear()
-
-                        else:
-
-                            # ------------------------- Перегружаем данные массива для последующего извлечения по тегу:
-                            # Удаляем все исходные данные:
-                            temp.clear()
-
-                            # Добавляем значение в список для промежуточных результатов (без .text - повторный обход):
-                            temp.append(sub_elements_data)
-
-
-
-                    # добавить очистку темп
-
-                # 3. -------------------------------
-                else:
-                    raise ValueError(
-                        f'Ошибка, недопустимое значение ключа: {management_key} '
-                        f'в массиве "commands_structure": {commands_structure}.'
-                    )
-
-        return results
 
     # @staticmethod
     # def xml_teg_grabber(self, row_xml: bytes, xml_tags_by_pars: dict):
@@ -350,6 +239,66 @@ class UrlTest:
     #         Метод обработки xml файлов.
     #         Принимает xml в байт-формате (data = response.content), разбирает информацию по переданному тегу.
     #     """
+
+    @staticmethod
+    def pars_sitemap_xml(xml_data: bytes):
+        """
+            Вспомогательный метод для обработки данных из xml.
+
+            Внутри используется преобразование xml в словарь с вложенными словарями.
+                example = {
+                    'urlset':
+                        {
+                            '@xmlns': 'http://www.sitemaps.org/schemas/sitemap/0.9',
+                            '@xmlns:news': 'http://www.google.com/schemas/sitemap-news/0.9',
+                            '@xmlns:xhtml': 'http://www.w3.org/1999/xhtml',
+                            '@xmlns:image': 'http://www.google.com/schemas/sitemap-image/1.1',
+                            '@xmlns:video': 'http://www.google.com/schemas/sitemap-video/1.1',
+
+                            'url': [
+                                {
+                                    'loc': 'https://www.mvideo.ru/sadovaya-tehnika-i-oborudovanie-8027/sadovye-\
+                                        telezhki-33570',
+                                    'lastmod': '2025-02-07', 'changefreq': 'daily', 'priority': '0.5'
+                                },
+                                {
+                                    'loc': 'https://www.mvideo.ru/sadovaya-tehnika-i-oborudovanie-8027/\
+                                        sadovyi-dekor-33716',
+                                    'lastmod': '2025-02-07', 'changefreq': 'daily', 'priority': '0.5'
+                                },
+                            ]
+                        }
+
+        """
+
+        results = []
+
+        # Преобразование XML в словарь
+        xml_content = xmltodict.parse(xml_data)
+
+        try:
+            # Извлекаем основной контейнер с информацией:
+            data_list_dict: list[dict,...] = xml_content['urlset']['url']
+
+        except KeyError as e:
+            raise ValueError(
+                f'Ошибка извлечения данных при попытке обращении к ключам (dict / list) '
+                f'преобразованного xml (Lib: "xmltodict") {e}'
+            )
+
+        for data_dict in data_list_dict:
+
+            data_row = data_dict.get('loc')
+
+            if data_row:
+
+                # Парсим все айди в урл строке:
+                id_list = re.findall(r'\d+', data_row)
+    
+                results = results + id_list
+
+        return results
+
 
 
 
@@ -451,8 +400,12 @@ tag_structure = [
     {'find': 'loc'}
 ]
 q = UrlTest()
-result_xml = q.get_response_json__(url_sitemap, mode='bytes')
-print(f'Итог: {q.parse_by_tags(result_xml, tag_structure)}')
+result_xml = q.get_response_json__(url_sitemap, mode='bytes')  # data = response.text bytes
+# print(f'result_xml: {result_xml}')
+
+w = q.pars_sitemap_xml(result_xml)
+print(f'Итог: {w}')
+
 
 
 # json_python = q.count_product_request__(
