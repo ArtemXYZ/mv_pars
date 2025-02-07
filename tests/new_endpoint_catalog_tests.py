@@ -56,28 +56,28 @@ def _base64_decoded(url_param_string):
 # url_new_construct = f'https://www.mvideo.ru/bff/products/v2/search?categoryIds={category_id}&offset=0'
 
 # ендпоинт.
-url_new = f'https://www.mvideo.ru/bff/products/v2/search?categoryIds=205&offset=0'
-
-url_new_all_params = 'https://www.mvideo.ru/bff/products/v2/search?categoryIds=205&offset=0&filterParams=WyLQotC%2B0LvRjNC60L4g0L\
-Ig0L3QsNC70LjRh9C40LgiLCItOSIsItCU0LAiXQ%3D%3D&filterParams=WyLQl9Cw0LHRgNCw0YLRjCDRh9C10YDQtdC3IDE1INC80LjQvdGD0YIiL\
-CItMTEiLCJTOTcyIl0%3D&filterParams=WyLQl9Cw0LHRgNCw0YLRjCDQuNC3INC80LDQs9Cw0LfQuNC90LAg0L%2FQviDQsNC00YDQtdGB0YMiLCItMT\
-IiLCJTNjU5Il0%3D&doTranslit=false&limit=48&context=v2dzaG9wX2lkZFM5NzJsY2F0ZWdvcnlfaWRzn2MyMDX%2FZmNhdF9JZGMyMDX%2F'
-
-# Значение переменной: ["Только в наличии","-9","Да"]
-url_new_params_1 = 'WyLQotC%2B0LvRjNC60L4g0LIg0L3QsNC70LjRh9C40LgiLCItOSIsItCU0LAiXQ%3D%3D'
-
-# filterParams: ["Забрать через 15 минут","-11","S972"]
-url_new_params_2 = 'WyLQl9Cw0LHRgNCw0YLRjCDRh9C10YDQtdC3IDE1INC80LjQvdGD0YIiLCItMTEiLCJTOTcyIl0%3D'
-
-# filterParams: ["Забрать из магазина по адресу","-12","S659"]
-url_new_params_3 = (f'WyLQl9Cw0LHRgNCw0YLRjCDQuNC3INC80LDQs9Cw0LfQuNC90'
-                    f'LAg0L%2FQviDQsNC00YDQtdGB0YMiLCItMTIiLCJTNjU5Il0%3D')
-
-url_new_params_4 = 'doTranslit=false'
-url_new_params_5 = 'limit=48'
-
-# &context= : Ошибка декодирования: 'utf-8' codec can't decode byte 0xbf in position 0: invalid start byte
-url_new_params_6 = 'v2dzaG9wX2lkZFM5NzJsY2F0ZWdvcnlfaWRzn2MyMDX%2FZmNhdF9JZGMyMDX%2F'
+# url_new = f'https://www.mvideo.ru/bff/products/v2/search?categoryIds=205&offset=0'
+#
+# url_new_all_params = 'https://www.mvideo.ru/bff/products/v2/search?categoryIds=205&offset=0&filterParams=WyLQotC%2B0LvRjNC60L4g0L\
+# Ig0L3QsNC70LjRh9C40LgiLCItOSIsItCU0LAiXQ%3D%3D&filterParams=WyLQl9Cw0LHRgNCw0YLRjCDRh9C10YDQtdC3IDE1INC80LjQvdGD0YIiL\
+# CItMTEiLCJTOTcyIl0%3D&filterParams=WyLQl9Cw0LHRgNCw0YLRjCDQuNC3INC80LDQs9Cw0LfQuNC90LAg0L%2FQviDQsNC00YDQtdGB0YMiLCItMT\
+# IiLCJTNjU5Il0%3D&doTranslit=false&limit=48&context=v2dzaG9wX2lkZFM5NzJsY2F0ZWdvcnlfaWRzn2MyMDX%2FZmNhdF9JZGMyMDX%2F'
+#
+# # Значение переменной: ["Только в наличии","-9","Да"]
+# url_new_params_1 = 'WyLQotC%2B0LvRjNC60L4g0LIg0L3QsNC70LjRh9C40LgiLCItOSIsItCU0LAiXQ%3D%3D'
+#
+# # filterParams: ["Забрать через 15 минут","-11","S972"]
+# url_new_params_2 = 'WyLQl9Cw0LHRgNCw0YLRjCDRh9C10YDQtdC3IDE1INC80LjQvdGD0YIiLCItMTEiLCJTOTcyIl0%3D'
+#
+# # filterParams: ["Забрать из магазина по адресу","-12","S659"]
+# url_new_params_3 = (f'WyLQl9Cw0LHRgNCw0YLRjCDQuNC3INC80LDQs9Cw0LfQuNC90'
+#                     f'LAg0L%2FQviDQsNC00YDQtdGB0YMiLCItMTIiLCJTNjU5Il0%3D')
+#
+# url_new_params_4 = 'doTranslit=false'
+# url_new_params_5 = 'limit=48'
+#
+# # &context= : Ошибка декодирования: 'utf-8' codec can't decode byte 0xbf in position 0: invalid start byte
+# url_new_params_6 = 'v2dzaG9wX2lkZFM5NzJsY2F0ZWdvcnlfaWRzn2MyMDX%2FZmNhdF9JZGMyMDX%2F'
 
 
 # не разобрано.
@@ -224,23 +224,15 @@ class UrlTest:
             raise  # Передача исключения на верхний уровень для обработки
         return data
 
-
-    # detect_sub_level(xml_array_part, tag_or_substructures: str | list | dict, mode: str):
-
-    def parse_by_tags(self, xml_array, commands_structure: str | list | dict):
+    @staticmethod
+    def parse_by_tags(xml_array, commands_structure: list):
         """
             Вспомогательный метод для рекурсивного разбора словаря тегов.
 
             Базовая структура для распознавания логикой:
 
-                * tag_structure = {
-                    'findall': [  # <- or 'find'
-                        'url', {'find': 'loc'}
-                    ]
-                }
-
                 # ['url']['loc']
-                tag_structure = [{'findall': 'url'}, {'find': 'loc'}]
+                * tag_structure = [{'findall': 'url'}, {'find': 'loc'}]
 
                 ,где  management_key - ключ дает команду на вызов метода find или findall.
 
@@ -249,59 +241,106 @@ class UrlTest:
                 вызываем соответствующий метод. Результат сохраняем в список.
         """
 
-        results = []
-
-
-
-
-
         # Проверка на пустоту параметров
+        if not xml_array or not commands_structure:
+            raise ValueError(
+                f'Ошибка, функция ожидает обязательные параметры: '
+                f'"xml_array" - {xml_array} и "commands_structure" - {commands_structure} не могут быть пустыми.'
+            )
 
-        # Перебираем рекурсивно все команды управления
-        for management_key, tag_or_substructures in commands_structure.items():
+        # Преобразуем строку в объект XML
+        _xml_data = ET.fromstring(xml_array)
 
-            long_substructures = len(tag_or_substructures)
+        results = []
+        temp = []
 
-            # 1. ------------------------------- Если необходим поиск всех тегов в xml:
-            if management_key == 'findall':
+        # Всего уровней тегов (глубина вложенности):
+        count_sub_levels = len(commands_structure)
 
-                # Обращаемся к значению, если это просто tag xml (например: 'url'), тогда:
-                if isinstance(tag_or_substructures, str):
+        # Добавляем объект XML в "стек" для переменных данных:
+        temp.append(_xml_data)  # -> temp[0]
 
-                    # Используем findall для извлечения всех элементов:
-                    elements_data = xml_array.findall(tag_or_substructures)       #
+        # Каждый обход - это 1 уровень вложенности:
+        for index, level in enumerate(commands_structure, start=1):
 
-                    # Если это тег (конечная точка, подуровней нет), тогда:
-                    if long_substructures == 1:
-                        # Добавляем значение в список для результатов:
-                        results.append(elements_data.text)
-                        break
-                    else:
-                        self.parse_by_tags(elements_data)
-
-                # Если это список tag xml (например: 'url'), тогда:
-                elif isinstance(tag_or_substructures, list):
-                    ...
-
-
-                # Если это список tag xml (например: 'url'), тогда:
-                elif isinstance(tag_or_substructures, dict):
-                    ...
-
-            # elements_data.
-
-
-            # 2. ------------------------------- Если необходим поиск только 1-го тега в xml:
-            elif management_key == 'find':
-               ...
-
-
-            else:
-                raise ValueError(
-                    f'Ошибка, недопустимое значения ключа: {management_key} '
-                    f'в параметре "commands_structure": {commands_structure}.'
+            # Проверка на соответствие структуры. Если это не dict, тогда:
+            if not isinstance(level, dict):
+                raise TypeError(
+                    f'Ошибка, недопустимый тип данных элемента: {level} '
+                    f'в массиве "commands_structure": {commands_structure}.'
                 )
 
+            # Распаковываем значения (метод и тег для поиска) для очередного уровня:
+            for management_key, tag in level.items():
+
+                # Перебираем все команды управления:
+                # 1. ------------------------------- Если необходим поиск всех тегов в xml:
+                if management_key == 'findall':
+
+                    # Обращаемся к значению tag xml (например: 'url'):
+                    # Используем findall для извлечения всех элементов:
+                    elements_data = temp[0].findall(tag)
+                    print(f'elements_data: {elements_data}')
+                    # ---------------------------------------- Извлечение данных по тегу:
+                    # Если это конечная точка, подуровней нет, тогда:
+                    if index == count_sub_levels:
+                        print(f'count_sub_levels: {count_sub_levels}; index: {index}')
+                        # Добавляем значение в список для результатов:
+                        results.append(elements_data.text)
+
+                    else:
+
+                        # ------------------------- Перегружаем данные массива для последующего извлечения по тегу:
+                        # Удаляем все исходные данные:
+                        temp.clear()
+
+                        # Добавляем значение в список для промежуточных результатов (без .text - повторный обход):
+                        temp.append(elements_data)
+
+
+                # 2. ------------------------------- Если необходим поиск только 1-го тега в xml:
+                elif management_key == 'find':
+
+                    # Обращаемся к промежуточному результату (предыдущие данные):
+                    elements_data = temp[0]
+
+                    # Перебираем. В большинстве случаем это будет массив после 'findall':
+                    for element in elements_data:
+
+                        # Обращаемся к значению elements_data xml (например: 'url'):
+                        # Используем find для извлечения элемента:
+                        sub_elements_data = element.find(tag)
+                        print(f'elements_data: {sub_elements_data}')
+
+                        # ---------------------------------------- Извлечение данных по тегу:
+                        # Если это конечная точка, подуровней нет, тогда:
+                        if index == count_sub_levels:
+
+                            # Добавляем значение в список для результатов:
+                            results.append(sub_elements_data.text)
+
+                            # Удаляем все исходные данные:
+                            temp.clear()
+
+                        else:
+
+                            # ------------------------- Перегружаем данные массива для последующего извлечения по тегу:
+                            # Удаляем все исходные данные:
+                            temp.clear()
+
+                            # Добавляем значение в список для промежуточных результатов (без .text - повторный обход):
+                            temp.append(sub_elements_data)
+
+
+
+                    # добавить очистку темп
+
+                # 3. -------------------------------
+                else:
+                    raise ValueError(
+                        f'Ошибка, недопустимое значение ключа: {management_key} '
+                        f'в массиве "commands_structure": {commands_structure}.'
+                    )
 
         return results
 
@@ -311,19 +350,6 @@ class UrlTest:
     #         Метод обработки xml файлов.
     #         Принимает xml в байт-формате (data = response.content), разбирает информацию по переданному тегу.
     #     """
-    #
-    #     key, tags = xml_tags_by_pars.items()
-    #
-    #
-    #     # После преобразования row_xml получаем доступ ко вложенным данным главного контейнера страницы:
-    #     xml_data = ET.fromstring(row_xml)
-    #
-    #     # Итерируем по всем элементам <url> в корневом элементе
-    #     for url in xml_data.findall('url'):
-    #         loc = url.find('loc').text
-    #         lastmod = url.find('lastmod').text
-    #         changefreq = url.find('changefreq').text
-    #         priority = url.find('priority').text
 
 
 
@@ -419,353 +445,92 @@ class UrlTest:
 
 
 # =========================================================================
-# 3.1.1.1) Основной запрос (возвращает json (пайтон)):
+url_sitemap = 'https://www.mvideo.ru/sitemaps/sitemap-categories-www.mvideo.ru-1.xml'
+tag_structure = [
+    {'findall': 'url'},
+    {'find': 'loc'}
+]
 q = UrlTest()
+result_xml = q.get_response_json__(url_sitemap, mode='bytes')
+print(f'Итог: {q.parse_by_tags(result_xml, tag_structure)}')
 
-json_python = q.count_product_request__(
-    # Бузулук, ул. Комсомольская, д. 81, ТРЦ «Север»
-    category_id='133',  #
-    id_branch='S659',
-    city_id='CityDE_31010',
-    region_id='4',
-    region_shop_id='S972',
-    timezone_offset='4'
-)
 
-# +
-print(f'{json_python['body']['categories']}')
+# json_python = q.count_product_request__(
+#     # Бузулук, ул. Комсомольская, д. 81, ТРЦ «Север»
+#     category_id='133',  #
+#     id_branch='S659',
+#     city_id='CityDE_31010',
+#     region_id='4',
+#     region_shop_id='S972',
+#     timezone_offset='4'
+# )
+#
+# # +
+# print(f'{json_python['body']['categories']}')
 
 # +
 # print(f'selected_categories_ids: {json_python['body']['selected_categories_ids']}')
 
 # print(json_python)
-
-qwerqw = {
-    'success': True,
-    'messages': [],
-    'body': {
-        'total': 0,
-        'type': 'plain',
-        'products': [],
-        'filters': [
-            {
-                'name': 'Бренд',
-                'selected': False, 'translitName': 'brand', 'type': 'vendor', 'codes': [-2],
-                'criterias': [
-                    {'name': 'UNIX line', 'value': 'UNIX line', 'count': 0, 'translitName': 'vendor',
-                     'translitValue': 'unix-line',
-                     'selected': False, 'isSeo': True},
-                    {'name': 'Hasttings', 'value': 'Hasttings', 'count': 0, 'translitName': 'vendor',
-                     'translitValue': 'hasttings',
-                     'selected': False, 'isSeo': True},
-                    {'name': 'Evo Jump', 'value': 'Evo Jump', 'count': 0, 'translitName': 'vendor',
-                     'translitValue': 'evo-jump',
-                     'selected': False, 'isSeo': True},
-                    {'name': 'Wallaby', 'value': 'Wallaby', 'count': 0, 'translitName': 'vendor',
-                     'translitValue': 'wallaby',
-                     'selected': False, 'isSeo': True},
-                    {'name': 'Bradex', 'value': 'Bradex', 'count': 0, 'translitName': 'vendor',
-                     'translitValue': 'bradex',
-                     'selected': False, 'isSeo': True},
-                    {'name': 'Sport Elite', 'value': 'Sport Elite', 'count': 0, 'translitName': 'vendor',
-                     'translitValue': 'sport-elite', 'selected': False, 'isSeo': True},
-                    {'name': 'ARLAND', 'value': 'ARLAND', 'count': 0, 'translitName': 'vendor',
-                     'translitValue': 'arland',
-                     'selected': False, 'isSeo': True},
-                    {'name': 'Dfc', 'value': 'Dfc', 'count': 0, 'translitName': 'vendor', 'translitValue': 'dfc',
-                     'selected': False,
-                     'isSeo': True},
-                    {'name': 'Green Glade', 'value': 'Green Glade', 'count': 0, 'translitName': 'vendor',
-                     'translitValue': 'green-glade', 'selected': False, 'isSeo': True},
-                    {'name': 'ONLITOP', 'value': 'ONLITOP', 'count': 0, 'translitName': 'vendor',
-                     'translitValue': 'onlitop',
-                     'selected': False, 'isSeo': True},
-                    {'name': 'ONLYTOP', 'value': 'ONLYTOP', 'count': 0, 'translitName': 'vendor',
-                     'translitValue': 'onlytop',
-                     'selected': False, 'isSeo': True},
-                    {'name': 'Yamota\xa0', 'value': 'Yamota\xa0', 'count': 0, 'translitName': 'vendor',
-                     'translitValue': 'yamota',
-                     'selected': False, 'isSeo': True}
-                ],
-                'urlFacetCrossBlock': None
-            },
-            {
-                'name': 'Акции',
-                'selected': False,
-                'translitName': 'akcii',
-                'type': 'akcii',
-                'codes': [-1],
-                'criterias': [
-                    {'name': 'Скидки до 30% по промокоду на акционные товары',
-                     'value': 'Скидки до 30% по промокоду на акционные товары', 'count': 0, 'translitName': 'akcii',
-                     'translitValue': 'skidki-do-30-po-promokodu-na-akcionnye-tovary', 'selected': False, 'isSeo': True}
-                ],
-                'urlFacetCrossBlock': None
-            },
-            {
-                'name': 'Диаметр', 'selected': False, 'translitName': 'diametr', 'type': 'diametr',
-                'codes': [601500, 620175],
-                'criterias': [{'name': 'до 100 см', 'value': 'до 100 см', 'count': 0, 'translitName': 'diametr',
-                               'translitValue': 'do-100-sm', 'selected': False, 'isSeo': True},
-                              {'name': '101 - 150 см', 'value': '101 - 150 см', 'count': 0, 'translitName': 'diametr',
-                               'translitValue': '101---150-sm', 'selected': False, 'isSeo': True},
-                              {'name': '151 - 200 см', 'value': '151 - 200 см', 'count': 0, 'translitName': 'diametr',
-                               'translitValue': '151---200-sm', 'selected': False, 'isSeo': True},
-                              {'name': '201 - 300 см', 'value': '201 - 300 см', 'count': 0, 'translitName': 'diametr',
-                               'translitValue': '201---300-sm', 'selected': False, 'isSeo': True},
-                              {'name': 'более 300 см', 'value': 'более 300 см', 'count': 0, 'translitName': 'diametr',
-                               'translitValue': 'bolee-300-sm', 'selected': False, 'isSeo': True}],
-                'urlFacetCrossBlock': None
-            },
-            {'name': 'Максимальная нагрузка', 'selected': False, 'translitName': 'maksimalnaya-nagruzka',
-             'type': 'maksimalnaya-nagruzka', 'codes': [11930], 'criterias': [
-                {'name': 'до 50 кг', 'value': 'до 50 кг', 'count': 0, 'translitName': 'maksimalnaya-nagruzka',
-                 'translitValue': 'do-50-kg', 'selected': False, 'isSeo': True},
-                {'name': '51 - 80 кг', 'value': '51 - 80 кг', 'count': 0, 'translitName': 'maksimalnaya-nagruzka',
-                 'translitValue': '51---80-kg', 'selected': False, 'isSeo': True},
-                {'name': '81 - 100 кг', 'value': '81 - 100 кг', 'count': 0, 'translitName': 'maksimalnaya-nagruzka',
-                 'translitValue': '81---100-kg', 'selected': False, 'isSeo': True},
-                {'name': '101 - 150 кг', 'value': '101 - 150 кг', 'count': 0, 'translitName': 'maksimalnaya-nagruzka',
-                 'translitValue': '101---150-kg', 'selected': False, 'isSeo': True},
-                {'name': 'более 150 кг', 'value': 'более 150 кг', 'count': 0, 'translitName': 'maksimalnaya-nagruzka',
-                 'translitValue': 'bolee-150-kg', 'selected': False, 'isSeo': True}], 'urlFacetCrossBlock': None},
-            {'name': 'Защитная сетка', 'selected': False, 'translitName': 'zashhitnaya-setka',
-             'type': 'zashhitnaya-setka',
-             'codes': [3482], 'criterias': [
-                {'name': 'да', 'value': 'да', 'count': 0, 'translitName': 'zashhitnaya-setka', 'translitValue': 'da',
-                 'selected': False, 'isSeo': True}], 'urlFacetCrossBlock': None},
-            {'name': 'Высота защитной сетки', 'selected': False, 'translitName': 'vysota-zashhitnoi-setki',
-             'type': 'vysota-zashhitnoi-setki', 'codes': [30853496], 'criterias': [
-                {'name': '101 - 150 см', 'value': '101 - 150 см', 'count': 0, 'translitName': 'vysota-zashhitnoi-setki',
-                 'translitValue': '101---150-sm', 'selected': False, 'isSeo': True},
-                {'name': '151 - 200 см', 'value': '151 - 200 см', 'count': 0, 'translitName': 'vysota-zashhitnoi-setki',
-                 'translitValue': '151---200-sm', 'selected': False, 'isSeo': True},
-                {'name': 'более 200 см', 'value': 'более 200 см', 'count': 0, 'translitName': 'vysota-zashhitnoi-setki',
-                 'translitValue': 'bolee-200-sm', 'selected': False, 'isSeo': True}], 'urlFacetCrossBlock': None},
-            {'name': 'Материал корпуса', 'selected': False, 'translitName': 'material-korpusa',
-             'type': 'material-korpusa',
-             'codes': [83, 4462], 'criterias': [
-                {'name': 'металл', 'value': 'металл', 'count': 0, 'translitName': 'material-korpusa',
-                 'translitValue': 'metall',
-                 'selected': False, 'isSeo': True}], 'urlFacetCrossBlock': None},
-            {'name': 'Материал прыжковой части', 'selected': False, 'translitName': 'material-pryzhkovoi-chasti',
-             'type': 'material-pryzhkovoi-chasti', 'codes': [30853545], 'criterias': [
-                {'name': 'полипропилен', 'value': 'полипропилен', 'count': 0,
-                 'translitName': 'material-pryzhkovoi-chasti',
-                 'translitValue': 'polipropilen', 'selected': False, 'isSeo': True},
-                {'name': 'перматрон', 'value': 'перматрон', 'count': 0, 'translitName': 'material-pryzhkovoi-chasti',
-                 'translitValue': 'permatron', 'selected': False, 'isSeo': True},
-                {'name': 'ПВХ', 'value': 'ПВХ', 'count': 0, 'translitName': 'material-pryzhkovoi-chasti',
-                 'translitValue': 'pvh', 'selected': False, 'isSeo': True}], 'urlFacetCrossBlock': None},
-            {'name': 'Количество жгутов', 'selected': False, 'translitName': 'kolichestvo-zhgutov',
-             'type': 'kolichestvo-zhgutov', 'codes': [30855551], 'criterias': [
-                {'name': '48 шт', 'value': '48 шт', 'count': 0, 'translitName': 'kolichestvo-zhgutov',
-                 'translitValue': '48-sht', 'selected': False, 'isSeo': True},
-                {'name': '60 шт', 'value': '60 шт', 'count': 0, 'translitName': 'kolichestvo-zhgutov',
-                 'translitValue': '60-sht', 'selected': False, 'isSeo': True},
-                {'name': '36 шт', 'value': '36 шт', 'count': 0, 'translitName': 'kolichestvo-zhgutov',
-                 'translitValue': '36-sht', 'selected': False, 'isSeo': True},
-                {'name': '72 шт', 'value': '72 шт', 'count': 0, 'translitName': 'kolichestvo-zhgutov',
-                 'translitValue': '72-sht', 'selected': False, 'isSeo': True}], 'urlFacetCrossBlock': None},
-            {'name': 'Длина ножек', 'selected': False, 'translitName': 'dlina-nozhek', 'type': 'dlina-nozhek',
-             'codes': [618453], 'criterias': [
-                {'name': '38 см', 'value': '38 см', 'count': 0, 'translitName': 'dlina-nozhek',
-                 'translitValue': '38-sm',
-                 'selected': False, 'isSeo': True},
-                {'name': '26 см', 'value': '26 см', 'count': 0, 'translitName': 'dlina-nozhek',
-                 'translitValue': '26-sm',
-                 'selected': False, 'isSeo': True},
-                {'name': '76 см', 'value': '76 см', 'count': 0, 'translitName': 'dlina-nozhek',
-                 'translitValue': '76-sm',
-                 'selected': False, 'isSeo': True},
-                {'name': '86 см', 'value': '86 см', 'count': 0, 'translitName': 'dlina-nozhek',
-                 'translitValue': '86-sm',
-                 'selected': False, 'isSeo': True},
-                {'name': '99 см', 'value': '99 см', 'count': 0, 'translitName': 'dlina-nozhek',
-                 'translitValue': '99-sm',
-                 'selected': False, 'isSeo': True}], 'urlFacetCrossBlock': None},
-            {'name': 'Высота', 'selected': False, 'translitName': 'vysota', 'type': 'vysota', 'codes': [111],
-             'criterias': [
-                 {'name': 'до 25 см', 'value': 'до 25 см', 'count': 0, 'translitName': 'vysota',
-                  'translitValue': 'do-25-sm',
-                  'selected': False, 'isSeo': True},
-                 {'name': '101 - 200 см', 'value': '101 - 200 см', 'count': 0, 'translitName': 'vysota',
-                  'translitValue': '101---200-sm', 'selected': False, 'isSeo': True},
-                 {'name': 'более 200 см', 'value': 'более 200 см', 'count': 0, 'translitName': 'vysota',
-                  'translitValue': 'bolee-200-sm', 'selected': False, 'isSeo': True}], 'urlFacetCrossBlock': None},
-            {'name': 'Лестница', 'selected': False, 'translitName': 'lestnica', 'type': 'lestnica', 'codes': [605078],
-             'criterias': [
-                 {'name': 'да', 'value': 'да', 'count': 0, 'translitName': 'lestnica', 'translitValue': 'da',
-                  'selected': False,
-                  'isSeo': True}], 'urlFacetCrossBlock': None},
-            {'name': 'Чехол', 'selected': False, 'translitName': 'chehol', 'type': 'chehol', 'codes': [461],
-             'criterias': [
-                 {'name': 'Да', 'value': 'Да', 'count': 0, 'translitName': 'chehol', 'translitValue': 'da',
-                  'selected': False,
-                  'isSeo': True}], 'urlFacetCrossBlock': None},
-            {'name': 'Вес', 'selected': False, 'translitName': 'ves', 'type': 'ves', 'codes': [91], 'criterias': [
-                {'name': 'до 9 кг', 'value': 'до 9 кг', 'count': 0, 'translitName': 'ves', 'translitValue': 'do-9-kg',
-                 'selected': False, 'isSeo': True},
-                {'name': '16 - 30 кг', 'value': '16 - 30 кг', 'count': 0, 'translitName': 'ves',
-                 'translitValue': '16---30-kg',
-                 'selected': False, 'isSeo': True},
-                {'name': '31 - 51 кг', 'value': '31 - 51 кг', 'count': 0, 'translitName': 'ves',
-                 'translitValue': '31---51-kg',
-                 'selected': False, 'isSeo': True},
-                {'name': 'более 51 кг', 'value': 'более 51 кг', 'count': 0, 'translitName': 'ves',
-                 'translitValue': 'bolee-51-kg', 'selected': False, 'isSeo': True}], 'urlFacetCrossBlock': None},
-            {'name': 'Цвет', 'selected': False, 'translitName': 'cvet', 'type': 'cvet', 'codes': [89], 'criterias': [
-                {'name': 'черный', 'value': 'черный', 'count': 0, 'translitName': 'cvet', 'translitValue': 'chernyi',
-                 'selected': False, 'isSeo': True},
-                {'name': 'синий', 'value': 'синий', 'count': 0, 'translitName': 'cvet', 'translitValue': 'sinii',
-                 'selected': False, 'isSeo': True},
-                {'name': 'зеленый', 'value': 'зеленый', 'count': 0, 'translitName': 'cvet', 'translitValue': 'zelenyi',
-                 'selected': False, 'isSeo': True},
-                {'name': 'разноцветный', 'value': 'разноцветный', 'count': 0, 'translitName': 'cvet',
-                 'translitValue': 'raznocvetnyi', 'selected': False, 'isSeo': True}], 'urlFacetCrossBlock': None},
-            {'name': 'Товары со скидкой', 'selected': False, 'translitName': 'skidka', 'type': 'razmer-skidki',
-             'codes': [-8],
-             'criterias': [{'name': 'Более 30%', 'value': 'Более 30%', 'count': 0, 'translitName': 'razmer-skidki',
-                            'translitValue': 'bolee-30', 'selected': False, 'isSeo': True},
-                           {'name': 'Более 10%', 'value': 'Более 10%', 'count': 0, 'translitName': 'razmer-skidki',
-                            'translitValue': 'bolee-10', 'selected': False, 'isSeo': True},
-                           {'name': 'Более 5%', 'value': 'Более 5%', 'count': 0, 'translitName': 'razmer-skidki',
-                            'translitValue': 'bolee-5', 'selected': False, 'isSeo': True}], 'urlFacetCrossBlock': None},
-            {'name': 'Продавец', 'selected': False, 'translitName': 'prodavec', 'type': 'prodavec', 'codes': [-14],
-             'criterias': [
-                 {'name': 'Другой продавец', 'value': 'Другой продавец', 'count': 0, 'translitName': 'prodavec',
-                  'translitValue': 'drugoi-prodavec', 'selected': False, 'isSeo': True}],
-             'urlFacetCrossBlock': None},
-            {'name': 'Только в наличии', 'selected': True, 'translitName': 'tolko-v-nalichii',
-             'type': 'tolko-v-nalichii',
-             'codes': [-9], 'criterias': [
-                {'name': 'Да', 'value': 'Да', 'translitName': 'tolko-v-nalichii', 'translitValue': 'da',
-                 'selected': True,
-                 'isSeo': False}], 'urlFacetCrossBlock': None},
-            {'name': 'Забрать через 15 минут', 'selected': True, 'translitName': 'zabrat-cherez-15-minut',
-             'type': 'zabrat-cherez-15-minut', 'codes': [-11], 'criterias': [
-                {'name': 'S972', 'value': 'S972', 'translitName': 'zabrat-cherez-15-minut', 'translitValue': 'S972',
-                 'selected': True, 'isSeo': True}], 'urlFacetCrossBlock': None},
-            {'name': 'Забрать из магазина по адресу', 'selected': True, 'translitName': 'zabrat-iz-magazina-po-adresu',
-             'type': 'zabrat-iz-magazina-po-adresu', 'codes': [-12], 'criterias': [
-                {'name': 'S659', 'value': 'S659', 'count': 0, 'translitName': 'zabrat-iz-magazina-po-adresu',
-                 'translitValue': 'S659', 'selected': True, 'isSeo': True}], 'urlFacetCrossBlock': None},
-            {'name': 'Доставить курьером', 'selected': False, 'translitName': 'dostavit-kurerom',
-             'type': 'dostavit-kurerom',
-             'codes': [-13], 'criterias': [
-                {'name': 'Да', 'value': 'Да', 'translitName': 'dostavit-kurerom', 'translitValue': 'da',
-                 'selected': False,
-                 'isSeo': False}], 'urlFacetCrossBlock': None},
-            {'name': 'Рейтинг покупателей', 'selected': False, 'translitName': 'reiting-pokupatelei',
-             'type': 'reiting-pokupatelei', 'codes': [-4], 'criterias': [
-                {'name': 'От', 'value': 'От 4', 'count': 0, 'translitName': 'reiting-pokupatelei',
-                 'translitValue': 'ot-4',
-                 'selected': False, 'isSeo': False},
-                {'name': 'От', 'value': 'От 3', 'count': 0, 'translitName': 'reiting-pokupatelei',
-                 'translitValue': 'ot-3',
-                 'selected': False, 'isSeo': True},
-                {'name': 'От', 'value': 'От 2', 'count': 0, 'translitName': 'reiting-pokupatelei',
-                 'translitValue': 'ot-2',
-                 'selected': False, 'isSeo': True}], 'urlFacetCrossBlock': None},
-            {'name': 'Подборки', 'selected': False, 'translitName': 'collection_bottom', 'type': 'collection_bottom',
-             'codes': [-6], 'criterias': [
-                {'name': 'для взрослых', 'value': 'для взрослых', 'count': 0, 'translitName': 'collection_bottom',
-                 'translitValue': 'dlya-vzroslyh', 'selected': False, 'isSeo': True},
-                {'name': 'для дачи', 'value': 'для дачи', 'count': 0, 'translitName': 'collection_bottom',
-                 'translitValue': 'dlya-dachi', 'selected': False, 'isSeo': True},
-                {'name': 'каркасные', 'value': 'каркасные', 'count': 0, 'translitName': 'collection_bottom',
-                 'translitValue': 'karkasnye', 'selected': False, 'isSeo': True},
-                {'name': 'круглые', 'value': 'круглые', 'count': 0, 'translitName': 'collection_bottom',
-                 'translitValue': 'kruglye', 'selected': False, 'isSeo': True},
-                {'name': 'с сеткой', 'value': 'с сеткой', 'count': 0, 'translitName': 'collection_bottom',
-                 'translitValue': 's-setkoi', 'selected': False, 'isSeo': True},
-                {'name': 'до 150 кг', 'value': 'до 150 кг', 'count': 0, 'translitName': 'collection_bottom',
-                 'translitValue': 'do-150-kg', 'selected': False, 'isSeo': True},
-                {'name': '10 FT', 'value': '10 FT', 'count': 0, 'translitName': 'collection_bottom',
-                 'translitValue': '10-ft',
-                 'selected': False, 'isSeo': True},
-                {'name': '10 футов', 'value': '10 футов', 'count': 0, 'translitName': 'collection_bottom',
-                 'translitValue': '10-futov', 'selected': False, 'isSeo': True},
-                {'name': '3 м', 'value': '3 м', 'count': 0, 'translitName': 'collection_bottom', 'translitValue': '3-m',
-                 'selected': False, 'isSeo': True},
-                {'name': '4 м', 'value': '4 м', 'count': 0, 'translitName': 'collection_bottom', 'translitValue': '4-m',
-                 'selected': False, 'isSeo': True},
-                {'name': '2.5 м', 'value': '2.5 м', 'count': 0, 'translitName': 'collection_bottom',
-                 'translitValue': '25-m',
-                 'selected': False, 'isSeo': True},
-                {'name': '8 ft (244 см)', 'value': '8 ft (244 см)', 'count': 0, 'translitName': 'collection_bottom',
-                 'translitValue': '8-ft-244-sm', 'selected': False, 'isSeo': True},
-                {'name': '12 ft (366 см)', 'value': '12 ft (366 см)', 'count': 0, 'translitName': 'collection_bottom',
-                 'translitValue': '12-ft-366-sm', 'selected': False, 'isSeo': True},
-                {'name': '14 FT', 'value': '14 FT', 'count': 0, 'translitName': 'collection_bottom',
-                 'translitValue': '14-ft',
-                 'selected': False, 'isSeo': True},
-                {'name': '16 FT', 'value': '16 FT', 'count': 0, 'translitName': 'collection_bottom',
-                 'translitValue': '16-ft',
-                 'selected': False, 'isSeo': True},
-                {'name': 'большие', 'value': 'большие', 'count': 0, 'translitName': 'collection_bottom',
-                 'translitValue': 'bolshie', 'selected': False, 'isSeo': True},
-                {'name': '6 FT', 'value': '6 FT', 'count': 0, 'translitName': 'collection_bottom',
-                 'translitValue': '6-ft',
-                 'selected': False, 'isSeo': True},
-                {'name': 'без сетки', 'value': 'без сетки', 'count': 0, 'translitName': 'collection_bottom',
-                 'translitValue': '', 'selected': False, 'isSeo': True},
-                {'name': 'маленькие', 'value': 'маленькие', 'count': 0, 'translitName': 'collection_bottom',
-                 'translitValue': 'malenkie', 'selected': False, 'isSeo': True},
-                {'name': '120 кг', 'value': '120 кг', 'count': 0, 'translitName': 'collection_bottom',
-                 'translitValue': '120-kg', 'selected': False, 'isSeo': True},
-                {'name': 'для джампинга', 'value': 'для джампинга', 'count': 0, 'translitName': 'collection_bottom',
-                 'translitValue': 'dlya-dzhampinga', 'selected': False, 'isSeo': True}], 'urlFacetCrossBlock': None}
-        ],
-        'categories': [
-            {
-                'id': '31018', 'count': 0, 'name': 'Товары для активного отдыха',
-                'children': [
-                    {
-                        'id': '23715',
-                        'count': 0,
-                        'name': 'Батуты',
-                        'children': [
-                            {
-                                'id': '23716', 'count': 0, 'name': 'Батуты', 'children': [],
-                                'translitName': 'batuty', 'isSeo': True
-                            },
-                            {
-                                'id': '35546', 'count': 0, 'name': 'Крышы для батутов',
-                                'children': [], 'translitName': 'kryshy-dlya-batutov',
-                                'isSeo': True
-                            },
-                            {
-                                'id': '33766', 'count': 0, 'name': 'Лестницы для батутов',
-                                'children': [], 'translitName': 'lestnicy-dlya-batutov',
-                                'isSeo': True
-                            },
-                            {
-                                'id': '33891', 'count': 0, 'name': 'Чехлы для батутов',
-                                'children': [], 'translitName': 'chehly-dlya-batutov',
-                                'isSeo': True
-                            },
-                            {
-                                'id': '35316', 'count': 0, 'name': 'Мелки для батутов',
-                                'children': [], 'translitName': 'melki-dlya-batutov',
-                                'isSeo': True
-                            },
-                            {
-                                'id': '35547', 'count': 0,
-                                'name': 'Колья для крепления батута',
-                                'children': [],
-                                'translitName': 'kolya-dlya-krepleniya-batuta',
-                                'isSeo': True
-                            }
-                        ],
-                        'translitName': 'batuty',
-                        'urlFacetCrossBlock': None}
-                ],
-                'translitName': 'tovary-dlya-aktivnogo-otdyha'}
-        ],
-        'selected_categories_ids': ['23716']
-    }
-}
+#
+# qwerqw = {
+#     'success': True,
+#     'messages': [],
+#     'body': {
+#         'total': 0,
+#         'type': 'plain',
+#         'products': [],
+#         'filters': [
+#         ],
+#         'categories': [
+#             {
+#                 'id': '31018', 'count': 0, 'name': 'Товары для активного отдыха',
+#                 'children': [
+#                     {
+#                         'id': '23715',
+#                         'count': 0,
+#                         'name': 'Батуты',
+#                         'children': [
+#                             {
+#                                 'id': '23716', 'count': 0, 'name': 'Батуты', 'children': [],
+#                                 'translitName': 'batuty', 'isSeo': True
+#                             },
+#                             {
+#                                 'id': '35546', 'count': 0, 'name': 'Крышы для батутов',
+#                                 'children': [], 'translitName': 'kryshy-dlya-batutov',
+#                                 'isSeo': True
+#                             },
+#                             {
+#                                 'id': '33766', 'count': 0, 'name': 'Лестницы для батутов',
+#                                 'children': [], 'translitName': 'lestnicy-dlya-batutov',
+#                                 'isSeo': True
+#                             },
+#                             {
+#                                 'id': '33891', 'count': 0, 'name': 'Чехлы для батутов',
+#                                 'children': [], 'translitName': 'chehly-dlya-batutov',
+#                                 'isSeo': True
+#                             },
+#                             {
+#                                 'id': '35316', 'count': 0, 'name': 'Мелки для батутов',
+#                                 'children': [], 'translitName': 'melki-dlya-batutov',
+#                                 'isSeo': True
+#                             },
+#                             {
+#                                 'id': '35547', 'count': 0,
+#                                 'name': 'Колья для крепления батута',
+#                                 'children': [],
+#                                 'translitName': 'kolya-dlya-krepleniya-batuta',
+#                                 'isSeo': True
+#                             }
+#                         ],
+#                         'translitName': 'batuty',
+#                         'urlFacetCrossBlock': None}
+#                 ],
+#                 'translitName': 'tovary-dlya-aktivnogo-otdyha'}
+#         ],
+#         'selected_categories_ids': ['23716']
+#     }
+# }
 
 #  https://www.mvideo.ru/sitemaps/sitemap-categories-www.mvideo.ru-1.xml
 
@@ -780,3 +545,5 @@ qwerqw = {
 
 # json_python = q.get_response_json__(url_count_settings)
 # print(json_python)
+
+# detect_sub_level(xml_array_part, tag_or_substructures: str | list | dict, mode: str):

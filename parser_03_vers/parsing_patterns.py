@@ -12,6 +12,8 @@ from joblib import load
 
 # from apscheduler.schedulers.background import BlockingScheduler
 # from apscheduler.triggers.cron import CronTrigger
+# todo: Недоделана логика распараллеливания (категории в одну таблицу, айди в другую). \
+#  Решено переделать логику полностью.
 # ----------------------------------------------------------------------------------------------------------------------
 class ParsingPatterns(ServiceTools, BaseProperty):
     """Частные конструкции для парсинга на основе ServiceTools методов и других сторонних библиотек."""
