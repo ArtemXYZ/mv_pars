@@ -155,3 +155,16 @@ class ParsXML:
                     )
 
         return results
+
+
+tag_structure = [
+    {'findall': 'url'},
+    {'find': 'loc'}
+]
+
+# q = UrlTest()
+# result_xml = q.get_response_json__(url_sitemap, mode='bytes')  # data = response.text bytes
+# # print(f'result_xml: {result_xml}')
+#
+# w = q.pars_sitemap_xml(result_xml)
+# print(f'Итог: {w}')
