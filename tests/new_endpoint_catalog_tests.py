@@ -209,11 +209,25 @@ class UrlTest:
         return data
 
 
-    def recursion_by_json(self, data: list | None = None, parent_id: str | None = None) -> list[dict, ...]:
+    def recursion_by_json(
+            self,
+            categories_data: list,
+            main_id: str,
+            completed_categories: list,
+            result_data_set: list | None = None,
+
+            parent_id: str | None = None
+    ) -> list[dict, ...]:
         """
 
-            :param data: Передаем список для наполнения результатов.
-            :type data: list | None
+            :param completed_categories:
+            :type completed_categories:
+            :param main_id:
+            :type main_id:
+            :param result_data_set:
+            :type result_data_set:
+            :param categories_data: Передаем список для наполнения результатов.
+            :type categories_data: list | None
             :param parent_id: Родительский айди, передаем в рекурсию тоже.
             :type parent_id: str | None.
             :return:
@@ -223,35 +237,61 @@ class UrlTest:
         # if isinstance(structure, dict):
 
         # parent_id = None
+        # todo добавить проверку на пустоту categories_data
+        # if categories_data:
 
-        if data:
-            data_set_raw = data
-        else:
-            data_set_raw = []
+
+        # result_data_set_list
+        # else:
+        #     data_set_raw = []
+
+
+
+
         # -----------------------------------------
 
         # 'categories': [{}] 1
-        for key, value in data[0].items():
-            row_dict = {}
-            # Добавляем данные в новый словарь:
+        for key, value in categories_data[0].items():
+
+
+
+            # Создаем новый словарь с "main_id". Далее, в нем будут размещены остальные данные по категории.
+            data_set_row = {'main_id': main_id}
+
+            completed_id = None
+
+            # Добавляем данные по категории в словарь:
             if key == 'id':
-                row_dict[key] = value
+
+                # Присваиваем значение глобальной в цикле переменной: отработанная айди.
+                completed_id = value
+
+                data_set_row[key] = value
+
+
 
             elif key == 'count':
-                row_dict[key] = value
+                data_set_row[key] = value
 
             elif key == 'name':
-                row_dict[key] = value
+                data_set_row[key] = value
 
             # Всегда содержит []
             elif key == 'children':
+
                 # Сохраняем наработки в общий список:
-                data_set_raw.append(row_dict)
+                result_data_set.append(data_set_row)
+
+                # Добавляем 'id' категории в список отработанных. Вынесена специально вниз, для обеспечения \
+                # логики целостности данных, в случае ошибок в строках условий (атомарность).
+                completed_categories.append(completed_id)
+
+
 
                 # Если список не пустой - есть дочерние элементы:
                 if value:
                     # Рекурсия:
-                    self.recursion_by_json(data_set_raw)
+                    self.recursion_by_json(value)
 
             # todo родумать, как вытаскивать перент айди
 
@@ -259,15 +299,43 @@ class UrlTest:
             # count =
             # name =
             # children =
+        return
+
+    @staticmethod
+    def search_ids_in_list(search_id: str, array_list: list) -> bool:
+        """
+            Поиск id в массиве, если есть - True и наоборот.
+
+            :param search_id: Искомый id.
+            :type search_id: str.
+            :param array_list: Список для отработанных категорий.
+            :type array_list: list.
+            :return: bool.
+            :rtype: bool.
+        """
+
+        for next_id in array_list:
+            if next_id == search_id:
+                return True
+        else:
+            return False
 
 
 
     def run(self):
         """
-
+            Цикл итераций по одной категории.
 
         """
 
+        # Итоговый список
+        result_data_set: list = []
+
+        # Список для отработанных категорий, что бы не повторяться по уже добытым данным.
+        # В этот список попадают категории уже извлеченные для итогового дата-сета \
+        # (в одном ответе имеется вся структура подкатегорий и главных категорий):
+        # P.S. По result_data_set сложнее итерировать (внутри словари, сложнее доставать и сортировать id).
+        completed_categories: list = []
 
         url_sitemap = 'https://www.mvideo.ru/sitemaps/sitemap-categories-www.mvideo.ru-1.xml'
 
@@ -277,9 +345,17 @@ class UrlTest:
         # Получаем все категории (categories_ids) с сайт-мап, [str, ...]:
         _ids = self.pars_sitemap_xml(_xml_byte_data)
 
-        # Перебираем [str, ...]
+        # Перебираем все категории [str, ...]:
         for _id in _ids:
 
+            # Проверка: отработана ли данная категория уже?
+            if self.search_ids_in_list(_id, completed_categories):
+
+                # Если категория уже была обработана, пропускаем ее.
+                continue
+
+
+            # Для каждого _id получаем ответ с сервера МВидео:
             _json = self.count_product_request__(
                 # Бузулук, ул. Комсомольская, д. 81, ТРЦ «Север»
                 category_id=_id,  #
@@ -290,12 +366,22 @@ class UrlTest:
                 timezone_offset='4'
             )
 
-            # Получаем [{'id': '23715', count': 0, 'name': 'Батуты', 'children': [аналогичная структура], {...} }]
-            d = _json['body']['categories']
+            # Обращаемся к нужному контейнеру (отсекаем не нужное):
+            # Получаем [{'id': '23715', count': 0, 'name': 'Батуты', 'children': [аналогичная структура], {...}}]
+            categories_data = _json['body']['categories']
 
-            self.recursion_by_json()
+            # Извлекаем информацию о главной категории:
+            # В структуре ответа будет всегда первым словарем по порядку, несмотря на выбранную категорию:
+            # 'categories': [{'id': '31018', ...}].
+            main_id = categories_data[0]['id']
 
-# ['body']['categories']['id']
+            # Обходим рекурсивно все вложенные структуры и отдаем список данных:
+            # Получаем [{'main_id': '31018', 'parent_id': '23715', 'id': '23715', count': 0, 'name': 'Батуты', {...}]
+            self.recursion_by_json(categories_data, main_id, completed_categories)
+
+
+        return result_data_set
+
 
 # =========================================================================
 

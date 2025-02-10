@@ -15,18 +15,22 @@ json_python = {
         ],
         'categories': [
             {
+                # main_id' = '0', 'parent_id' = '0',  'id' = 31018, ///
                 'id': '31018', 'count': 0, 'name': 'Товары для активного отдыха',
                 'children': [
                     {
-                        'id': '23715',
+                        # main_id' = '31018', 'parent_id' = '31018',  'id' = 23715, ///
+                        'id': '23715',  #
                         'count': 0,
                         'name': 'Батуты',
                         'children': [
                             {
+                                # main_id' = '31018', 'parent_id' = '23715',  'id' = 23716, ///
                                 'id': '23716', 'count': 0, 'name': 'Батуты', 'children': [],
                                 'translitName': 'batuty', 'isSeo': True
                             },
                             {
+                                # main_id' = '31018', 'parent_id' = '23715',  'id' = 35546, ///
                                 'id': '35546', 'count': 0, 'name': 'Крышы для батутов',
                                 'children': [], 'translitName': 'kryshy-dlya-batutov',
                                 'isSeo': True
