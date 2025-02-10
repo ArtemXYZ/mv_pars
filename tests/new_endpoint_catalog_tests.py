@@ -277,6 +277,7 @@ class UrlTest:
         # Получаем все категории (categories_ids) с сайт-мап, [str, ...]:
         _ids = self.pars_sitemap_xml(_xml_byte_data)
 
+        # Перебираем [str, ...]
         for _id in _ids:
 
             _json = self.count_product_request__(
