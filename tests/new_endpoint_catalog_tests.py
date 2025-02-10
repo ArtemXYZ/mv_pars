@@ -62,7 +62,7 @@ class UrlTest:
         return data
 
     @staticmethod
-    def pars_sitemap_xml(xml_data: bytes):
+    def pars_sitemap_xml(xml_data: bytes) -> [str, ...]:
         """
             Вспомогательный метод для обработки данных из xml.
 
@@ -209,8 +209,20 @@ class UrlTest:
         return data
 
 
-    def recursion_json(self, data: list):
+    def recursion_by_json(self, data: list | None = None, parent_id: str | None = None) -> list[dict, ...]:
+        """
+
+            :param data: Передаем список для наполнения результатов.
+            :type data: list | None
+            :param parent_id: Родительский айди, передаем в рекурсию тоже.
+            :type parent_id: str | None.
+            :return:
+            :rtype:
+        """
+
         # if isinstance(structure, dict):
+
+        # parent_id = None
 
         if data:
             data_set_raw = data
@@ -239,7 +251,7 @@ class UrlTest:
                 # Если список не пустой - есть дочерние элементы:
                 if value:
                     # Рекурсия:
-                    self.recursion_json(data_set_raw)
+                    self.recursion_by_json(data_set_raw)
 
             # todo родумать, как вытаскивать перент айди
 
@@ -262,12 +274,12 @@ class UrlTest:
         # Получаем ответ в виде байтов:
         _xml_byte_data: bytes = self.get_response_json__(url_sitemap, mode='bytes')  # text / bytes
 
-        # categories_ids
+        # Получаем все категории (categories_ids) с сайт-мап, [str, ...]:
         _ids = self.pars_sitemap_xml(_xml_byte_data)
 
         for _id in _ids:
 
-            _json = q.count_product_request__(
+            _json = self.count_product_request__(
                 # Бузулук, ул. Комсомольская, д. 81, ТРЦ «Север»
                 category_id=_id,  #
                 id_branch='S659',
@@ -277,8 +289,12 @@ class UrlTest:
                 timezone_offset='4'
             )
 
-            d = _json['body']['categories']['id']
+            # Получаем [{'id': '23715', count': 0, 'name': 'Батуты', 'children': [аналогичная структура], {...} }]
+            d = _json['body']['categories']
 
+            self.recursion_by_json()
+
+# ['body']['categories']['id']
 
 # =========================================================================
 
