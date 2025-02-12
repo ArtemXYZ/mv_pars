@@ -107,7 +107,8 @@ class UrlTest:
         # Паттерны регулярных выражений для поиска подстроки в ссылках.
 
         # Ищет цифры, начинающиеся с дефиса, отбирает только цифры, игнорируя дефис в результате поиска:
-        main_pattern = re.compile(r'(?<!-)-(\d+)')  # r'\d+'  # r'(?<!-)-\d+'
+        # + проверяет, что за числом следует либо символ /, либо конец строки и игнорирует такие вхождения.
+        main_pattern = re.compile(r'(?<!-)-(\d+)(?=/|$)')  # r'\d+'  # r'(?<!-)-\d+' # r'(?<!-)-(\d+)'
         # Ищет вхождения со словом "ustanovka":
         sub_pattern = re.compile(r'\bustanovka\b')
 
@@ -275,10 +276,11 @@ class UrlTest:
 
 
         # -----------------------------------------
-
+        print(f'Поступило в рекурсию вложенные данные: {categories_data[0]}')
         # 'categories': [{}] 1
         for key, value in categories_data[0].items():
 
+            print(f'Словарь categories_data[0]: key {key}, value {value}')
             # Создаем новый словарь с "main_id". Далее, в нем будут размещены остальные данные по категории.
             data_set_row = {'main_id': main_id, 'parent_id': parent_id}
 
@@ -433,12 +435,12 @@ class UrlTest:
 
 
 q = UrlTest()
-url_sitemap = 'https://www.mvideo.ru/sitemaps/sitemap-categories-www.mvideo.ru-1.xml'
-result_xml = q.get_response_json__(url_sitemap, mode='bytes')  # data = response.text bytes
-# print(f'result_xml: {result_xml}')
-
-w = q.pars_sitemap_xml(result_xml)
-print(f'Итог: {w}')
+# url_sitemap = 'https://www.mvideo.ru/sitemaps/sitemap-categories-www.mvideo.ru-1.xml'
+# result_xml = q.get_response_json__(url_sitemap, mode='bytes')  # data = response.text bytes
+# # print(f'result_xml: {result_xml}')
+#
+# w = q.pars_sitemap_xml(result_xml)
+# print(f'Итог: {w}')
 
 
 
@@ -454,8 +456,8 @@ print(f'Итог: {w}')
 #
 
 
-# json_python = q.run()
-# print(json_python)
+json_python = q.run()
+print(json_python)
 
 # Структура:
 # Айди категории: json_python['body']['products']['categories']['id']
