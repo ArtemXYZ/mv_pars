@@ -274,55 +274,51 @@ class UrlTest:
         # else:
         #     data_set_raw = []
 
+        try:
+            # -----------------------------------------
+            category_dict: dict = categories_data[0]
+            # ***
+            category_id: str = category_dict['id']
+            sku_count: str = category_dict['count']
+            category_name: str = category_dict['name']
+            # ***
+            children: list = category_dict['children']
+            # -----------------------------------------
+        except Exception as error:
+            raise ValueError(f'Ошибка доступа к значениям по индексу при обработке данных по категориям: {Exception}')
 
-        # -----------------------------------------
-        print(f'Поступило в рекурсию вложенные данные: {categories_data[0]}')
-        # 'categories': [{}] 1
-        for key, value in categories_data[0].items():
+        # Создаем словарь с результатами по категории.
+        data_set_row = {
+            # *** Доп информацйя для создания карты категорий.
+            'main_id': main_id,
+            'parent_id': parent_id,
+            # *** Основная информация.
+            'category_id': category_id,
+            'sku_count': sku_count,
+            'category_name': category_name,
+        }
 
-            print(f'Словарь categories_data[0]: key {key}, value {value}')
-            # Создаем новый словарь с "main_id". Далее, в нем будут размещены остальные данные по категории.
-            data_set_row = {'main_id': main_id, 'parent_id': parent_id}
+        # Сохраняем наработки в общий список:
+        result_data_set.append(data_set_row)
 
-            completed_id = None
+        # Добавляем 'id' категории в список отработанных.
+        completed_categories.append(category_id)  # set ?
 
-            # Добавляем данные по категории в словарь:
-            if key == 'id':
+        # Если есть дочерние элементы (подкатегории), то рекурсия:
+        # (Если нет дочерних элементов, children == [])
+        if children:
 
-                # Присваиваем значение глобальной в цикле переменной: отработанная айди.
-                completed_id = value
+            print(f'Обработка вложенных категорий для main_id: {main_id}, id: {category_id}')
+            # Рекурсия:
+            self.recursion_by_json(
+                main_id=main_id,
+                # Если есть наследники передаем id верхнего уровня (по умолчанию None для главных категорий):
+                parent_id=category_id,
+                categories_data=children,
+                completed_categories=completed_categories,
+                result_data_set=result_data_set
+            )
 
-                data_set_row[key] = value
-
-            elif key == 'count':
-                data_set_row[key] = value
-
-            elif key == 'name':
-                data_set_row[key] = value
-
-            # Всегда содержит []
-            elif key == 'children':
-
-                # Сохраняем наработки в общий список:
-                result_data_set.append(data_set_row)
-
-                # Добавляем 'id' категории в список отработанных. Вынесена специально вниз, для обеспечения \
-                # логики целостности данных, в случае ошибок в строках условий (атомарность).
-                completed_categories.append(completed_id)
-
-                # Если список не пустой - есть дочерние элементы:
-                if value:
-                    # print(f'Передача в рекурсию {value}')
-                    print(f'Обработка вложенных категорий для main_id: {main_id}, id: {completed_id}')
-                    # Рекурсия:
-                    self.recursion_by_json(
-                        main_id=main_id,
-                        # Если есть наследники передаем id верхнего уровня (по умолчанию None для главных категорий):
-                        parent_id=completed_id,
-                        categories_data=value,
-                        completed_categories=completed_categories,
-                        result_data_set=result_data_set
-                    )
 
 
     @staticmethod
@@ -461,3 +457,56 @@ print(json_python)
 
 # Структура:
 # Айди категории: json_python['body']['products']['categories']['id']
+
+
+
+
+
+
+#         print(f'Поступило в рекурсию вложенные данные: {categories_data[0]}')
+#         # 'categories': [{}] 1
+#         for key, value in categories_data[0].items():
+#
+#             print(f'Словарь categories_data[0]: key {key}, value {value}')
+#             # Создаем новый словарь с "main_id". Далее, в нем будут размещены остальные данные по категории.
+#             data_set_row = {'main_id': main_id, 'parent_id': parent_id}
+#
+#             completed_id = None
+#
+#             # Добавляем данные по категории в словарь:
+#             if key == 'id':
+#
+#                 # Присваиваем значение глобальной в цикле переменной: отработанная айди.
+#                 completed_id = value
+#
+#                 data_set_row[key] = value
+#
+#             elif key == 'count':
+#                 data_set_row[key] = value
+#
+#             elif key == 'name':
+#                 data_set_row[key] = value
+#
+#             # Всегда содержит []
+#             elif key == 'children':
+#
+#                 # Сохраняем наработки в общий список:
+#                 result_data_set.append(data_set_row)
+#
+#                 # Добавляем 'id' категории в список отработанных. Вынесена специально вниз, для обеспечения \
+#                 # логики целостности данных, в случае ошибок в строках условий (атомарность).
+#                 completed_categories.append(completed_id)
+#
+#                 # Если список не пустой - есть дочерние элементы:
+#                 if value:
+#                     # print(f'Передача в рекурсию {value}')
+#                     print(f'Обработка вложенных категорий для main_id: {main_id}, id: {completed_id}')
+#                     # Рекурсия:
+#                     self.recursion_by_json(
+#                         main_id=main_id,
+#                         # Если есть наследники передаем id верхнего уровня (по умолчанию None для главных категорий):
+#                         parent_id=completed_id,
+#                         categories_data=value,
+#                         completed_categories=completed_categories,
+#                         result_data_set=result_data_set
+#                     )
