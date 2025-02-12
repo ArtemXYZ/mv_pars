@@ -242,7 +242,7 @@ class UrlTest:
             main_id: str | None,
             parent_id: str | None,
             categories_data: list,
-            completed_categories: list,
+            completed_categories: set,
             result_data_set: list | None = None,
 
 
@@ -297,14 +297,16 @@ class UrlTest:
         # Сохраняем наработки в общий список:
         result_data_set.append(data_set_row)
 
-        # Добавляем 'id' категории в список отработанных.
-        completed_categories.append(category_id)  # set ?
+        # Добавляем 'id' категории в set отработанных.
+        completed_categories.add(category_id)  # set ? set
+
+        print(f'data_set_row: {data_set_row}')
 
         # Если есть дочерние элементы (подкатегории), то рекурсия:
         # (Если нет дочерних элементов, children == [])
         if children:
 
-            print(f'Обработка вложенных категорий для main_id: {main_id}, id: {category_id}')
+            # print(f'Обработка вложенных категорий для main_id: {main_id}, id: {category_id}')
             # Рекурсия:
             self.recursion_by_json(
                 main_id=main_id,
@@ -317,24 +319,24 @@ class UrlTest:
 
 
 
-    @staticmethod
-    def search_ids_in_list(search_id: str, array_list: list) -> bool:
-        """
-            Поиск id в массиве, если есть - True и наоборот.
-
-            :param search_id: Искомый id.
-            :type search_id: str.
-            :param array_list: Список для отработанных категорий.
-            :type array_list: list.
-            :return: bool.
-            :rtype: bool.
-        """
-
-        for next_id in array_list:
-            if next_id == search_id:
-                return True
-        else:
-            return False
+    # @staticmethod
+    # def search_ids_in_list(search_id: str, array_list: list) -> bool:
+    #     """
+    #         Поиск id в массиве, если есть - True и наоборот.
+    #
+    #         :param search_id: Искомый id.
+    #         :type search_id: str.
+    #         :param array_list: Список для отработанных категорий.
+    #         :type array_list: list.
+    #         :return: bool.
+    #         :rtype: bool.
+    #     """
+    #
+    #     for next_id in array_list:
+    #         if next_id == search_id:
+    #             return True
+    #     else:
+    #         return False
 
 
 
@@ -352,11 +354,9 @@ class UrlTest:
         # В этот список попадают категории уже извлеченные для итогового дата-сета \
         # (в одном ответе имеется вся структура подкатегорий и главных категорий):
         # P.S. По result_data_set сложнее итерировать (внутри словари, сложнее доставать и сортировать id).
-        completed_categories: list = []
+        completed_categories: set = set()   # : list = []
 
         url_sitemap = 'https://www.mvideo.ru/sitemaps/sitemap-categories-www.mvideo.ru-1.xml'
-
-        # parent_id = None
 
         # Получаем ответ в виде байтов:
         _xml_byte_data: bytes = self.get_response_json__(url_sitemap, mode='bytes')  # text / bytes
@@ -369,9 +369,10 @@ class UrlTest:
 
             # time.sleep(3)
 
-            # Проверка: отработана ли данная категория уже?
-            if self.search_ids_in_list(_id, completed_categories):
+            # Проверка: отработана ли данная категория уже:
+            if _id in completed_categories:    # completed_categories: set
 
+                print(f'Пропуск категории id: {_id}, completed_categories: {completed_categories}')
                 # Если категория уже была обработана, пропускаем ее.
                 continue
 
@@ -394,7 +395,6 @@ class UrlTest:
             json_body_data = _json.get('body')
             categories_data = json_body_data.get('categories')
 
-
             # Извлекаем информацию о главной категории:
             # В структуре ответа будет всегда первым словарем по порядку, несмотря на выбранную категорию:
             # 'categories': [{'id': '31018', ...}].
@@ -405,7 +405,7 @@ class UrlTest:
                 first_dict_in_categories_data = categories_data[0]
                 main_id = first_dict_in_categories_data.get('id')
 
-                print(f'Начало обработки категории id: {_id}.')
+                # print(f'Начало обработки категории id: {_id}.')
                 # Обходим рекурсивно все вложенные структуры и отдаем список данных. Получаем:
                 # [{'main_id': '31018', 'parent_id': '23715', 'id': '23715', count': 0, 'name': 'Батуты', {...}]
                 self.recursion_by_json(  # result_data_set =
@@ -415,12 +415,13 @@ class UrlTest:
                     completed_categories=completed_categories,
                     result_data_set=result_data_set
                 )
+                print(f'Иог обработки категории id: {_id}:')
+
             else:
                 bug_list.append(json_body_data)
                 print(f'bug_list: {bug_list}')
 
-            # todo отладочный
-            break
+            # break
 
         return result_data_set
 
