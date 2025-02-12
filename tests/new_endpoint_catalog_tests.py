@@ -92,15 +92,23 @@ class UrlTest:
                                 },
                             ]
                         }
+            Логика: получаем ссылки все с содержанием категорий. Через регулярное выражение отбираем вхождения цифр
+            (id категорий), при этом отфильтровываем ссылки с содержанием категорий по установке (они не дают результат,
+            мусорные). Далее после получения результатов у нас имеется список с дубликатами категорий, тк в каждой
+            ссылке дублируются главная категория и подкатегории. Что бы устранить дубликаты, добавляем этот список
+            в сет с результатами, происходит удаление дубликатов.
 
         """
 
-        results = []
+        results: set = set()
         # Ссылки попавшие под фильтрацию:
-        filter_out = []
+        filter_out: set = set()
 
-        # Паттерны регулярных выражений для поиска подстроки в ссылках:
-        main_pattern = re.compile(r'\d+')
+        # Паттерны регулярных выражений для поиска подстроки в ссылках.
+
+        # Ищет цифры, начинающиеся с дефиса, отбирает только цифры, игнорируя дефис в результате поиска:
+        main_pattern = re.compile(r'(?<!-)-(\d+)')  # r'\d+'  # r'(?<!-)-\d+'
+        # Ищет вхождения со словом "ustanovka":
         sub_pattern = re.compile(r'\bustanovka\b')
 
         # Преобразование XML в словарь
@@ -122,20 +130,22 @@ class UrlTest:
 
             if data_row:
                 if sub_pattern.search(data_row):
-                    filter_out.append(data_row)
+                    filter_out.update(data_row)  # Устарело, заменяем на сеты  append(data_row)
                     # print('Пропуск ссылки с содержанием категории ("ustanovka") ')
                     continue
 
                 # Парсим все айди в урл строке:
                 # id_list = re.findall(r'\d+', data_row) # Устарело, замена на более производительное (ниже).
                 # Использование re.compile имеет смысл в случаях многократно использования одно и то же рег-выражения:
-                id_list = main_pattern.findall(data_row)
+                id_list: list = main_pattern.findall(data_row)
                 # print(id_list)
-                results = results + id_list
+
+                # results_temp: set = results_temp + id_list # Устарело, замена на более производительный set.
+                results.update(id_list)
 
         # print(f'Ссылки попавшие под фильтрацию: {filter_out}')
 
-        return results
+        return list(results)
 
     @staticmethod
     def encoded_request_input_params__(branch_code: str, region_shop_code: str):
@@ -300,7 +310,8 @@ class UrlTest:
 
                 # Если список не пустой - есть дочерние элементы:
                 if value:
-                    print(f'Передача в рекурсию {value}')
+                    # print(f'Передача в рекурсию {value}')
+                    print(f'Обработка вложенных категорий для main_id: {main_id}, id: {completed_id}')
                     # Рекурсия:
                     self.recursion_by_json(
                         main_id=main_id,
@@ -398,12 +409,9 @@ class UrlTest:
                 first_dict_in_categories_data = categories_data[0]
                 main_id = first_dict_in_categories_data.get('id')
 
-
-
-
-
-                # Обходим рекурсивно все вложенные структуры и отдаем список данных:
-                # Получаем [{'main_id': '31018', 'parent_id': '23715', 'id': '23715', count': 0, 'name': 'Батуты', {...}]
+                print(f'Начало обработки категории id: {_id}.')
+                # Обходим рекурсивно все вложенные структуры и отдаем список данных. Получаем:
+                # [{'main_id': '31018', 'parent_id': '23715', 'id': '23715', count': 0, 'name': 'Батуты', {...}]
                 self.recursion_by_json(  # result_data_set =
                     main_id=main_id,
                     parent_id=main_id,
@@ -414,6 +422,10 @@ class UrlTest:
             else:
                 bug_list.append(json_body_data)
                 print(f'bug_list: {bug_list}')
+
+            # todo отладочный
+            break
+
         return result_data_set
 
 
@@ -424,7 +436,7 @@ q = UrlTest()
 url_sitemap = 'https://www.mvideo.ru/sitemaps/sitemap-categories-www.mvideo.ru-1.xml'
 result_xml = q.get_response_json__(url_sitemap, mode='bytes')  # data = response.text bytes
 # print(f'result_xml: {result_xml}')
-#
+
 w = q.pars_sitemap_xml(result_xml)
 print(f'Итог: {w}')
 
