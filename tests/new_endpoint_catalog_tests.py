@@ -263,16 +263,12 @@ class UrlTest:
             :rtype:
         """
 
-        # if isinstance(structure, dict):
+        if not isinstance(categories_data, list):
+            raise TypeError(f'Ошибка, недопустимый тип данных для аргумента "categories_data": '
+                            f'{type(categories_data)}. Должен быть "list".')
 
-        # parent_id = None
-        # todo добавить проверку на пустоту categories_data
-        # if categories_data:
-
-
-        # result_data_set_list
-        # else:
-        #     data_set_raw = []
+        if not categories_data:
+            raise ValueError(f'Ошибка, данные по категориям отсутствуют, значение:  {categories_data}.')
 
         try:
             # -----------------------------------------
@@ -285,7 +281,7 @@ class UrlTest:
             children: list = category_dict['children']
             # -----------------------------------------
         except Exception as error:
-            raise ValueError(f'Ошибка доступа к значениям по индексу при обработке данных по категориям: {Exception}')
+            raise ValueError(f'Ошибка доступа к значениям по индексу при обработке данных по категориям: {error}')
 
         # Создаем словарь с результатами по категории.
         data_set_row = {
@@ -360,6 +356,8 @@ class UrlTest:
 
         url_sitemap = 'https://www.mvideo.ru/sitemaps/sitemap-categories-www.mvideo.ru-1.xml'
 
+        # parent_id = None
+
         # Получаем ответ в виде байтов:
         _xml_byte_data: bytes = self.get_response_json__(url_sitemap, mode='bytes')  # text / bytes
 
@@ -412,7 +410,7 @@ class UrlTest:
                 # [{'main_id': '31018', 'parent_id': '23715', 'id': '23715', count': 0, 'name': 'Батуты', {...}]
                 self.recursion_by_json(  # result_data_set =
                     main_id=main_id,
-                    parent_id=main_id,
+                    parent_id=None,
                     categories_data=categories_data,
                     completed_categories=completed_categories,
                     result_data_set=result_data_set
