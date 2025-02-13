@@ -3,6 +3,8 @@
 """
 
 import os
+
+import xmltodict
 import pandas as pd
 from pandas import DataFrame
 from tqdm import tqdm
@@ -28,8 +30,6 @@ class Branches(ServiceTools):
 
     def __init__(self):
         super().__init__()
-
-        # __________________________________________________________________ GET_SHOPS
 
     def _get_branches_dat(self):
         """
@@ -195,9 +195,99 @@ class Branches(ServiceTools):
         return df_full_branch_data
 
 
-class ParsingPattern(Branches, BaseProperty):
-    """Частные конструкции для парсинга на основе ServiceTools методов и других сторонних библиотек."""
+class SitemapHandler(ServiceTools):
+    """
+        Класс содержит методы получения и обработки данных из sitemaps mvideo.
+        https://www.mvideo.ru/sitemaps/sitemap-categories-www.mvideo.ru-1.xml.
+    """
 
+    def __init__(self):
+        super().__init__()
+
+    @staticmethod
+    def pars_sitemap_xml(xml_data: bytes):
+        """
+            Вспомогательный метод для обработки данных из xml.
+
+            Внутри используется преобразование xml в словарь с вложенными словарями.
+                example = {
+                    'urlset':
+                        {
+                            '@xmlns': 'http://www.sitemaps.org/schemas/sitemap/0.9',
+                            '@xmlns:news': 'http://www.google.com/schemas/sitemap-news/0.9',
+                            '@xmlns:xhtml': 'http://www.w3.org/1999/xhtml',
+                            '@xmlns:image': 'http://www.google.com/schemas/sitemap-image/1.1',
+                            '@xmlns:video': 'http://www.google.com/schemas/sitemap-video/1.1',
+
+                            'url': [
+                                {
+                                    'loc': 'https://www.mvideo.ru/sadovaya-tehnika-i-oborudovanie-8027/sadovye-\
+                                        telezhki-33570',
+                                    'lastmod': '2025-02-07', 'changefreq': 'daily', 'priority': '0.5'
+                                },
+                                {
+                                    'loc': 'https://www.mvideo.ru/sadovaya-tehnika-i-oborudovanie-8027/\
+                                        sadovyi-dekor-33716',
+                                    'lastmod': '2025-02-07', 'changefreq': 'daily', 'priority': '0.5'
+                                },
+                            ]
+                        }
+
+        """
+
+        results = []
+
+        # Преобразование XML в словарь
+        xml_content = xmltodict.parse(xml_data)
+
+        try:
+            # Извлекаем основной контейнер с информацией:
+            data_list_dict: list[dict, ...] = xml_content['urlset']['url']
+
+        except KeyError as e:
+            raise ValueError(
+                f'Ошибка извлечения данных при попытке обращении к ключам (dict / list) '
+                f'преобразованного xml (Lib: "xmltodict") {e}'
+            )
+
+        for data_dict in data_list_dict:
+
+            data_row = data_dict.get('loc')
+
+            if data_row:
+                # Парсим все айди в урл строке:
+                id_list = re.findall(r'\d+', data_row)
+
+                results = results + id_list
+
+        return results
+
+    def _get_categories_id_from_ssitemap(self) -> list:
+        """
+            Метод получает данные со страницы:
+
+                * https://www.mvideo.ru/sitemaps/sitemap-categories-www.mvideo.ru-1.xml
+            и обрабатывает все id категорий, содержащихся в url-строке, учитывая сложную логику обработки.
+            Для того что бы корректно работать дальше с данными в данном методе на выходе имеются только уникальные id,
+            также пропускается одна категория "Установка" - она не дает результатов.
+        """
+
+        url_sitemap = 'https://www.mvideo.ru/sitemaps/sitemap-categories-www.mvideo.ru-1.xml'
+
+        # Получаем ответ в виде байтов:
+        # _xml_byte_data: bytes = self._get_response_json(url_sitemap, mode='bytes')  # text / bytes
+        _xml_byte_data: bytes = self._get_no_disconnect_request(url=url_sitemap,  mode='bytes')
+
+        # Получаем все категории (categories_ids) с сайт-мап, [str, ...]:
+        _ids = self.pars_sitemap_xml(_xml_byte_data)
+
+        return _ids
+
+
+class ParsingPattern(Branches, BaseProperty):
+    """
+        Частные конструкции для парсинга на основе ServiceTools методов и других сторонних библиотек.
+    """
 
     def __init__(self):
         super().__init__()
@@ -271,104 +361,10 @@ class ParsingPattern(Branches, BaseProperty):
             # Возвращаем данные по одному элементу
             yield id_branch, city_name_branch, city_id, region_id, region_shop_id, timezone_offset
 
+    def _get_cycle_by_branch(self):
+        pass
 
 
-
-    def sdfgafds(self):
-        for branch_data in self._main_cycle_by_branch(df_branch):
-            id_branch, city_name_branch, city_id, region_id, region_shop_id, timezone_offset = branch_data
-
-
-            # Случайная задержка для имитации человека:
-            self._get_time_sleep_random()
-
-            # 3.1.1.1) Основной запрос (возвращает json (пайтон)):
-            json_python = self._count_product_request(
-                category_id,  # parent_category_id
-                id_branch,
-                city_id,
-                region_id,
-                region_shop_id,
-                timezone_offset
-            )
-
-
-
-
-
-
-
-
-            # 4) Обработка и сохранение результатов (достаем нужные категории и сохраняем в итоговый датафрейм)
-            # ----------------------------------------------------------
-            if json_python:
-
-                # category_id_
-
-                # Обращаемся к родительскому ключу, где хранятся категории товаров:
-                all_category_in_html = json_python['body']['filters'][0]['criterias']
-                # print(f'Все категории на странице: {all_category_in_html}')
-
-                try:
-                    # Перебираем родительскую директорию, забираем значения категорий и количество:
-                    for row_category in all_category_in_html:
-                        # 1. # Количество по категории (если != 'Да' \
-                        # то здесь все равно будет None, условие проверки не нужно, опускаем).
-                        count = row_category['count']
-
-                        # 2. Наименование категории: если count равно 'Да', то name_category также будет None
-                        # todo пеерносим в таблицу inlet."dictionary_categories_mvideo"
-                        name_category = None if row_category['name'] == 'Да' else row_category['name']
-
-                        # 3. id искомой категории (получена от родительской):
-                        category_id = row_category['value']  # ключ 'value' = id
-
-                        # ----------------------------------- начало current_stock_mvideo
-                        # _1. Готовим строку на запись в датафрейм для таблицы "current_stock_mvideo":
-                        new_row = {
-                            'id_branch': id_branch,
-                            'name_category': name_category,
-                            'count': count,
-                            'parent_category_id': parent_category_id,
-                            'category_id': category_id
-                        }
-
-                        # print(f'count: {count}, name {name_category}')
-                        print(f'{index}. {new_row}')
-                        # Сохраняем в целевой итоговый датафрейм:
-                        # Добавляем новую строку с помощью loc[], где индексом будет len(df_fin_category_data)
-                        df_fin_category_data.loc[len(df_fin_category_data)] = new_row
-                        # ----------------------------------- конец current_stock_mvideo
-
-                        # ----------------------------------- начало dictionary_categories_mvideo
-                        # _2. Готовим строку на запись в датафрейм для таблицы "dictionary_categories_mvideo":
-                        _new_row = {
-                            'name_category': name_category,
-                            'category_id': category_id
-                        }
-
-                        # Добавляем новую строку с помощью loc[], где индексом будет len(df_fin_category_data)
-                        df_dictionary_categories.loc[len(df_fin_category_data)] = _new_row
-                        # ----------------------------------- конец dictionary_categories_mvideo.
-
-
-
-
-
-                except (KeyError, IndexError):
-                    # Срабатывает, если ключ 'criterias' не существует или его невозможно получить
-                    print(f'По parent_category_id {parent_category_id} - нет нужных тегов, пропускаем ее.')
-
-                    # Добавление в общий кортеж багов.
-                    bag_category_tuple = bag_category_tuple + (parent_category_id,)
-
-            else:
-                # row_bag_iter = new_row
-                print(f'Пропуск итерации для: {id_branch} city_name_branch {city_name_branch}')
-                continue
-            # break  #  Для теста - оба брейка нужны
-            # Итог код магазина, категория, количество. ['id_branch','name_category','count']
-            # ----------------------------------------------------------
 
 
 
@@ -380,18 +376,23 @@ class ParsingPattern(Branches, BaseProperty):
     def _run_pattern_core(self, df, ):
         """
             ОСновная логика паттерна обработки категорий.
+            df == df_full_branch_data (все данные по филиалам, необходимые для последующих запросов).
         """
 
-        # 2) Подготовка данных (очистка и итерации):
-        # ----------------------------------------------------------
+        # 1) ------------------------------- Подготовка данных (очистка):
+
         # Удаляем строки, где city_id равен 0
         df_branch_not_null = df[df['city_id'] != 0]
 
-        # for row in
+
+
+
+
+        # 2) ------------------------------- Обход всех вилиалов:
+        # -> yield[tuple[params branch]]
         self._main_cycle_by_branch(df_branch=df_branch_not_null)
 
-
-
+        # ----------------------------------------------------------
 
 
 
@@ -435,6 +436,10 @@ class ParsingPattern(Branches, BaseProperty):
         # ----------------------------------------------------------
         # Функция сохраняет датафрейм в базу данных, предварительно загрузив дамп результатов парсинга:
         self.load_result_pars_in_db(dump_path, if_exists=if_exists)
+
+
+
+
 
     def _run_one_cycle_pars(self, load_damp=False, if_exists='append'):  # get_category
         """
@@ -480,6 +485,7 @@ class ParsingPattern(Branches, BaseProperty):
         # Если есть результат загрузки дампа данных по филиалам или парсинга таких данных:
         if df_full_branch_data is not None:
 
+            # Здесь вся основная логика:
             self._run_pattern_core(df=df_full_branch_data)
 
         # Парсинг остановлен по причине отсутствия файла дампа или подготовка данных в "get_shops" завершилась неудачей:
@@ -529,3 +535,91 @@ class ParsingPattern(Branches, BaseProperty):
     #     print(BLUE + BRIGHT_STYLE + 'Работа сервисных программ завершена:')
     #     print(BACK_CYAN + LIGHTBLACK + 'Бот запущен, все норм!')
     #             print(BACK_GREEN + RED + BRIGHT_STYLE + 'Бот лег!')
+
+        def sdfgafds(self):
+            for branch_data in self._main_cycle_by_branch(df_branch):
+                id_branch, city_name_branch, city_id, region_id, region_shop_id, timezone_offset = branch_data
+
+                # Случайная задержка для имитации человека:
+                self._get_time_sleep_random()
+
+                # 3.1.1.1) Основной запрос (возвращает json (пайтон)):
+                json_python = self._count_product_request(
+                    category_id,  # parent_category_id
+                    id_branch,
+                    city_id,
+                    region_id,
+                    region_shop_id,
+                    timezone_offset
+                )
+
+                # 4) Обработка и сохранение результатов (достаем нужные категории и сохраняем в итоговый датафрейм)
+                # ----------------------------------------------------------
+                if json_python:
+
+                    # category_id_
+
+                    # Обращаемся к родительскому ключу, где хранятся категории товаров:
+                    all_category_in_html = json_python['body']['filters'][0]['criterias']
+                    # print(f'Все категории на странице: {all_category_in_html}')
+
+                    try:
+                        # Перебираем родительскую директорию, забираем значения категорий и количество:
+                        for row_category in all_category_in_html:
+                            # 1. # Количество по категории (если != 'Да' \
+                            # то здесь все равно будет None, условие проверки не нужно, опускаем).
+                            count = row_category['count']
+
+                            # 2. Наименование категории: если count равно 'Да', то name_category также будет None
+                            # todo пеерносим в таблицу inlet."dictionary_categories_mvideo"
+                            name_category = None if row_category['name'] == 'Да' else row_category['name']
+
+                            # 3. id искомой категории (получена от родительской):
+                            category_id = row_category['value']  # ключ 'value' = id
+
+                            # ----------------------------------- начало current_stock_mvideo
+                            # _1. Готовим строку на запись в датафрейм для таблицы "current_stock_mvideo":
+                            new_row = {
+                                'id_branch': id_branch,
+                                'name_category': name_category,
+                                'count': count,
+                                'parent_category_id': parent_category_id,
+                                'category_id': category_id
+                            }
+
+                            # print(f'count: {count}, name {name_category}')
+                            print(f'{index}. {new_row}')
+                            # Сохраняем в целевой итоговый датафрейм:
+                            # Добавляем новую строку с помощью loc[], где индексом будет len(df_fin_category_data)
+                            df_fin_category_data.loc[len(df_fin_category_data)] = new_row
+                            # ----------------------------------- конец current_stock_mvideo
+
+                            # ----------------------------------- начало dictionary_categories_mvideo
+                            # _2. Готовим строку на запись в датафрейм для таблицы "dictionary_categories_mvideo":
+                            _new_row = {
+                                'name_category': name_category,
+                                'category_id': category_id
+                            }
+
+                            # Добавляем новую строку с помощью loc[], где индексом будет len(df_fin_category_data)
+                            df_dictionary_categories.loc[len(df_fin_category_data)] = _new_row
+                            # ----------------------------------- конец dictionary_categories_mvideo.
+
+
+
+
+
+                    except (KeyError, IndexError):
+                        # Срабатывает, если ключ 'criterias' не существует или его невозможно получить
+                        print(f'По parent_category_id {parent_category_id} - нет нужных тегов, пропускаем ее.')
+
+                        # Добавление в общий кортеж багов.
+                        bag_category_tuple = bag_category_tuple + (parent_category_id,)
+
+                else:
+                    # row_bag_iter = new_row
+                    print(f'Пропуск итерации для: {id_branch} city_name_branch {city_name_branch}')
+                    continue
+                # break  #  Для теста - оба брейка нужны
+                # Итог код магазина, категория, количество. ['id_branch','name_category','count']
+                # ----------------------------------------------------------
