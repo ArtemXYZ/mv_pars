@@ -357,27 +357,27 @@ class BaseProperty:
     # _________________________________________________
     # _________________________________________________ PATH_FILES
 
-    def _get_path_file_branch_dump(self) -> str:
+    def _get_path_file_branch_dump(self):
         """Формирует путь для сохранения дампа по филиалам."""
         return f"{self.__BASE_FOLDER_SAVE}{self.__FILE_NAME_BRANCH}{self.__EXTENSION_FILE_DUMP}"
 
-    def _get_path_file_branch_excel(self) -> str:
+    def _get_path_file_branch_excel(self):
         """Формирует путь для сохранения файла excel по филиалам."""
         return f"{self.__BASE_FOLDER_SAVE}{self.__FILE_NAME_BRANCH}{self.__EXTENSION_FILE_EXCEL}"
 
     # _________________________________________________
     # _________________________________________________ PATH_FILES
 
-    def _get_path_file_category_dump(self) -> str:
+    def _get_path_file_category_dump(self):
         """Формирует путь для сохранения дампа по категориям."""
         return f"{self.__BASE_FOLDER_SAVE}{self.__FILE_NAME_CATEGORY}{self.__EXTENSION_FILE_DUMP}"
 
-    def _get_path_file_category_excel(self) -> str:
+    def _get_path_file_category_excel(self):
         return f"{self.__BASE_FOLDER_SAVE}{self.__FILE_NAME_CATEGORY}{self.__EXTENSION_FILE_EXCEL}"
 
     # _________________________________________________
     # _________________________________________________ PINGS
-    def _get_ping_limits(self) -> tuple:
+    def _get_ping_limits(self):
         """Возвращает текущие значения имитации задержки (геттер)."""
         return self.__IMITATION_PING_MIN, self.__IMITATION_PING_MAX
 
@@ -397,8 +397,7 @@ class BaseProperty:
     def _get_time_sleep_random(self):
         """Случайная задержка для имитации человека во время парсинга."""
         min_ping, max_ping = self._get_ping_limits()
-        # Здесь произойдет задержка:
-        time.sleep(random.uniform(min_ping, max_ping))
+        time.sleep(random.uniform(min_ping, max_ping)) # todo:  !! - return - возможно ошибка.
 
     # _________________________________________________
 
