@@ -284,7 +284,7 @@ class SitemapHandler(ServiceTools):
         return _ids
 
 
-class ParsingPattern(Branches, BaseProperty):
+class ParsingPattern(Branches, SitemapHandler):
     """
         Частные конструкции для парсинга на основе ServiceTools методов и других сторонних библиотек.
     """
@@ -331,7 +331,7 @@ class ParsingPattern(Branches, BaseProperty):
         return df_full_branch_data, reason
 
 
-    def _main_cycle_by_branch(self, df_branch) -> Generator[tuple]:
+    def _main_cycle_by_branch(self, df_branches) -> Generator[tuple]:
         """
             Главный цикл (верхнеуровневый). ОСуществляет обход по филиалам (следующая логика будет с айди филиала для
             одной итеррации этого цикла.)
@@ -340,7 +340,7 @@ class ParsingPattern(Branches, BaseProperty):
         """
 
         # Итерируем по филиалам:
-        for index, row in df_branch.iterrows():
+        for index, row in df_branches.iterrows():
 
             # Достаем данные из строки датафрейма:
             id_branch = row.get('id_branch')
@@ -353,7 +353,7 @@ class ParsingPattern(Branches, BaseProperty):
             print(
                 BACK_WHITE + BRIGHT_STYLE + LIGHTBLACK +
                 f'============================================================ '
-                f'{int(index) + 1}. / {get_progress(index, df_branch)} % / '
+                f'{int(index) + 1}. / {get_progress(index, df_branches)} % / '
                 f'Парсинг по всем категориям для филиала {id_branch} '
                 f'============================================================'
             )
@@ -361,37 +361,80 @@ class ParsingPattern(Branches, BaseProperty):
             # Возвращаем данные по одному элементу
             yield id_branch, city_name_branch, city_id, region_id, region_shop_id, timezone_offset
 
-    def _get_cycle_by_branch(self):
-        pass
+    def _sub_cycle_by_branch(self, category_id, branch_data_df, result_data_set: list):  #  tuple_itms: Generator[tuple],
+        """
+            Цикл итераций по одному филиалу.
+
+            # -> yield[tuple[params branch]]
+            params_branch: Generator[tuple] = self._main_cycle_by_branch(df_branches=branch_data_df)
+        """
+
+        # Список ошибок
+        bug_list = []
+
+        # Список для отработанных категорий, что бы не повторяться по уже добытым данным.
+        # В этот список попадают категории уже извлеченные для итогового дата-сета \
+        # (в одном ответе имеется вся структура подкатегорий и главных категорий):
+        # P.S. По result_data_set сложнее итерировать (внутри словари, сложнее доставать и сортировать id).
+        completed_categories: set = set()  # : list = []
 
 
+        for branch_data in self._main_cycle_by_branch(df_branches=branch_data_df):
 
+            # Распаковка кортежа параметров для филиала:
+            id_branch, city_name_branch, city_id, region_id, region_shop_id, timezone_offset = branch_data
 
+            # Проверка: отработана ли данная категория уже:
+            if id_branch in completed_categories:  # completed_categories: set
 
+                print(f'Пропуск категории id: {id_branch}, completed_categories: {completed_categories}')
+                # Если категория уже была обработана, пропускаем ее.
+                continue
 
+            # Случайная задержка для имитации человека:
+            self._get_time_sleep_random()
 
+            # 3.1.1.1) Основной запрос (возвращает json (пайтон)):
+            json_python = self._count_product_request(
+                category_id=category_id,
+                id_branch=id_branch,
+                city_id=city_id,
+                region_id=region_id,
+                region_shop_id=region_shop_id,
+                timezone_offset=timezone_offset
+            )
 
-
-
+    # Основной паттерн содержащий всю логику парсинга (без различных проверочных логик верхнего уровня):
     def _run_pattern_core(self, df, ):
         """
             ОСновная логика паттерна обработки категорий.
-            df == df_full_branch_data (все данные по филиалам, необходимые для последующих запросов).
+
+                1. Получаем данные по филиалам;
+                2. Получаем список всех* категорий М.Видео;
+                3. Обход всех филиалов (на каждый филиал полный цикл обработки категорий):
+                    - Получаем генератором (вместо цикла) данные по филиально;
+                    - Подставляем данные по филиалу в следующий цикл полной обработки всех категорий для 1-го филдиала.
+                4.
+
+                * df == df_full_branch_data (все данные по филиалам, необходимые для последующих запросов).
         """
+
+        # 0) ------------------------------- Объявление глобальных переменных:
+        # Итоговый список
+        result_data_set: list = []
 
         # 1) ------------------------------- Подготовка данных (очистка):
 
-        # Удаляем строки, где city_id равен 0
-        df_branch_not_null = df[df['city_id'] != 0]
+        # Получаем исходные данные по филиалам (Удаляем строки, где city_id равен 0):
+        branch_data_df = df[df['city_id'] != 0]
+
+        # Получаем список всех* категорий с сайта: todo должна быть глобальной переменной в рамках цикла (получаем 1 раз)
+        ids: list = self._get_categories_id_from_ssitemap()
 
 
+        # 2) ------------------------------- Обход всех филиалов (на каждый филиал полный цикл обработки категорий):
 
-
-
-        # 2) ------------------------------- Обход всех вилиалов:
-        # -> yield[tuple[params branch]]
-        self._main_cycle_by_branch(df_branch=df_branch_not_null)
-
+        params_branch = self._sub_cycle_by_branch(self, ids, branch_data_df)
         # ----------------------------------------------------------
 
 
@@ -537,21 +580,6 @@ class ParsingPattern(Branches, BaseProperty):
     #             print(BACK_GREEN + RED + BRIGHT_STYLE + 'Бот лег!')
 
         def sdfgafds(self):
-            for branch_data in self._main_cycle_by_branch(df_branch):
-                id_branch, city_name_branch, city_id, region_id, region_shop_id, timezone_offset = branch_data
-
-                # Случайная задержка для имитации человека:
-                self._get_time_sleep_random()
-
-                # 3.1.1.1) Основной запрос (возвращает json (пайтон)):
-                json_python = self._count_product_request(
-                    category_id,  # parent_category_id
-                    id_branch,
-                    city_id,
-                    region_id,
-                    region_shop_id,
-                    timezone_offset
-                )
 
                 # 4) Обработка и сохранение результатов (достаем нужные категории и сохраняем в итоговый датафрейм)
                 # ----------------------------------------------------------
