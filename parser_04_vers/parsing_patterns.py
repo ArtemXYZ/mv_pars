@@ -1,5 +1,6 @@
-from parser_03_vers.service_tools import ServiceTools
-from parser_03_vers.base_property import BaseProperty
+"""
+    pass
+"""
 
 import os
 import pandas as pd
@@ -9,7 +10,13 @@ import json
 import time
 from joblib import dump
 from joblib import load
+from typing import Generator
 
+
+from parser_04_vers.service_tools import ServiceTools
+from parser_04_vers.base_property import BaseProperty
+from support_tools.code_printer import *
+from support_tools.custom_progress_bar import get_progress
 
 # from apscheduler.schedulers.background import BlockingScheduler
 # from apscheduler.triggers.cron import CronTrigger
@@ -234,17 +241,16 @@ class ParsingPattern(Branches, BaseProperty):
         return df_full_branch_data, reason
 
 
-    def _main_cycle_by_branch(self, df_branch):
+    def _main_cycle_by_branch(self, df_branch) -> Generator[tuple]:
         """
             Главный цикл (верхнеуровневый). ОСуществляет обход по филиалам (следующая логика будет с айди филиала для
             одной итеррации этого цикла.)
+            Возвращает генератор. Нужен что бы разделить вложенные циклы по разные структуры и к тому же для сокращения
+            ресурсозатрат.
         """
 
-        # 3.1.1) Итерируем по филиалам и по конкретной категории:
+        # Итерируем по филиалам:
         for index, row in df_branch.iterrows():
-            # for index, row in tqdm(df_branch_not_null.iterrows(), ncols=80, ascii=True,
-            #          desc=f'=================================================================='):
-            # desc=f'==================== Обработка данных филиала ===================='):
 
             # Достаем данные из строки датафрейма:
             id_branch = row.get('id_branch')
@@ -254,14 +260,27 @@ class ParsingPattern(Branches, BaseProperty):
             region_shop_id = row.get('region_shop_id')
             timezone_offset = row.get('timezone_offset')
 
+            print(
+                BACK_WHITE + BRIGHT_STYLE + LIGHTBLACK +
+                f'============================================================ '
+                f'{int(index) + 1}. / {get_progress(index, df_branch)} % / '
+                f'Парсинг по всем категориям для филиала {id_branch} '
+                f'============================================================'
+            )
+
+            # Возвращаем данные по одному элементу
+            yield id_branch, city_name_branch, city_id, region_id, region_shop_id, timezone_offset
+
+
+
+
+    def sdfgafds(self):
+        for branch_data in self._main_cycle_by_branch(df_branch):
+            id_branch, city_name_branch, city_id, region_id, region_shop_id, timezone_offset = branch_data
+
+
             # Случайная задержка для имитации человека:
             self._get_time_sleep_random()
-
-
-
-
-
-
 
             # 3.1.1.1) Основной запрос (возвращает json (пайтон)):
             json_python = self._count_product_request(
@@ -492,3 +511,21 @@ class ParsingPattern(Branches, BaseProperty):
         # df_dictionary_categories.reset_index(drop=True, inplace=True)
         # df_dictionary_categories.index = df_dictionary_categories.index + 1  # Начинаем с 1 если нужно
         # df_dictionary_categories.rename_axis('id', inplace=True)
+
+
+#     print(
+    #         BACK_GREEN + BRIGHT_STYLE +
+    #         f'                                                   * Запуск бота *'
+    #         f'                                                    ')
+    #
+    #     print(
+    #         BACK_WHITE + BRIGHT_STYLE + LIGHTBLACK +
+    #         '==========================================================='
+    #         '===========================================================')
+    #
+    #     print(BLUE + BRIGHT_STYLE + 'Запуск сервисных программ:')
+    #     print(GREEN + "< Webhook удален и ожидающие обновления сброшены.")
+    #     await startup_service_db()  # session_pool=LOCDB_SESSION
+    #     print(BLUE + BRIGHT_STYLE + 'Работа сервисных программ завершена:')
+    #     print(BACK_CYAN + LIGHTBLACK + 'Бот запущен, все норм!')
+    #             print(BACK_GREEN + RED + BRIGHT_STYLE + 'Бот лег!')
