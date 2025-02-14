@@ -6,32 +6,17 @@
 # import pandas as pd
 # from pandas import DataFrame
 import time
-# from datetime import datetime
-# import json
-# import base64
-# import urllib.parse
-# from bs4 import BeautifulSoup
-# from joblib import dump
-# from joblib import load
-# from tqdm import tqdm
+
 import requests
 # import schedule
-import random   # переопределяется (зацикливание)
+import random  # переопределяется (зацикливание)
 
-from parser_03_vers.params_bank import *  # Все куки хедеры и параметры
+from parser_04_vers.params_bank import *  # Все куки хедеры и параметры
 from settings.configs import ENGINE
 
 from sqlalchemy.engine import Engine
 from requests import Session
 
-# from apscheduler.triggers.cron import CronTrigger
-# from apscheduler.schedulers.blocking import BlockingScheduler  # Блокирующий:
-# BlockingScheduler блокирует выполнение основного потока программы, пока работает планировщик.
-# Это значит, что после вызова scheduler.start(), код ниже не будет выполняться, пока планировщик не завершит
-# свою работу (что обычно не происходит в течение обычной работы программы).
-# Использование: BlockingScheduler удобно использовать в скриптах, где основная задача — это выполнение запланированных
-# задач, и нет необходимости выполнять другие действия в основном потоке. Например, это идеальный выбор для консольных
-# приложений, которые должны постоянно работать.
 
 # from apscheduler.schedulers.background import BackgroundScheduler  # Фоновый:
 #  BackgroundScheduler работает в фоновом режиме, что позволяет основному потоку продолжать выполнение других задач.
@@ -64,14 +49,13 @@ class BaseProperty:
         self.__SCHEMA: str = 'inlet'
         # _________________________________________________ Входные параметры
         self.__CITY_DATA: list[tuple] = CITY_DATA
-        self.__CATEGORY_ID_DATA: tuple = CATEGORY_ID_DATA
         self.__BASE_HEADERS: dict = BASE_HEADERS
         self.__BASE_FOLDER_SAVE: str = './data/'
         self.__FILE_NAME_BRANCH: str = 'df_branch_data'
         self.__FILE_NAME_CATEGORY: str = 'df_category_data'
         self.__IMITATION_PING_MIN: float | int = 0.5
         self.__IMITATION_PING_MAX: float | int = 2.5
-        self.__RETRIES: int = 20  # retries requests
+        self.__RETRIES: int = 10  # retries requests
         self.__TIMEOUT: int = 120  # timeout 120
         # _________________________________________________
 
@@ -105,12 +89,13 @@ class BaseProperty:
         else:
             raise ValueError(
                 f'Не был передан обязательный аргумент для одного из параметров в методе: {fanc_name_str}.')
+
     # _________________________________________________
     # _________________________________________________
     def _get_retries(self):
         """
-        Возвращает заданное количество попыток для повторного подключения, в случае сбоев (обрыв соединения и тд.).
-        (геттер).
+            Возвращает заданное количество попыток для повторного подключения, в случае сбоев (обрыв соединения и тд.).
+            (геттер).
         """
         return self.__RETRIES
 
@@ -128,6 +113,7 @@ class BaseProperty:
     def _set_timeout(self, new_timeout_param: int):
         """Передача нового значения промежутка времени между повторными подключениями, в случае сбоев."""
         self.__TIMEOUT = self._validation_params(new_timeout_param, int, '_set_timeout')
+
     # _________________________________________________
     # _________________________________________________
     def _get_category_id_data(self):
@@ -137,6 +123,7 @@ class BaseProperty:
     def _set_category_id_data(self, new_category_data: tuple):
         """Передача новых значений категорий для поиска подкатегорий парсингом."""
         self.__CATEGORY_ID_DATA = self._validation_params(new_category_data, tuple, '_set_category_id_data')
+
     # _________________________________________________
     # _________________________________________________
     @classmethod
@@ -151,7 +138,6 @@ class BaseProperty:
     # def _get_scheduler(cls):
     #     """Возвращает экземпляр scheduler (планировщик) (геттер)."""
     #     return cls.__BLOC_SCHEDULER
-
 
     # @classmethod
     # def _get_cron_trigger(cls):
@@ -236,7 +222,6 @@ class BaseProperty:
     #         scheduler = self._get_scheduler().add_job(func, cron_trigger)
     #         return scheduler  #self._get_scheduler()
 
-
     # def _set_cron(self, cron_string):  # cron_string=None  (работает)
     #     """
     #     """
@@ -247,8 +232,6 @@ class BaseProperty:
     #         return cron_trigger.from_crontab(cron_string) # +
     #     else:
     #         raise ValueError(f'Ошибка в "_set_cron": параметры не были переданы (cron_string = {cron_string}).')
-
-
 
     # _________________________________________________
     # _________________________________________________
@@ -381,7 +364,6 @@ class BaseProperty:
         """Возвращает текущие значения имитации задержки (геттер)."""
         return self.__IMITATION_PING_MIN, self.__IMITATION_PING_MAX
 
-
     def _set_ping_limits(self, min_ping, max_ping):
         """Устанавливает и проверяет новые значения пределов задержки (cеттер)."""
         if min_ping < 0.5 or max_ping > 60:
@@ -397,7 +379,7 @@ class BaseProperty:
     def _get_time_sleep_random(self):
         """Случайная задержка для имитации человека во время парсинга."""
         min_ping, max_ping = self._get_ping_limits()
-        time.sleep(random.uniform(min_ping, max_ping)) # todo:  !! - return - возможно ошибка.
+        time.sleep(random.uniform(min_ping, max_ping))  # todo:  !! - return - возможно ошибка.
 
     # _________________________________________________
 

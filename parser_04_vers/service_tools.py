@@ -65,18 +65,30 @@ class ServiceTools(BaseProperty):
             os.makedirs(path_dir)
             print(f'Создана новая директория для сохранения файлов: {path_dir}')
 
-    def _save_data(self, df: DataFrame, path_file_dump, path_file_excel):
+    def _save_damp_and_excel(self, df: DataFrame):  # , path_file_dump, path_file_excel
         """
-        Перед сохранением результатов работы парсера проверяем наличие существования директории, если таковой нет,
-        то создаётся.
+            Перед сохранением результатов работы парсера проверяем наличие существования директории, если таковой нет,
+            то создаётся.
         """
+
+        # 1. Получаем пути к файлам:
+        dump_path = self._get_path_file_category_dump()
+        excel_path = self._get_path_file_category_excel()
+
+        # print(
+        #     f'dump_path: {dump_path}\n'
+        #     f'excel_path: {excel_path}'
+        # )
+
         # ________________________________________________ CHECK
-        self._check_path_file(path_file_dump)
-        self._check_path_file(path_file_excel)
+        self._check_path_file(dump_path)
+        self._check_path_file(excel_path)
+
         # ________________________________________________ SAVE
         # Сохраняем результат парсинга в дамп и в Excel:
-        dump(df, path_file_dump)  # _name_dump = '../data/df_full_branch_data.joblib'
-        df.to_excel(path_file_excel, index=False)  # _name_excel = '../data/df_full_branch_data.xlsx'
+        dump(df, dump_path)  # _name_dump = '../data/df_full_branch_data.joblib'
+        df.to_excel(excel_path, index=False)  # _name_excel = '../data/df_full_branch_data.xlsx'
+
         print('Результат парсинга успешно сохранен в дамп и в Excel файлы.')
 
     def _get_response_json(
@@ -435,27 +447,39 @@ class ServiceTools(BaseProperty):
         data = self._get_no_disconnect_request(url=full_url, cookies=cookies_count_product)
         return data
 
+    @staticmethod
+    def insert_time_in_df(df):
+        """
+            Метод вставляет колонку с датой в датафрейм.
+        """
+
+        current_time = datetime.now()
+
+        # Форматируем время в строку
+        formatted_time = current_time.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
+
+        # Добавляем новые колонки со значением 0:
+        df['_dt_load'] = formatted_time
+
+        return df
+
     # __________________________________________________________________
-
-
 
     def load_result_pars_in_db(self, name_path_file_dump, if_exists='replace'):
         """
         Метод сохраняет датафрейм в базу данных, предварительно загрузив дамп результатов парсинга.
         """
         # ------------------------------------ Загрузка дампа результатов парсинга ------------------------------------
-        if os.path.isfile(name_path_file_dump):  # Если файл существует,тогда: True
+        if os.path.isfile(name_path_file_dump):  # Если файл существует, тогда: True
             # ------------------------------------
             load_damp_df = load(name_path_file_dump)  # Тогда загружаем дамп
             print("Дамп успешно загружен!")
 
-            current_time = datetime.now()
+            self.insert_time_in_df(load_damp_df)
 
-            # Форматируем время в строку
-            formatted_time = current_time.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
-            # Добавляем новые колонки со значением 0:
-            load_damp_df['_dt_load'] = formatted_time  # dt_load -> _dt_load
-            # print(load_damp_df)
+
+
+
             # ------------------------------------
             print("Загрузка DataFrame в базу данных.")
             # ------------------------------------
@@ -474,38 +498,38 @@ class ServiceTools(BaseProperty):
             load_damp_df = None
             print(f'Отсутствует файл дампа в директории: "{name_path_file_dump}"!')
 
-    def _set_schedule(self, func, cron_string=None):
-        """
-            Панировщик запуска задач.
-            Cron — это система для автоматизации выполнения задач по расписанию в UNIX-подобных операционных системах.
-            Она использует так называемые cron-выражения для задания времени и частоты выполнения задач.
-            Классическое cron-выражение состоит из пяти полей, каждое из которых определяет единицу времени:
-
-            'cron' - для задания расписания на основе cron-выражений:
-            (my_function, 'cron', minute=0, hour=12)  # Каждый день в 12:00
-
-
-            'date' - для задания одной задачи на определенную дату и время:
-            (my_function, 'date', run_date=datetime.now() + timedelta(days=1))  # Через один день
-
-             'interval' - для задания задач с регулярным интервалом (например, каждые N минут, секунд и т.д.).
-            (my_function, 'interval', minutes=10)  # Каждые 10 минут/
-
-            :param func: пердаваемая функция \ метод.
-            :type func: object
-            :param cron_string: крон выражение ('0 12 * * *'  # Каждый день в 12:00).
-            :type cron_string: str
-            :return: запуск метода по расписанию.
-            :rtype: object
-        """
-
-        cron_string_check = self._validation_params(cron_string, str, '_set_schedule')
-        func_check = self._validation_params(func, callable, '_set_schedule')
-
-        if func_check and cron_string_check:
-            cron_trigger = CronTrigger.from_crontab(cron_string)
-            self.__bloc_scheduler.add_job(func, trigger=cron_trigger)
-            self.__bloc_scheduler.start()
+    # def _set_schedule(self, func, cron_string=None):
+    #     """
+    #         Панировщик запуска задач.
+    #         Cron — это система для автоматизации выполнения задач по расписанию в UNIX-подобных операционных системах.
+    #         Она использует так называемые cron-выражения для задания времени и частоты выполнения задач.
+    #         Классическое cron-выражение состоит из пяти полей, каждое из которых определяет единицу времени:
+    #
+    #         'cron' - для задания расписания на основе cron-выражений:
+    #         (my_function, 'cron', minute=0, hour=12)  # Каждый день в 12:00
+    #
+    #
+    #         'date' - для задания одной задачи на определенную дату и время:
+    #         (my_function, 'date', run_date=datetime.now() + timedelta(days=1))  # Через один день
+    #
+    #          'interval' - для задания задач с регулярным интервалом (например, каждые N минут, секунд и т.д.).
+    #         (my_function, 'interval', minutes=10)  # Каждые 10 минут/
+    #
+    #         :param func: пердаваемая функция \ метод.
+    #         :type func: object
+    #         :param cron_string: крон выражение ('0 12 * * *'  # Каждый день в 12:00).
+    #         :type cron_string: str
+    #         :return: запуск метода по расписанию.
+    #         :rtype: object
+    #     """
+    #
+    #     cron_string_check = self._validation_params(cron_string, str, '_set_schedule')
+    #     func_check = self._validation_params(func, callable, '_set_schedule')
+    #
+    #     if func_check and cron_string_check:
+    #         cron_trigger = CronTrigger.from_crontab(cron_string)
+    #         self.__bloc_scheduler.add_job(func, trigger=cron_trigger)
+    #         self.__bloc_scheduler.start()
         # else:
         #     raise ValueError(f'Ошибка: {cron_string} не может быть пустым.')
 

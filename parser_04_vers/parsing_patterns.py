@@ -3,17 +3,15 @@
 """
 
 import os
+import json
+import time
+import re
 
 import xmltodict
 import pandas as pd
 from pandas import DataFrame
-from tqdm import tqdm
-import json
-import time
 from joblib import dump
 from joblib import load
-from typing import Generator
-
 
 from parser_04_vers.service_tools import ServiceTools
 from parser_04_vers.base_property import BaseProperty
@@ -286,7 +284,7 @@ class SitemapHandler(ServiceTools):
 
 class ParsingPattern(Branches, SitemapHandler):
     """
-        Частные конструкции для парсинга на основе ServiceTools методов и других сторонних библиотек.
+        Конструкции для парсинга на основе ServiceTools методов и других сторонних библиотек.
     """
 
     def __init__(self):
@@ -300,6 +298,8 @@ class ParsingPattern(Branches, SitemapHandler):
         """
 
         _dump_path = self._get_path_file_branch_dump()
+        reason = None
+
 
         # Включать только когда необходимо повторно собрать данные.
         if load_damp is False:
@@ -330,82 +330,8 @@ class ParsingPattern(Branches, SitemapHandler):
 
         return df_full_branch_data, reason
 
-
-    def _main_cycle_by_branch(self, df_branches) -> Generator[tuple]:
-        """
-            Главный цикл (верхнеуровневый). ОСуществляет обход по филиалам (следующая логика будет с айди филиала для
-            одной итеррации этого цикла.)
-            Возвращает генератор. Нужен что бы разделить вложенные циклы по разные структуры и к тому же для сокращения
-            ресурсозатрат.
-        """
-
-        # Итерируем по филиалам:
-        for index, row in df_branches.iterrows():
-
-            # Достаем данные из строки датафрейма:
-            id_branch = row.get('id_branch')
-            city_name_branch = row.get('city_name_branch')
-            city_id = row.get('city_id')
-            region_id = row.get('region_id')
-            region_shop_id = row.get('region_shop_id')
-            timezone_offset = row.get('timezone_offset')
-
-            print(
-                BACK_WHITE + BRIGHT_STYLE + LIGHTBLACK +
-                f'============================================================ '
-                f'{int(index) + 1}. / {get_progress(index, df_branches)} % / '
-                f'Парсинг по всем категориям для филиала {id_branch} '
-                f'============================================================'
-            )
-
-            # Возвращаем данные по одному элементу
-            yield id_branch, city_name_branch, city_id, region_id, region_shop_id, timezone_offset
-
-    def _sub_cycle_by_branch(self, category_id, branch_data_df, result_data_set: list):  #  tuple_itms: Generator[tuple],
-        """
-            Цикл итераций по одному филиалу.
-
-            # -> yield[tuple[params branch]]
-            params_branch: Generator[tuple] = self._main_cycle_by_branch(df_branches=branch_data_df)
-        """
-
-        # Список ошибок
-        bug_list = []
-
-        # Список для отработанных категорий, что бы не повторяться по уже добытым данным.
-        # В этот список попадают категории уже извлеченные для итогового дата-сета \
-        # (в одном ответе имеется вся структура подкатегорий и главных категорий):
-        # P.S. По result_data_set сложнее итерировать (внутри словари, сложнее доставать и сортировать id).
-        completed_categories: set = set()  # : list = []
-
-
-        for branch_data in self._main_cycle_by_branch(df_branches=branch_data_df):
-
-            # Распаковка кортежа параметров для филиала:
-            id_branch, city_name_branch, city_id, region_id, region_shop_id, timezone_offset = branch_data
-
-            # Проверка: отработана ли данная категория уже:
-            if id_branch in completed_categories:  # completed_categories: set
-
-                print(f'Пропуск категории id: {id_branch}, completed_categories: {completed_categories}')
-                # Если категория уже была обработана, пропускаем ее.
-                continue
-
-            # Случайная задержка для имитации человека:
-            self._get_time_sleep_random()
-
-            # 3.1.1.1) Основной запрос (возвращает json (пайтон)):
-            json_python = self._count_product_request(
-                category_id=category_id,
-                id_branch=id_branch,
-                city_id=city_id,
-                region_id=region_id,
-                region_shop_id=region_shop_id,
-                timezone_offset=timezone_offset
-            )
-
     # Основной паттерн содержащий всю логику парсинга (без различных проверочных логик верхнего уровня):
-    def _run_pattern_core(self, df, ):
+    def _run_pattern_core(self, df):
         """
             ОСновная логика паттерна обработки категорий.
 
@@ -423,58 +349,151 @@ class ParsingPattern(Branches, SitemapHandler):
         # Итоговый список
         result_data_set: list = []
 
+        # Список ошибок
+        bug_list = []
+
+        # Список для отработанных категорий, что бы не повторяться по уже добытым данным.
+        # В этот список попадают категории уже извлеченные для итогового дата-сета \
+        # (в одном ответе имеется вся структура подкатегорий и главных категорий):
+        # P.S. По result_data_set сложнее итерировать (внутри словари, сложнее доставать и сортировать id).
+        completed_categories: set = set()  # : list = []
+
         # 1) ------------------------------- Подготовка данных (очистка):
 
         # Получаем исходные данные по филиалам (Удаляем строки, где city_id равен 0):
         branch_data_df = df[df['city_id'] != 0]
 
-        # Получаем список всех* категорий с сайта: todo должна быть глобальной переменной в рамках цикла (получаем 1 раз)
+        # Получаем список всех* категорий с сайта:
         ids: list = self._get_categories_id_from_ssitemap()
 
+        # 2) ------------------------------- Обход всех филиалов:
+        """
+            Главный цикл (верхнеуровневый). 
+            ОСуществляет обход по филиалам (следующая логика будет с айди филиала для одной итеррации этого цикла.)
+            (на каждый филиал полный цикл обработки категорий).
+        """
 
-        # 2) ------------------------------- Обход всех филиалов (на каждый филиал полный цикл обработки категорий):
+        # Итерируем по филиалам:
+        for main_index, branch_data_row in branch_data_df.iterrows():
 
-        params_branch = self._sub_cycle_by_branch(self, ids, branch_data_df)
+            # Достаем данные из строки датафрейма:
+            id_branch = branch_data_row.get('id_branch')
+            city_name_branch = branch_data_row.get('city_name_branch')
+            city_id = branch_data_row.get('city_id')
+            region_id = branch_data_row.get('region_id')
+            region_shop_id = branch_data_row.get('region_shop_id')
+            timezone_offset = branch_data_row.get('timezone_offset')
+
+            print(
+                BACK_WHITE + BRIGHT_STYLE + LIGHTRED + # LIGHTBLACK
+                f'============================================================ '
+                f'{int(main_index) + 1}. / {get_progress(main_index, branch_data_df)} % / '
+                f'Парсинг данных для филиала: {id_branch} '
+                f'============================================================'
+            )
+
+            time.sleep(0.2)
+
+            # ***
+
+            # 3) ------------------------------- Обход всех категорий:
+            """
+                Вложенный цикл итераций по всем категориям для одного филиала.
+            """
+
+            for sub_index , category_id in enumerate(ids):
+
+                print(
+                    BACK_WHITE + BRIGHT_STYLE + LIGHTGREEN +
+                    f'============================================================ '
+                    f'{int(sub_index) + 1}. / {get_progress(sub_index, ids, 2)} % / '
+                    f'Парсинг данных для категории: {category_id} '
+                    # f'============================================================'
+                )
+
+                time.sleep(0.1)
+
+                # Проверка: отработана ли данная категория уже:
+                if category_id in completed_categories:  # completed_categories: set
+
+                    print(f'Пропуск категории id: {category_id}, completed_categories: {completed_categories}')
+                    # Если категория уже была обработана, пропускаем ее.
+                    continue
+
+                # Случайная задержка для имитации человека:
+                self._get_time_sleep_random()
+
+                # 3.1.1.1) Основной запрос (возвращает json (пайтон)):
+                json_dict = self._count_product_request(
+                    category_id=category_id,
+                    id_branch=id_branch,
+                    city_id=city_id,
+                    region_id=region_id,
+                    region_shop_id=region_shop_id,
+                    timezone_offset=timezone_offset
+                )
+
+                # Обращаемся к нужному контейнеру (отсекаем не нужное):
+                # Получаем [{'id': '23715', count': 0, 'name': 'Батуты', 'children': [аналогичная структура], {...}}]
+                # categories_data = _json['body']['categories']
+                # ------------------------------- alternative
+                json_body_data = json_dict.get('body')
+                categories_data = json_body_data.get('categories')
+
+                # Извлекаем информацию о главной категории:
+                # В структуре ответа будет всегда первым словарем по порядку, несмотря на выбранную категорию:
+                # 'categories': [{'id': '31018', ...}].
+                # main_id = categories_data[0]['id']
+                # ------------------------------- alternative
+                if categories_data:
+
+                    first_dict_in_categories_data = categories_data[0]
+                    main_id = first_dict_in_categories_data.get('id')
+
+                    # print(f'Начало обработки категории id: {_id}.')
+                    # Обходим рекурсивно все вложенные структуры и отдаем список данных. Получаем:
+                    # [{'main_id': '31018', 'parent_id': '23715', 'id': '23715', count': 0, 'name': 'Батуты', {...}]
+                    self.recursion_by_json(  # result_data_set =
+                        main_id=main_id,
+                        parent_id=None,
+                        categories_data=categories_data,
+                        completed_categories=completed_categories,
+                        result_data_set=result_data_set
+                    )
+                    print(f'Иог обработки категории id: {category_id}:')
+
+                else:
+                    # охранит косяки для всех филиалов.
+                    bug_list.append(json_body_data)
+                    print(f'bug_list: {bug_list}')
+
+                # break
+
+            # Очистка:
+            completed_categories.clear()
+            # bug_list - можно чистить
+
+        return result_data_set
         # ----------------------------------------------------------
 
 
+    def preparate_and_save_results_df(self,result_data_set):
+        """
+            Метод объединяет логику сохранения данных в дамп, Excel и базы данных.
+        """
 
+        # 0. Создание DataFrame из добытых данных:
+        result_df = pd.DataFrame(result_data_set)
 
-        # 3) Основная конструкция перебирания филиалов по категориям\
-        # 3.1) Итерируем по категориям (на каждую категорию итерируем по филиалам) :
-        # ----------------------------------------------------------
+        # 2. Сохраняем результат парсинга в дамп и в эксель:
+        self._save_damp_and_excel(df=result_df)  # , path_file_dump=dump_path, path_file_excel=excel_path
 
-        # for row in CATEGORY_ID_DATA:
-
-        for row in tqdm(self._get_category_id_data(), total=len(self._get_category_id_data()), ncols=80, ascii=True,
-                        desc=f'==================== Обработка данных по категории ===================='):
-
-            time.sleep(0.1)  # \n
-            # Забирает id категории верхнего уровня (подставляется в ендпоинт, что бы получить "category_id"):
-            parent_category_id = row  # бывшая category_id
-
-            print(f'\n==================== Родительская категория {parent_category_id} ====================')
-            print(f'==================== Обработка данных филиалов  ====================')
+        # подготовка датафрейма для словаря категорий сохраняем в таблицу  inlet."dictionary_categories_mvideo"
 
 
 
-            !!!!
 
 
-            # break # Для теста - оба брейка нужны
-        # Если по конкретной категории не нашлись нужные теги, такая категория добавится в список.
-        # Далее эти категории можно исключить из парсинга.
-        print(f'Список лишних категорий: {bag_category_tuple}.')
-
-        # Получаем пути к файлам:
-        dump_path = self._get_path_file_category_dump()
-        excel_path = self._get_path_file_category_excel()
-        print(f'dump_path: {dump_path}\n'
-              f'excel_path: {excel_path}')
-
-        # # Сохраняем результат парсинга в дамп и в эксель:
-        self._save_data(df=df_fin_category_data, path_file_dump=dump_path, path_file_excel=excel_path)
-        # print('Результат парсинга успешно сохранен в дамп и в эксель файлы.')
         # Сохраняем в бд:
         # ----------------------------------------------------------
         # Функция сохраняет датафрейм в базу данных, предварительно загрузив дамп результатов парсинга:
@@ -484,7 +503,14 @@ class ParsingPattern(Branches, SitemapHandler):
 
 
 
-    def _run_one_cycle_pars(self, load_damp=False, if_exists='append'):  # get_category
+
+
+
+
+
+
+    # +
+    def _run_one_cycle_pars(self, load_damp=False, if_exists='append'):
         """
             Метод запуcка полного цикла парсинга (с добычей данных по API с сайта МВидео по филиалам и остатка товара
             по категориям на них) с сохранением результатов в базу данных.
@@ -499,28 +525,11 @@ class ParsingPattern(Branches, SitemapHandler):
             :return: DataFrame: код магазина, категория, количество. ['id_branch','name_category','count']
             :rtype:  DataFrame
         """
-
+        # ----------------------------------------------------------------------------------
         if not isinstance(load_damp, bool):
             raise ValueError('Параметр "load_damp" должен иметь тип данных bool.')
 
         # ----------------------------------------------------------------------------------
-
-        # Кортеж категорий на исключение (наполнение через итерации):
-        bag_category_tuple = ()
-
-        # Создаем целевой итоговый датафрейм, куда будут сохранены данные типа: код магазина, категория (имя),
-        # количество.
-        df_fin_category_data = pd.DataFrame(
-            columns=[
-                'id_branch',
-                'main_id',
-                'parent_id'
-                'category_id'
-                'count'
-                'category_name'
-            ]
-        )
-
         # Результат проверки наличия дампа:
         df_full_branch_data, reason = self._check_load_damp(load_damp=load_damp)
 
@@ -529,25 +538,24 @@ class ParsingPattern(Branches, SitemapHandler):
         if df_full_branch_data is not None:
 
             # Здесь вся основная логика:
-            self._run_pattern_core(df=df_full_branch_data)
+            result_data_set = self._run_pattern_core(df=df_full_branch_data)
+
+            # Сервисный метод сохранения полученных данных:
+            history_df, catalog_df = self.preparate_and_save_results_df(result_data_set)
 
         # Парсинг остановлен по причине отсутствия файла дампа или подготовка данных в "get_shops" завершилась неудачей:
         else:
             print(f'Запуск парсинга остановлен по причине: {reason}')
-            df_fin_category_data = None
+            history_df = None
 
         # Итог код магазина, категория, количество. ['id_branch','name_category','count']
-        return df_fin_category_data
-
-
-
-
+        return history_df, catalog_df
 
 # ----------------------------------------------------------------------------------------------------------------------
 # ***
 # ----------------------------------------------------------------------------------------------------------------------
 
-        # # todo подготовка датафрейма для словаря категорий сохраняем в таблицу  inlet."dictionary_categories_mvideo"
+
         # # Создаем целевой итоговый датафрейм, куда будут сохранены данные типа: категория (имя), category_id
         # df_dictionary_categories = pd.DataFrame(
         #     columns=[
@@ -579,75 +587,111 @@ class ParsingPattern(Branches, SitemapHandler):
     #     print(BACK_CYAN + LIGHTBLACK + 'Бот запущен, все норм!')
     #             print(BACK_GREEN + RED + BRIGHT_STYLE + 'Бот лег!')
 
-        def sdfgafds(self):
-
-                # 4) Обработка и сохранение результатов (достаем нужные категории и сохраняем в итоговый датафрейм)
-                # ----------------------------------------------------------
-                if json_python:
-
-                    # category_id_
-
-                    # Обращаемся к родительскому ключу, где хранятся категории товаров:
-                    all_category_in_html = json_python['body']['filters'][0]['criterias']
-                    # print(f'Все категории на странице: {all_category_in_html}')
-
-                    try:
-                        # Перебираем родительскую директорию, забираем значения категорий и количество:
-                        for row_category in all_category_in_html:
-                            # 1. # Количество по категории (если != 'Да' \
-                            # то здесь все равно будет None, условие проверки не нужно, опускаем).
-                            count = row_category['count']
-
-                            # 2. Наименование категории: если count равно 'Да', то name_category также будет None
-                            # todo пеерносим в таблицу inlet."dictionary_categories_mvideo"
-                            name_category = None if row_category['name'] == 'Да' else row_category['name']
-
-                            # 3. id искомой категории (получена от родительской):
-                            category_id = row_category['value']  # ключ 'value' = id
-
-                            # ----------------------------------- начало current_stock_mvideo
-                            # _1. Готовим строку на запись в датафрейм для таблицы "current_stock_mvideo":
-                            new_row = {
-                                'id_branch': id_branch,
-                                'name_category': name_category,
-                                'count': count,
-                                'parent_category_id': parent_category_id,
-                                'category_id': category_id
-                            }
-
-                            # print(f'count: {count}, name {name_category}')
-                            print(f'{index}. {new_row}')
-                            # Сохраняем в целевой итоговый датафрейм:
-                            # Добавляем новую строку с помощью loc[], где индексом будет len(df_fin_category_data)
-                            df_fin_category_data.loc[len(df_fin_category_data)] = new_row
-                            # ----------------------------------- конец current_stock_mvideo
-
-                            # ----------------------------------- начало dictionary_categories_mvideo
-                            # _2. Готовим строку на запись в датафрейм для таблицы "dictionary_categories_mvideo":
-                            _new_row = {
-                                'name_category': name_category,
-                                'category_id': category_id
-                            }
-
-                            # Добавляем новую строку с помощью loc[], где индексом будет len(df_fin_category_data)
-                            df_dictionary_categories.loc[len(df_fin_category_data)] = _new_row
-                            # ----------------------------------- конец dictionary_categories_mvideo.
 
 
 
 
+#  # -> yield[tuple[params branch]]
+    #         params_branch: Generator[tuple] = self._main_cycle_by_branch(df_branches=branch_data_df)
 
-                    except (KeyError, IndexError):
-                        # Срабатывает, если ключ 'criterias' не существует или его невозможно получить
-                        print(f'По parent_category_id {parent_category_id} - нет нужных тегов, пропускаем ее.')
 
-                        # Добавление в общий кортеж багов.
-                        bag_category_tuple = bag_category_tuple + (parent_category_id,)
+#         _params_branch = self._sub_cycle_by_branch(
+#             category_ids=ids,
+#             branch_data_row=params_branch,
+#             result_data_set=result_data_set
+#         )
 
-                else:
-                    # row_bag_iter = new_row
-                    print(f'Пропуск итерации для: {id_branch} city_name_branch {city_name_branch}')
-                    continue
-                # break  #  Для теста - оба брейка нужны
-                # Итог код магазина, категория, количество. ['id_branch','name_category','count']
-                # ----------------------------------------------------------
+
+#     def _main_cycle_by_branch(self, df_branches) -> Generator[tuple]:
+#         """
+#             Главный цикл (верхнеуровневый). ОСуществляет обход по филиалам (следующая логика будет с айди филиала для
+#             одной итеррации этого цикла.)
+#             Возвращает генератор. Нужен что бы разделить вложенные циклы по разные структуры и к тому же для сокращения
+#             ресурсозатрат.
+#         """
+#
+#         # Итерируем по филиалам:
+#         for index, row in df_branches.iterrows():
+#
+#             # Достаем данные из строки датафрейма:
+#             id_branch = row.get('id_branch')
+#             city_name_branch = row.get('city_name_branch')
+#             city_id = row.get('city_id')
+#             region_id = row.get('region_id')
+#             region_shop_id = row.get('region_shop_id')
+#             timezone_offset = row.get('timezone_offset')
+#
+#             print(
+#                 BACK_WHITE + BRIGHT_STYLE + LIGHTBLACK +
+#                 f'============================================================ '
+#                 f'{int(index) + 1}. / {get_progress(index, df_branches)} % / '
+#                 f'Парсинг по всем категориям для филиала {id_branch} '
+#                 f'============================================================'
+#             )
+#
+#             # Возвращаем данные по одному элементу
+#             yield id_branch, city_name_branch, city_id, region_id, region_shop_id, timezone_offset
+
+#     def _sub_cycle_by_branch(
+    #             self,
+    #             category_ids,
+    #             branch_data_row: tuple,
+    #             result_data_set: list
+    #     ):  #  tuple_itms: Generator[tuple],
+    #         """
+    #             Цикл итераций по одному филиалу.
+    #
+    #             # -> yield[tuple[params branch]]
+    #             params_branch: Generator[tuple] = self._main_cycle_by_branch(df_branches=branch_data_df)
+    #         """
+    #
+    #         # Список ошибок
+    #         bug_list = []
+    #
+    #         # Список для отработанных категорий, что бы не повторяться по уже добытым данным.
+    #         # В этот список попадают категории уже извлеченные для итогового дата-сета \
+    #         # (в одном ответе имеется вся структура подкатегорий и главных категорий):
+    #         # P.S. По result_data_set сложнее итерировать (внутри словари, сложнее доставать и сортировать id).
+    #         completed_categories: set = set()  # : list = []
+    #
+    #         # Распаковка кортежа параметров для филиала:
+    #         id_branch, city_name_branch, city_id, region_id, region_shop_id, timezone_offset = branch_data_row
+    #
+    #
+    #
+    #         for category_id in category_ids:
+    #
+    #
+    #             # Проверка: отработана ли данная категория уже:
+    #             if category_id in completed_categories:  # completed_categories: set
+    #
+    #                 print(f'Пропуск категории id: {category_id}, completed_categories: {completed_categories}')
+    #                 # Если категория уже была обработана, пропускаем ее.
+    #                 continue
+    #
+    #             # Случайная задержка для имитации человека:
+    #             self._get_time_sleep_random()
+    #
+    #             # 3.1.1.1) Основной запрос (возвращает json (пайтон)):
+    #             json_python = self._count_product_request(
+    #                 category_id=category_id,
+    #                 id_branch=id_branch,
+    #                 city_id=city_id,
+    #                 region_id=region_id,
+    #                 region_shop_id=region_shop_id,
+    #                 timezone_offset=timezone_offset
+    #             )
+
+
+# Создаем целевой итоговый датафрейм, куда будут сохранены данные типа: код магазина, категория (имя),
+# количество.
+# df_fin_category_data = pd.DataFrame(
+#     columns=[
+#         'id_branch',
+#         'main_id',
+#         'parent_id'
+#         'category_id'
+#         'count'
+#         'category_name'
+#     ]
+# )

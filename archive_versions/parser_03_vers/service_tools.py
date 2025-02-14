@@ -1,4 +1,4 @@
-from parser_03_vers.base_property import BaseProperty
+from archive_versions.parser_03_vers.base_property import BaseProperty
 
 import requests
 import json

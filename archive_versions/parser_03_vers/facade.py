@@ -1,13 +1,15 @@
+
+
 from parser_03_vers.base_property import BaseProperty
 from parser_03_vers.parsing_patterns import ParsingPatterns
 
 
 # from parser_03_vers.service_tools import ServiceTools
 
-from apscheduler.triggers.cron import CronTrigger
 from apscheduler.schedulers.blocking import BlockingScheduler
 from apscheduler.triggers.interval import IntervalTrigger
-import pytz
+
+
 # ----------------------------------------------------------------------------------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
 class InfoManager(BaseProperty):
@@ -161,81 +163,6 @@ class ActivateManager(ParsingPatterns):
         print("Запуск метода run_one_cycle_pars!")
         return self._run_one_cycle_pars(load_damp=load_damp, if_exists=if_exists)
 
-    # def run_week_cycle_pars(self, day_of_week=None, h=None, m=None):   # cron_string=None):
-    #     # Работаем со значениями по умолчанию:
-    #     # if cron_string is None:
-    #     if day_of_week is None and h is None and m is None:
-    #         # 5 14 * * 2
-    #         # Если не назначены значения времени, то вызываем метод (со значениями по умолчанию):
-    #         self._run_week_cycle_pars()
-    #     else:
-    #
-    #         # self._run_week_cycle_pars(cron_string)
-    #         self._run_week_cycle_pars(week=day_of_week, hour=h, minute=m)
-    #         print(f'Для планировщика обновлено значение запуска '
-    #               f'day_of_week: {day_of_week}, hour: {h}, minute: {m}.')
-
-
-
-    # def run_week_cycle_pars_cron(self, cron_string=None):  # 5 14 * * 2
-    #     # Работаем со значениями по умолчанию:
-    #     if not cron_string:  # if cron_string is None:
-    #         # Если не назначены значения времени, то вызываем метод (со значениями по умолчанию):
-    #         self._run_week_cycle_pars_cron()
-    #     else:
-    #         # self._run_week_cycle_pars(cron_string)
-    #         self._run_week_cycle_pars_cron(cron_string=cron_string)
-    #         print(f'Для планировщика обновлено значение запуска: {cron_string}')
-
-
-
-    # def run_week_pars_interval(self, cron_string='00 23 * * 6'):
-    #     return self._run_week_pars_cron(cron_string=cron_string)
-
-
-    # def _set_cron(self, cron_string):  # cron_string=None    Перенос из баз проперти
-    #     """
-    #     """
-    #     cron_string = self._validation_params(cron_string, str, '_set_cron')
-    #
-    #     if cron_string:
-    #         # cron_trigger = CronTrigger() упразднено
-    #         return self._cron_trigger.from_crontab(cron_string)  # +
-    #     else:
-    #         raise ValueError(f'Ошибка в "_set_cron": параметры не были переданы (cron_string = {cron_string}).')
-
-
-    # def run_week_pars_interval(self, cron_string):  # 5 14 * * 2
-    #
-    #     _cron_trigger = CronTrigger()
-    #     _scheduler = BlockingScheduler()  # timezone=pytz.timezone('Europe/Samara')
-    #
-    #     if cron_string:
-    #         # cron_trigger = self._set_cron(cron_string)
-    #         cron_trigger = _cron_trigger.from_crontab(cron_string)
-    #
-    #         # interval_trigger = IntervalTrigger(seconds=cron_string) + работает
-    #         # print(cron_trigger) +
-    #         # print(f'Запуск по расписанию полного цикла парсинга активирован, {cron_trigger}')
-    #
-    #         # Запускаем планировщик, если он ещё не запущен
-    #         # if not scheduler.running:
-    #         #     print(f' {scheduler},')
-    #
-    #         # self._scheduler.add_job(self.run_one_cycle_pars, cron_trigger)
-    #
-    #         # Добавляем задачу
-    #         job = _scheduler.add_job(self.run_one_cycle_pars, trigger=cron_trigger)
-    #         # job = _scheduler.add_job(self.run_one_cycle_pars, interval_trigger)
-    #
-    #         print(f'Задача добавлена с {job.trigger}, {job.func}')  # Отладочная информация
-    #
-    #         print("Очистка всех задач из планировщика...")
-    #         _scheduler.remove_all_jobs()  # Удаление всех задач
-    #         print("Планировщик очищен.")
-    #
-    #         _scheduler.start()
-
 
     def run_week_pars_interval(self, interval_day):
         self._scheduler.remove_all_jobs()
@@ -244,12 +171,6 @@ class ActivateManager(ParsingPatterns):
             job = self._scheduler.add_job(self.run_one_cycle_pars, interval_trigger)
             print(f'Задача добавлена с {job.trigger}, {job.func}')  # Отладочная информация
             self._scheduler.start()
-
-
-
-
-
-
 
 
 # ----------------------------------------------------------------------------------------------------------------------

@@ -1,4 +1,4 @@
-from parser_03_vers.facade import MvPars
+from parser_04_vers.facade import MvPars
 # from data.dir import base_dir
 
 # Справочно:
