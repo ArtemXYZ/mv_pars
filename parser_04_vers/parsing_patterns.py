@@ -463,15 +463,22 @@ class ParsingPattern(Branches, SitemapHandler):
                     print(f'Иог обработки категории id: {category_id}:')
 
                 else:
-                    # охранит косяки для всех филиалов.
-                    bug_list.append(json_body_data)
-                    print(f'bug_list: {bug_list}')
+                    # Хранит косяки для всех филиалов в виде кортежа,
+                    # где первым идет главная категория, следом дочерняя.
+                    # --------------------------- <
+                    # P/S: бход будет продолжаться для всех дочерних категорий, т.к. их не будет в ответе
+                    # (в ответе содержится вся инфа на текущую, главную и дочерние категории).
+
+                    _bug = main_id, category_id
+                    bug_list.append(_bug)  # json_body_data
+                    print(f'Добавлено в bug_list: {_bug}')
 
                 # break
 
             # Очистка:
             completed_categories.clear()
             # bug_list - можно чистить
+            print(f'bug_list: {bug_list}')
 
         return result_data_set
         # ----------------------------------------------------------
