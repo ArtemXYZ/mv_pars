@@ -257,6 +257,7 @@ class ServiceTools(BaseProperty):
 
     def recursion_by_json(
             self,
+            branch_id: str | None,
             main_id: str | None,
             parent_id: str | None,
             categories_data: list,
@@ -269,6 +270,8 @@ class ServiceTools(BaseProperty):
             Обрабатывает структуру:
                 [{'id': '23715', count': 0, 'name': 'Батуты', 'children': [аналогичная структура родительской], {...}}]
 
+            :param branch_id:
+            :type branch_id:
             :param completed_categories:
             :type completed_categories:
             :param main_id:
@@ -306,6 +309,7 @@ class ServiceTools(BaseProperty):
         # Создаем словарь с результатами по категории.
         data_set_row = {
             # *** Доп информацйя для создания карты категорий.
+            'branch_id': branch_id,
             'main_id': main_id,
             'parent_id': parent_id,
             # *** Основная информация.
@@ -329,6 +333,7 @@ class ServiceTools(BaseProperty):
             # print(f'Обработка вложенных категорий для main_id: {main_id}, id: {category_id}')
             # Рекурсия:
             self.recursion_by_json(
+                branch_id=branch_id,
                 main_id=main_id,
                 # Если есть наследники передаем id верхнего уровня (по умолчанию None для главных категорий):
                 parent_id=category_id,
@@ -412,10 +417,6 @@ class ServiceTools(BaseProperty):
         # 3. '["Забрать через 15 минут","-11","S972"]' = \
          WyLQl9Cw0LHRgNCw0YLRjCDRh9C10YDQtdC3IDE1INC80LjQvdGD0YIiLCItMTEiLCJTOTcyIl0%3D
 
-        :param categoryId:
-        :type categoryId:
-        :return:
-        :rtype:
         """
 
         # Формирование закодированных параметров фильтрации в запросе:

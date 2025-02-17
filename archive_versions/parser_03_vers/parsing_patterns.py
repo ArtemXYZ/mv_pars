@@ -186,7 +186,7 @@ class ParsingPatterns(ServiceTools, BaseProperty):
         dump_path = self._get_path_file_branch_dump()
         excel_path = self._get_path_file_branch_excel()
 
-        # Сохранение exce/dump:
+        # Сохранение excel/dump:
         self._save_data(df=df_full_branch_data, path_file_dump=dump_path, path_file_excel=excel_path)
 
         return df_full_branch_data

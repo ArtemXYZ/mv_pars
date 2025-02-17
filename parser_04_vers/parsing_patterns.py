@@ -454,6 +454,7 @@ class ParsingPattern(Branches, SitemapHandler):
                     # Обходим рекурсивно все вложенные структуры и отдаем список данных. Получаем:
                     # [{'main_id': '31018', 'parent_id': '23715', 'id': '23715', count': 0, 'name': 'Батуты', {...}]
                     self.recursion_by_json(  # result_data_set =
+                        branch_id=id_branch,
                         main_id=main_id,
                         parent_id=None,
                         categories_data=categories_data,
@@ -492,12 +493,26 @@ class ParsingPattern(Branches, SitemapHandler):
         # 0. Создание DataFrame из добытых данных:
         result_df = pd.DataFrame(result_data_set)
 
-        # 2. Сохраняем результат парсинга в дамп и в эксель:
+        # 1. Сохраняем результат парсинга в дамп и в эксель:
         self._save_damp_and_excel(df=result_df)  # , path_file_dump=dump_path, path_file_excel=excel_path
 
-        # подготовка датафрейма для словаря категорий сохраняем в таблицу  inlet."dictionary_categories_mvideo"
+        # 2. --------------- Продолжаем обработку не загружая дамп:
+
+        # 2.1. Подготовка датафрейма для словаря категорий сохраняем в таблицу  inlet."current_stock_mvideo"
 
 
+
+
+
+        # 2.2. Подготовка датафрейма для словаря категорий сохраняем в таблицу  inlet."dictionary_categories_mvideo"
+
+        # Удалить дубликаты в DataFrame, оставляя только первые значения - параметр keep='first'
+        dictionary_categories_df = result_df.drop_duplicates(subset=['id_branch'], keep='first', inplace=False)
+
+        # Сброс индекса и переименование его в 'id'
+        # df_dictionary_categories.reset_index(drop=True, inplace=True)
+        # df_dictionary_categories.index = df_dictionary_categories.index + 1  # Начинаем с 1 если нужно
+        # df_dictionary_categories.rename_axis('id', inplace=True)
 
 
 
@@ -509,7 +524,7 @@ class ParsingPattern(Branches, SitemapHandler):
 
 
 
-
+        return history_df, catalog_df
 
 
 
