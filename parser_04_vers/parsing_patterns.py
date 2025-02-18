@@ -291,7 +291,7 @@ class ParsingPattern(Branches, SitemapHandler):
         super().__init__()
 
 
-    def _check_load_damp(self, load_damp):
+    def _check_load_damp(self, _load_damp):
         """
             Вспаомогательный метод проверки наличия дампа и его загрузки.
             Валидация на верхнем уровне.
@@ -302,7 +302,7 @@ class ParsingPattern(Branches, SitemapHandler):
 
 
         # Включать только когда необходимо повторно собрать данные.
-        if load_damp is False:
+        if _load_damp is False:
 
             # 1) Подготовка данных (атрибуты филиалов) для основной функции count_product_request:
             # ----------------------------------------------------------
@@ -313,7 +313,7 @@ class ParsingPattern(Branches, SitemapHandler):
             # ----------------------------------------------------------
 
         # в остальных случаях загружаем дамп данных.
-        elif load_damp is True:
+        elif _load_damp is True:
 
             # _name_dump = '../data/df_full_branch_data.joblib'
             if os.path.isfile(_dump_path):  # Если файл существует, тогда: True
@@ -484,8 +484,7 @@ class ParsingPattern(Branches, SitemapHandler):
         return result_data_set
         # ----------------------------------------------------------
 
-
-    def preparate_and_save_results_df(self,result_data_set):
+    def preparate_results_df(self,result_data_set):
         """
             Метод объединяет логику сохранения данных в дамп, Excel и базы данных.
         """
@@ -493,59 +492,96 @@ class ParsingPattern(Branches, SitemapHandler):
         # 0. Создание DataFrame из добытых данных:
         result_df = pd.DataFrame(result_data_set)
 
+        # 0.1. Добавляем колонку: дата загрузки (по умолчанию: '_dt_load'):
+        self.insert_time_in_df(result_df)
+
+        # Итог result_df: 'branch_id', 'main_id', 'sku_count', 'parent_id', 'category_id',  'category_name', '_dt_load'.
+
         # 1. Сохраняем результат парсинга в дамп и в эксель:
         self._save_damp_and_excel(df=result_df)  # , path_file_dump=dump_path, path_file_excel=excel_path
 
-        # 2. --------------- Продолжаем обработку не загружая дамп:
+        # 2. --------------- Продолжаем обработку напрямую, а не загружая result_df из дампа как в пред. версии.
 
+
+
+        # ----------------------------------------- inlet."current_stock_mvideo"
+        #                                                      *****
         # 2.1. Подготовка датафрейма для словаря категорий сохраняем в таблицу  inlet."current_stock_mvideo"
 
+        # Вернет копию (inplace=False). Удаляем не нужные категории для данной таблицы
+        current_stock_df = result_df.drop(['main_id', 'parent_id', 'category_name'], axis=1, inplace=False)
+        # Остаются: 'branch_id', *, 'sku_count', * , 'category_id', '_dt_load'
 
 
-
-
+        # ----------------------------------------- inlet."dictionary_categories_mvideo"
+        #                                                      *****
         # 2.2. Подготовка датафрейма для словаря категорий сохраняем в таблицу  inlet."dictionary_categories_mvideo"
 
-        # Удалить дубликаты в DataFrame, оставляя только первые значения - параметр keep='first'
-        dictionary_categories_df = result_df.drop_duplicates(subset=['id_branch'], keep='first', inplace=False)
+        # Вернет копию (inplace=False). Удаляем не нужные категории для данной таблицы
+        dictionary_categories_df = result_df.drop(['branch_id', 'sku_count'], axis=1, inplace=False)
+        # Остаются: *, 'main_id', * , 'parent_id', 'category_id',  'category_name', '_dt_load'.
+
+        # Переименовние колонки 'category_id'. Перезапишет current_stock_df (inplace=True): будет еще айди записи.
+        dictionary_categories_df.rename(columns={'category_id': 'id_category'},  inplace=True)
+
+        # Удаление дубликатов (дистинкт для 'category_name') в DataFrame.
+        # Останутся только первые значения - параметр keep='first'
+        dictionary_categories_df.drop_duplicates(subset=['category_name'], keep='first', inplace=True)
 
         # Сброс индекса и переименование его в 'id'
-        # df_dictionary_categories.reset_index(drop=True, inplace=True)
-        # df_dictionary_categories.index = df_dictionary_categories.index + 1  # Начинаем с 1 если нужно
-        # df_dictionary_categories.rename_axis('id', inplace=True)
+        dictionary_categories_df.reset_index(drop=True, inplace=True)
+        dictionary_categories_df.index = dictionary_categories_df.index + 1  # Начинаем с 1 если нужно
+        dictionary_categories_df.rename_axis('id', inplace=True)
 
+        return current_stock_df, dictionary_categories_df
 
+    def save_results_in_db(
+            self,
+            _history=current_stock_df,
+            _catalog=dictionary_categories_df,
+            # _load_damp=False,
+    ) -> None:  # bool
+        """
+            Метод для сохранения результатов парсинга в бапзу данных.
+        """
 
-        # Сохраняем в бд:
-        # ----------------------------------------------------------
-        # Функция сохраняет датафрейм в базу данных, предварительно загрузив дамп результатов парсинга:
-        self.load_result_pars_in_db(dump_path, if_exists=if_exists)
+        # ---------------------------------  Извлекаем параметры для каждой из таблицы:
+        # ---------------- Выбираем конкретные значения (се проверки на нижнем уровне присутствуют):
+        schema_history: str = self._get_name_table('history')
+        name_table_history: str  = self._get_name_schem('history')
+        mode_history: str = self._get_mode_type('history')
 
+        schema_catalog: str = self._get_name_table('catalog')
+        name_table_catalog: str  = self._get_name_schem('catalog')
+        mode_catalog: str = self._get_mode_type('catalog')
 
+        # --------------------------------- Сохраняем в бд:
+        # Загрузка итогового DataFrame в базу данных:
 
+        # Индекс ингнорируется по умолчанию, id генерится на уровне базы данных.
+        self.upload_to_db(df=current_stock_df, _schema=schema_history, _name=name_table_history, _mode=mode_history)
+        self.upload_to_db(
+            df=dictionary_categories_df,
+            _schema=schema_catalog,
+            _name=name_table_catalog,
+            _mode=mode_catalog,
+            _index=True  #  Индекс переименован в id.
+        )
 
-        return history_df, catalog_df
-
-
-
-
-
+        # return True
 
     # +
-    def _run_one_cycle_pars(self, load_damp=False, if_exists='append'):
+    def _run_one_cycle_pars(self, load_damp=False):
         """
-            Метод запуcка полного цикла парсинга (с добычей данных по API с сайта МВидео по филиалам и остатка товара
-            по категориям на них) с сохранением результатов в базу данных.
-            :param session:
-            :type session:
-            :param load_damp:  файл дампа.
-            :type load_damp:
-            :param imitation_ping_min: минимальная задержка
-            :type imitation_ping_min: float
-            :param ping_max: максимальная задержка
-            :type ping_max: float
-            :return: DataFrame: код магазина, категория, количество. ['id_branch','name_category','count']
-            :rtype:  DataFrame
+            Метод запуcка полного цикла парсинга
+            (с добычей данных по API с сайта МВидео по филиалам и остатка товара по категориям на них) с сохранением
+            результатов в базу данных.
+
+                :param load_damp Режим запуска парсинга филиалов
+
+                :notes: Для парсинга ссылок (айди категорий с сайтмапа) не предусмотрен режим сохранения и загрузки
+                в дамп, как для параметра load_damp.
+
         """
         # ----------------------------------------------------------------------------------
         if not isinstance(load_damp, bool):
@@ -553,8 +589,7 @@ class ParsingPattern(Branches, SitemapHandler):
 
         # ----------------------------------------------------------------------------------
         # Результат проверки наличия дампа:
-        df_full_branch_data, reason = self._check_load_damp(load_damp=load_damp)
-
+        df_full_branch_data, reason = self._check_load_damp(_load_damp=load_damp)
 
         # Если есть результат загрузки дампа данных по филиалам или парсинга таких данных:
         if df_full_branch_data is not None:
@@ -563,7 +598,12 @@ class ParsingPattern(Branches, SitemapHandler):
             result_data_set = self._run_pattern_core(df=df_full_branch_data)
 
             # Сервисный метод сохранения полученных данных:
-            history_df, catalog_df = self.preparate_and_save_results_df(result_data_set)
+            history_df, catalog_df = self.preparate_results_df(result_data_set)
+
+            # Принимает датафреймы и параметры от верхнего уровня (что бы можно было управлять)
+            # todo добавить возможность загрузки спарсенного дампа (обернуть эту ветку в одну функцию).
+            self.save_results_in_db(_history=history_df, _catalog=catalog_df)
+
 
         # Парсинг остановлен по причине отсутствия файла дампа или подготовка данных в "get_shops" завершилась неудачей:
         else:
@@ -717,3 +757,52 @@ class ParsingPattern(Branches, SitemapHandler):
 #         'category_name'
 #     ]
 # )
+
+
+
+#     def save_results_in_db(
+#             self,
+#             _history=current_stock_df,
+#             _catalog=dictionary_categories_df,
+#             _load_damp=False, _if_exists='append'
+#     ) -> bool:
+#         """
+#             Метод для сохранения результатов парсинга в бапзу данных.
+#         """
+#
+#         # ---------------------------------  Извлекаем параметры для каждой из таблицы:
+#         saving_params: dict | None = self.__saving_params_to_dbs.get()
+#
+#         if not saving_params:
+#             raise KeyError(f'Ошибка доступа к параметрам сохранения результатов! Данные отсутствуют: {saving_params}.')
+#         # ----------------
+#         params_by_history: dict | None = saving_params.get('history')
+#         params_by_catalog: dict | None = saving_params.get('catalog')
+#
+#         if not params_by_history:
+#             raise KeyError(
+#                 f'Ошибка доступа к параметрам сохранения результатов для таблицы "current_stock", тип "history"! '
+#                 f'Данные отсутствуют: {params_by_history}.'
+#             )
+#
+#         if not params_by_catalog:
+#             raise KeyError(
+#                 f'Ошибка доступа к параметрам сохранения результатов для таблицы "dictionary_categories",'
+#                 f' тип "catalog"! Данные отсутствуют: {params_by_catalog}.'
+#             )
+#
+#         # ---------------- Выбираем конкретные значения:
+#         schema_history: dict | None = params_by_history.get('schema')
+#         name_table_history: dict | None = params_by_history.get('name_table')
+#         mode_history: dict | None = params_by_history.get('mode')
+#
+#         if not schema_history and not name_table_history and not mode_history:
+#             raise KeyError(
+#                 f'Ошибка извлечения параметров сохранения результатов для таблицы "current_stock", тип "history"! '
+#                 f'Данные отсутствуют для одного или нескольких параметров: '
+#                 f'"schema_history": {schema_history}, "name_table_history": {name_table_history}, '
+#                 f'"mode_history": {mode_history}.'
+#             )
+#
+#         # Сохраняем в бд:
+#         # ----------------------------------------------------------

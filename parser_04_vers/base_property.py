@@ -44,9 +44,12 @@ class BaseProperty:
         # _________________________________________________ Служебные переменные (обеспечивающие сторонние библиотеки)
         # self._SCHEDULE = schedule
         # self.__SESSION: Session = requests.Session()  # Экземпляр сессии:
+        #               ***
         self.__CON: Engine = ENGINE
-        self.__NAME_TABLE: str = 'current_stock_mvideo'
-        self.__SCHEMA: str = 'inlet'
+        self.__SAVING_PARAMS_TO_DBS: dict = {
+            'history': {'schema': 'inlet', 'name_table': 'current_stock_mvideo', 'mode': 'append'},
+            'catalog': {'schema': 'inlet', 'name_table': 'dictionary_categories_mvideo', 'mode': 'replace'},
+        }
         # _________________________________________________ Входные параметры
         self.__CITY_DATA: list[tuple] = CITY_DATA
         self.__BASE_HEADERS: dict = BASE_HEADERS
@@ -57,10 +60,8 @@ class BaseProperty:
         self.__IMITATION_PING_MAX: float | int = 2.5
         self.__RETRIES: int = 10  # retries requests
         self.__TIMEOUT: int = 120  # timeout 120
-        # _________________________________________________
 
     # ------------------------------------------------------------------------------------------------------------------
-    # _________________________________________________ VALIDATION
     @staticmethod
     def _validation_params(value: any, check_type: any, fanc_name: str = None) -> object:
         """Валидация параметров метода 'activate'."""
@@ -90,8 +91,6 @@ class BaseProperty:
             raise ValueError(
                 f'Не был передан обязательный аргумент для одного из параметров в методе: {fanc_name_str}.')
 
-    # _________________________________________________
-    # _________________________________________________
     def _get_retries(self):
         """
             Возвращает заданное количество попыток для повторного подключения, в случае сбоев (обрыв соединения и тд.).
@@ -114,130 +113,14 @@ class BaseProperty:
         """Передача нового значения промежутка времени между повторными подключениями, в случае сбоев."""
         self.__TIMEOUT = self._validation_params(new_timeout_param, int, '_set_timeout')
 
-    # _________________________________________________
-    # _________________________________________________
-    def _get_category_id_data(self):
-        """Возвращает категории на сайте для поиска подкатегорий парсингом (геттер)."""
-        return self.__CATEGORY_ID_DATA
-
-    def _set_category_id_data(self, new_category_data: tuple):
-        """Передача новых значений категорий для поиска подкатегорий парсингом."""
-        self.__CATEGORY_ID_DATA = self._validation_params(new_category_data, tuple, '_set_category_id_data')
-
-    # _________________________________________________
-    # _________________________________________________
     @classmethod
     def _get_session(cls):
         """Возвращает экземпляр сессии (геттер)."""
         return cls.__SESSION
 
-    # Нет сеттора для session!
-    # _________________________________________________
-    # _________________________________________________
-    # @classmethod
-    # def _get_scheduler(cls):
-    #     """Возвращает экземпляр scheduler (планировщик) (геттер)."""
-    #     return cls.__BLOC_SCHEDULER
-
-    # @classmethod
-    # def _get_cron_trigger(cls):
-    #     """Возвращает cron_trigger (геттер)."""
-    #     return cls.__CRON_TRIGGER
-
-    # def _set_schedule(self, set_func, set_week, set_hour, set_minute):
-    #     # def _set_schedule(self, func, cron_string=None):
-    #     """
-    #     Планировщик запуска задач.
-    #     Cron — это система для автоматизации выполнения задач по расписанию в UNIX-подобных операционных системах.
-    #     Она использует так называемые cron-выражения для задания времени и частоты выполнения задач.
-    #     Классическое cron-выражение состоит из пяти полей, каждое из которых определяет единицу времени:
-    #
-    #     'cron' - для задания расписания на основе cron-выражений:
-    #     (my_function, 'cron', minute=0, hour=12)  # Каждый день в 12:00
-    #
-    #
-    #     'date' - для задания одной задачи на определенную дату и время:
-    #     (my_function, 'date', run_date=datetime.now() + timedelta(days=1))  # Через один день
-    #
-    #      'interval' - для задания задач с регулярным интервалом (например, каждые N минут, секунд и т.д.).
-    #     (my_function, 'interval', minutes=10)  # Каждые 10 минут/
-    #
-    #     :param func: передаваемая функция, метод.
-    #     :type func: callable
-    #     :param cron_string: крон выражение ('0 12 * * *'  # Каждый день в 12:00).
-    #     :type cron_string: str
-    #     :return: запуск метода по расписанию.
-    #     :rtype: callable
-    #     """
-    #
-    #     func_check = self._validation_params(set_func, callable, '_set_schedule')
-    #     day_of_week_check = self._validation_params(set_week, str, '_set_schedule')
-    #     hour_check = self._validation_params(set_hour, int, '_set_schedule')
-    #     minute_check = self._validation_params(set_minute, int, '_set_schedule')
-    #     # print(minute_check)
-    #
-    #     if func_check and day_of_week_check and hour_check and minute_check:
-    #         # cron_trigger = CronTrigger.from_crontab(cron_string)
-    #         # self._get_scheduler().add_job(func, trigger=cron_trigger)
-    #         self._get_scheduler().add_job(func_check, 'cron',
-    #                                       day_of_week=day_of_week_check, hour=hour_check, minute=minute_check)
-    #
-    #         # self._get_scheduler().start()
-    #         # return self
-    #         return self._get_scheduler()
-
-    # def _set_schedule_cron(self, func, cron_string):  # cron_string=None
-    #     """
-    #     Планировщик запуска задач.
-    #     Cron — это система для автоматизации выполнения задач по расписанию в UNIX-подобных операционных системах.
-    #     Она использует так называемые cron-выражения для задания времени и частоты выполнения задач.
-    #     Классическое cron-выражение состоит из пяти полей, каждое из которых определяет единицу времени:
-    #
-    #     'cron' - для задания расписания на основе cron-выражений:
-    #     (my_function, 'cron', minute=0, hour=12)  # Каждый день в 12:00
-    #
-    #
-    #     'date' - для задания одной задачи на определенную дату и время:
-    #     (my_function, 'date', run_date=datetime.now() + timedelta(days=1))  # Через один день
-    #
-    #      'interval' - для задания задач с регулярным интервалом (например, каждые N минут, секунд и т.д.).
-    #     (my_function, 'interval', minutes=10)  # Каждые 10 минут/
-    #
-    #     :param func: передаваемая функция, метод.
-    #     :type func: callable
-    #     :param cron_string: крон выражение ('0 12 * * *'  # Каждый день в 12:00).
-    #     :type cron_string: str
-    #     :return: запуск метода по расписанию.
-    #     :rtype: callable
-    #     """
-    #
-    #     func_check = self._validation_params(func, callable, '_set_schedule_cron')
-    #     cron_string = self._validation_params(cron_string, str, '_set_schedule_cron')
-    #
-    #     # print(minute_check)
-    #
-    #     if func_check and cron_string:
-    #         cron_trigger = CronTrigger.from_crontab(cron_string)
-    #         # print(f'test cron_trigger: {cron_trigger}') ++
-    #         scheduler = self._get_scheduler().add_job(func, cron_trigger)
-    #         return scheduler  #self._get_scheduler()
-
-    # def _set_cron(self, cron_string):  # cron_string=None  (работает)
-    #     """
-    #     """
-    #     cron_string = self._validation_params(cron_string, str, '_set_cron')
-    #
-    #     if cron_string:
-    #         cron_trigger = CronTrigger()
-    #         return cron_trigger.from_crontab(cron_string) # +
-    #     else:
-    #         raise ValueError(f'Ошибка в "_set_cron": параметры не были переданы (cron_string = {cron_string}).')
-
-    # _________________________________________________
-    # _________________________________________________
     def _get_connect(self):
         """
-        Возвращает экземпляр подключения к базе данных (геттер).
+            Возвращает экземпляр подключения к базе данных (геттер).
         """
         return self.__CON
 
@@ -247,53 +130,152 @@ class BaseProperty:
         """
         self.__CON = self._validation_params(new_connect_obj, Session, '_set_connect')
 
-    # _________________________________________________
-    # _________________________________________________
-    def _get_name_table(self):
+    def _get_saving_params_to_dbs(self) -> dict:
         """
-        Возвращает имя таблицы в базе данных определенную по умолчанию для сохранения результатов парсинга (геттер).
-        """
-        return self.__NAME_TABLE
+            Выдает словарь с параметрами для сохранения результатов парсинга: имени таблицы в базе данных.
 
-    def _set_name_table(self, new_name_table):
+            По умолчанию:
+                'history': {'schema': 'inlet', 'name_table': 'current_stock_mvideo', 'mode': 'append'},
+                'catalog': {'schema': 'inlet', 'name_table': 'dictionary_categories_mvideo', 'mode': 'replace'},
         """
-        Установка нового имени таблицы в базе данных для сохранения результатов парсинга.
+        return self.__SAVING_PARAMS_TO_DBS
+
+    def _set_saving_params_to_dbs(self, new_saving_params: dict) -> None:
         """
-        self.__NAME_TABLE = self._validation_params(new_name_table, str, '_set_name_table')
+            Переопределяем...
+            :param new_saving_params:
+            :type new_saving_params:
+            :return:
+            :rtype:
+        """
+
+        new_params = self._validation_params(new_saving_params, dict, '_set_saving_params_to_dbs')
+
+        if not new_params:
+            raise KeyError(
+                f'Ошибка обновления параметров сохранения результатов для таблиц! '
+                f'Переданный аргумент не должен быть пустым {new_params}.'
+            )
+
+        self.__SAVING_PARAMS_TO_DBS = new_params
+        print(
+            f'Установлено новое значение параметров сохранения результатов парсинга в базе данных:'
+            f' {self.__SAVING_PARAMS_TO_DBS}'
+        )
+
+    def _get_name_table(self, params_for_table_tag: str) -> str:
+        """
+            Возвращает имя таблицы в базе данных определенную по умолчанию для сохранения результатов парсинга (геттер).
+            :param: params_for_table_tag ('history' or 'catalog').
+        """
+
+        table_tag = self._validation_params(params_for_table_tag, str, '_get_name_table')
+        tag_data: dict = self.__SAVING_PARAMS_TO_DBS.get(table_tag)  # 'history' or 'catalog'
+
+        if tag_data:
+
+            name_table: str = tag_data.get('name_table')
+
+            if not name_table:
+                raise KeyError(
+                    f'Ошибка доступа к параметрам сохранения результатов для таблицы типа "{params_for_table_tag}"! '
+                    f'Отсутствуют данные для имени таблицы: {name_table}.'
+                )
+        else:
+            raise KeyError(
+                f'Ошибка доступа к параметрам сохранения результатов для таблицы типа "{params_for_table_tag}"! '
+                f'Данные отсутствуют: {tag_data}.'
+            )
+
+        return name_table
+
+    def _set_name_table(self, new_name_table, params_for_table_tag):
+        """
+            Установка нового имени таблицы базы данных для сохранения результатов парсинга.
+            :param: params_for_table_tag ('history' or 'catalog').
+            :param: new_name_table.
+        """
+
+        new_name_table = self._validation_params(new_name_table, str, '_set_name_table')
+        table_tag = self._validation_params(params_for_table_tag, str, '_set_name_table')
+        tag_data: dict = self.__SAVING_PARAMS_TO_DBS.get(table_tag)  # 'history' or 'catalog'
+        tag_data['name_table'] = new_name_table
+
         print(f'Установлено новое значение имени таблицы в базе данных для сохранения результатов парсинга:'
-              f' {self.__NAME_TABLE}')
+              f' {tag_data['name_table']}')
 
-    # _________________________________________________
-    # _________________________________________________
-    def _get_name_schem(self):
+    def _get_name_schem(self, params_for_table_tag: str) -> str:
         """
-        Возвращает имя схемы, где хранится таблица, определенная по умолчанию для сохранения результатов
-        парсинга (геттер).
+            Возвращает имя схемы, где хранится таблица, определенная по умолчанию для сохранения результатов
+            парсинга (геттер).
         """
-        return self.__SCHEMA
 
-    def _set_name_schem(self, new_name_schem):
-        """Передача нового объекта подключения к базе данных."""
-        self.__SCHEMA = self._validation_params(new_name_schem, str, '_set_schem')
+        schem_tag = self._validation_params(params_for_table_tag, str, '_get_name_schem')
+        tag_data: dict = self.__SAVING_PARAMS_TO_DBS.get(schem_tag)  # 'history' or 'catalog'
 
-    # _________________________________________________
-    # _________________________________________________ CITY_DATA
+        if tag_data:
+
+            schema_table: str = tag_data.get('schema')
+
+            if not schema_table:
+                raise KeyError(
+                    f'Ошибка доступа к параметрам сохранения результатов для таблицы типа "{params_for_table_tag}"! '
+                    f'Отсутствуют данные для мени схемы: {schema_table}.'
+                )
+        else:
+            raise KeyError(
+                f'Ошибка доступа к параметрам сохранения результатов для таблицы типа "{params_for_table_tag}"! '
+                f'Данные отсутствуют: {tag_data}.'
+            )
+
+        return schema_table
+
+    # def _set_name_schem(self, new_name_schem):
+    #     """Передача нового объекта подключения к базе данных."""
+    #     self.__SCHEMA = self._validation_params(new_name_schem, str, '_set_schem')
+
+    def _get_mode_type(self, params_for_table_tag: str) -> str:
+        """
+            Возвращает имя схемы, где хранится таблица, определенная по умолчанию для сохранения результатов
+            парсинга (геттер).
+        """
+
+        mode_tag = self._validation_params(params_for_table_tag, str, '_get_mode_type')
+        tag_data: dict = self.__SAVING_PARAMS_TO_DBS.get(mode_tag)  # 'history' or 'catalog'
+
+        if tag_data:
+
+            mode: str = tag_data.get('mode')
+
+            if not mode:
+                raise KeyError(
+                    f'Ошибка доступа к параметрам сохранения результатов для таблицы типа "{params_for_table_tag}"! '
+                    f'Отсутствуют данные для типа режима сохранения: {mode}.'
+                )
+        else:
+            raise KeyError(
+                f'Ошибка доступа к параметрам сохранения результатов для таблицы типа "{params_for_table_tag}"! '
+                f'Данные отсутствуют: {tag_data}.'
+            )
+
+        return mode
+
+    #  Сетеер
+
     def _get_city_data(self):
         """
-        Возвращает текущие значения переменной CITY_DATA (набор исходных данных, необходимый для работы методов
-        парсера (геттер).
+            Возвращает текущие значения переменной CITY_DATA (набор исходных данных, необходимый для работы методов
+            парсера (геттер).
         """
         return self.__CITY_DATA
 
     def _set_city_data(self, new_city_data):
         """
-        Обновляет значения по умолчанию переменной CITY_DATA (набор исходных данных, необходимый для работы
-        методов парсера (геттер).
+            Обновляет значения по умолчанию переменной CITY_DATA (набор исходных данных, необходимый для работы
+            методов парсера (геттер).
         """
         self.__CITY_DATA = self._validation_params(new_city_data, (list, tuple), '_set_city_data')
 
-    # _________________________________________________
-    # _________________________________________________ BASE_FOLDER
     def _get_base_folder_save(self):
         """Возвращает текущие значения имени папки для сохранения результатов работы парсера (геттер)."""
         return self.__BASE_FOLDER_SAVE
@@ -302,8 +284,6 @@ class BaseProperty:
         """Обновляет значения по умолчанию имени папки для сохранения результатов работы парсера (геттер)."""
         self.__BASE_FOLDER_SAVE = self._validation_params(new_folder, str, '_set_base_folder_save')
 
-    # _________________________________________________
-    # _________________________________________________ HEADERS
     def _get_headers(self):
         """Возвращает текущие значения заголовков (геттер)."""
         return self.__BASE_HEADERS
@@ -312,10 +292,10 @@ class BaseProperty:
         """Устанавливает новые значения заголовков (cеттер)."""
         self.__BASE_HEADERS = self._validation_params(new_headers, dict, '_set_headers')
 
-    # _________________________________________________
-    # _________________________________________________ NAME_BRANCH / NAME_CATEGORY
     def _get_unified_names_files_for_branches(self):
-        """Возвращает текущие значения имен итоговых выходных файлов метода получения филиалов (get_shops) (геттер)."""
+        """
+            Возвращает текущие значения имен итоговых выходных файлов метода получения филиалов (get_shops) (геттер).
+        """
         return self.__FILE_NAME_BRANCH
 
     def _set_unified_names_files_for_branches(self, new_name_file: str):
@@ -323,7 +303,6 @@ class BaseProperty:
         self.__FILE_NAME_BRANCH = self._validation_params(
             new_name_file, str, '_set_unified_names_files_for_branches')
 
-    # __________________________
     def _get_unified_names_files_for_category(self):
         """
         Возвращает текущие значения имен итоговых выходных файлов метода получения категорий (count_product) (геттер).
@@ -332,13 +311,11 @@ class BaseProperty:
 
     def _set_unified_names_files_for_category(self, new_name_file: str):
         """
-        Устанавливает новые значения имен итоговых выходных файлов метода получения категорий (count_product) (cеттер).
+            Устанавливает новые значения имен итоговых выходных файлов метода получения категорий (count_product)
+            (cеттер).
         """
         self.__FILE_NAME_CATEGORY = self._validation_params(
             new_name_file, str, '_set_unified_names_files_for_category')
-
-    # _________________________________________________
-    # _________________________________________________ PATH_FILES
 
     def _get_path_file_branch_dump(self):
         """Формирует путь для сохранения дампа по филиалам."""
@@ -348,9 +325,6 @@ class BaseProperty:
         """Формирует путь для сохранения файла excel по филиалам."""
         return f"{self.__BASE_FOLDER_SAVE}{self.__FILE_NAME_BRANCH}{self.__EXTENSION_FILE_EXCEL}"
 
-    # _________________________________________________
-    # _________________________________________________ PATH_FILES
-
     def _get_path_file_category_dump(self):
         """Формирует путь для сохранения дампа по категориям."""
         return f"{self.__BASE_FOLDER_SAVE}{self.__FILE_NAME_CATEGORY}{self.__EXTENSION_FILE_DUMP}"
@@ -358,8 +332,6 @@ class BaseProperty:
     def _get_path_file_category_excel(self):
         return f"{self.__BASE_FOLDER_SAVE}{self.__FILE_NAME_CATEGORY}{self.__EXTENSION_FILE_EXCEL}"
 
-    # _________________________________________________
-    # _________________________________________________ PINGS
     def _get_ping_limits(self):
         """Возвращает текущие значения имитации задержки (геттер)."""
         return self.__IMITATION_PING_MIN, self.__IMITATION_PING_MAX
@@ -379,9 +351,7 @@ class BaseProperty:
     def _get_time_sleep_random(self):
         """Случайная задержка для имитации человека во время парсинга."""
         min_ping, max_ping = self._get_ping_limits()
-        time.sleep(random.uniform(min_ping, max_ping))  # todo:  !! - return - возможно ошибка.
-
-    # _________________________________________________
+        time.sleep(random.uniform(min_ping, max_ping))
 
 # ----------------------------------------------------------------------------------------------------------------------
 # ***

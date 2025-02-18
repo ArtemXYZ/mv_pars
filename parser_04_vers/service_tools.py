@@ -29,9 +29,14 @@ class ServiceTools(BaseProperty):
 
         self.__session = self._get_session()  # Экземпляр сессии:
         self.__base_headers = self._get_headers()
-        self.__name_table = self._get_name_table()
-        self.__schema = self._get_name_schem()
         self.__con = self._get_connect()
+        #               ***
+        self.__saving_params_to_dbs: dict = self._get_saving_params_to_dbs()
+
+        # self.__name_table = self._get_name_table()
+        # self.__schema = self._get_name_schem()
+        #               ***
+
         # self.__bloc_scheduler = self._get_scheduler()
         # self.__cron_trigger = self._get_cron_trigger
 
@@ -92,7 +97,7 @@ class ServiceTools(BaseProperty):
         print('Результат парсинга успешно сохранен в дамп и в Excel файлы.')
 
     def _get_response_json(
-            self, url: str = None, params: dict = None, cookies: dict = None, mode: str='json'
+            self, url: str = None, params: dict = None, cookies: dict = None, mode: str = 'json'
     ) -> object | dict | bytes | str:
         """
             Функция для запросов с мутабельными параметрами.
@@ -128,7 +133,8 @@ class ServiceTools(BaseProperty):
             raise  # Передача исключения на верхний уровень для обработки
         return data
 
-    def _get_no_disconnect_request(self, url: str = None, params: dict = None, cookies: dict = None, mode: str='json'):
+    def _get_no_disconnect_request(self, url: str = None, params: dict = None, cookies: dict = None,
+                                   mode: str = 'json'):
         # , json_type=True, retries=20, timeout=120
         """
             requests.exceptions.ReadTimeout: если сервер долго не отвечает.
@@ -329,7 +335,6 @@ class ServiceTools(BaseProperty):
         # Если есть дочерние элементы (подкатегории), то рекурсия:
         # (Если нет дочерних элементов, children == [])
         if children:
-
             # print(f'Обработка вложенных категорий для main_id: {main_id}, id: {category_id}')
             # Рекурсия:
             self.recursion_by_json(
@@ -449,9 +454,12 @@ class ServiceTools(BaseProperty):
         return data
 
     @staticmethod
-    def insert_time_in_df(df):
+    def insert_time_in_df(df, name_column: str = '_dt_load') -> None:
         """
-            Метод вставляет колонку с датой в датафрейм.
+            Метод вставляет колонку с датой загрузки (берет текущую дату) в датафрейм.
+            ***
+            Модифицирует (не возвращает новый датафрейм, а изменяет существующий) переданный датафрейм df in-place,
+            добавляя в него новую колонку _dt_load.
         """
 
         current_time = datetime.now()
@@ -460,44 +468,67 @@ class ServiceTools(BaseProperty):
         formatted_time = current_time.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
 
         # Добавляем новые колонки со значением 0:
-        df['_dt_load'] = formatted_time
+        df[name_column] = formatted_time
 
-        return df
-
-    # __________________________________________________________________
-
-    def load_result_pars_in_db(self, name_path_file_dump, if_exists='replace'):
+    def upload_to_db(self, df, _name, _schema, _mode, _index=False):
         """
-        Метод сохраняет датафрейм в базу данных, предварительно загрузив дамп результатов парсинга.
+            Загрузка DataFrame в базу данных.
         """
-        # ------------------------------------ Загрузка дампа результатов парсинга ------------------------------------
-        if os.path.isfile(name_path_file_dump):  # Если файл существует, тогда: True
-            # ------------------------------------
-            load_damp_df = load(name_path_file_dump)  # Тогда загружаем дамп
-            print("Дамп успешно загружен!")
 
-            self.insert_time_in_df(load_damp_df)
+        print(
+            f'Начало загрузки DataFrame в базу данных: '
+            f'схема "{_schema}", таблица "{_name}", режим сохранения "{_mode}"'
+        )
 
-
-
-
-            # ------------------------------------
-            print("Загрузка DataFrame в базу данных.")
-            # ------------------------------------
-            # Загрузка итогового DataFrame в базу данных:
-            load_damp_df.to_sql(name=self.__name_table, schema=self.__schema, con=self.__con,
-                                if_exists=if_exists, index=False, method='multi')
-            # Выбираем метод 'replace' для перезаписи таблицы или 'append' для добавления данных
-            # method='multi' используется для оптимизации вставки большого объема данных.
+        try:
+            df.to_sql(name=_name, schema=_schema, con=self.__con, if_exists=_mode, index=_index, method='multi')
 
             # Закрытие соединения
             self.__con.dispose()
 
-            print("Данные успешно сохранены в базу данных!")
+            print("Данные DataFrame успешно сохранены в базу данных!")
 
-        else:
-            load_damp_df = None
-            print(f'Отсутствует файл дампа в директории: "{name_path_file_dump}"!')
+        except Exception as err:
+            raise ValueError(
+                f'Ошибка сохранения DataFrame в базу данных, параметры: '
+                f'схема "{_schema}", таблица "{_name}", режим сохранения "{_mode}".\n'
+                f'Подробности: {err}.'
+            )
+
+    # __________________________________________________________________
+
+    # def load_result_pars_in_db(self, name_path_file_dump, if_exists='replace'):
+    #     """
+    #         Метод сохраняет датафрейм в базу данных, предварительно загрузив дамп результатов парсинга.
+    #     """
+    #     # ------------------------------------ Загрузка дампа результатов парсинга ------------------------------------
+    #     if os.path.isfile(name_path_file_dump):  # Если файл существует, тогда: True
+    #         # ------------------------------------
+    #         load_damp_df = load(name_path_file_dump)  # Тогда загружаем дамп
+    #         print("Дамп успешно загружен!")
+    #
+    #         self.insert_time_in_df(load_damp_df)
+    #
+    #
+    #
+    #
+    #         # ------------------------------------
+    #         print("Загрузка DataFrame в базу данных.")
+    #         # ------------------------------------
+    #         # Загрузка итогового DataFrame в базу данных:
+    #         load_damp_df.to_sql(name=self.__name_table, schema=self.__schema, con=self.__con,
+    #                             if_exists=if_exists, index=False, method='multi')
+    #         # Выбираем метод 'replace' для перезаписи таблицы или 'append' для добавления данных
+    #         # method='multi' используется для оптимизации вставки большого объема данных.
+    #
+    #         # Закрытие соединения
+    #         self.__con.dispose()
+    #
+    #         print("Данные успешно сохранены в базу данных!")
+    #
+    #     else:
+    #         load_damp_df = None
+    #         print(f'Отсутствует файл дампа в директории: "{name_path_file_dump}"!')
 
     # def _set_schedule(self, func, cron_string=None):
     #     """
@@ -531,8 +562,7 @@ class ServiceTools(BaseProperty):
     #         cron_trigger = CronTrigger.from_crontab(cron_string)
     #         self.__bloc_scheduler.add_job(func, trigger=cron_trigger)
     #         self.__bloc_scheduler.start()
-        # else:
-        #     raise ValueError(f'Ошибка: {cron_string} не может быть пустым.')
-
+    # else:
+    #     raise ValueError(f'Ошибка: {cron_string} не может быть пустым.')
 
 # ----------------------------------------------------------------------------------------------------------------------
