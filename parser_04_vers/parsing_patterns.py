@@ -398,10 +398,14 @@ class ParsingPattern(Branches, SitemapHandler):
             region_shop_id = branch_data_row.get('region_shop_id')
             timezone_offset = branch_data_row.get('timezone_offset')
 
+            # Прогресс цикла в процентах для филиалов:
+            main_progress = get_progress(main_index, branch_data_df)
+            main_len = len(branch_data_df)
+
             print(
                 BACK_WHITE + BRIGHT_STYLE + LIGHTRED + # LIGHTBLACK
                 f'============================================================ '
-                f'{int(main_index) + 1}. / {get_progress(main_index, branch_data_df)} % / '
+                f'№ {int(main_index) + 1}. / {main_progress} % / всего: {main_len} % / '
                 f'Парсинг данных для филиала: {id_branch} '
                 f'============================================================'
             )
@@ -417,12 +421,20 @@ class ParsingPattern(Branches, SitemapHandler):
 
             for sub_index , category_id in enumerate(ids):
 
+                # Прогресс цикла в процентах для каетгорий:
+                sub_progress = get_progress(sub_index, ids, 2)
+                sub_len = len(ids)
+
                 print(
                     BACK_WHITE + BRIGHT_STYLE + LIGHTGREEN +
                     f'============================================================ '
-                    f'№ {int(sub_index) + 1}. / {get_progress(sub_index, ids, 2)} % / '
+                    f'№ {int(sub_index) + 1}. / {sub_progress} % / всего: {sub_len} % / '
                     f'Парсинг данных для категории: {category_id} '
-                    f'({int(main_index) + 1}. филиал: {id_branch} / {get_progress(main_index, branch_data_df)} % / ) '
+
+                    # После сброса устанавливает новый стиль (что бы выделить данные по верхнему циклу):
+                    + RESET + BACK_WHITE + BRIGHT_STYLE + LIGHTRED +
+                    # Данные по верхнему циклу:
+                    f'(№ {int(main_index) + 1}. филиал: {id_branch} / {main_progress} %) '
                     # f'============================================================'
                 )
 
