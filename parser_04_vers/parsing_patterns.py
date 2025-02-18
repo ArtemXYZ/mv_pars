@@ -274,7 +274,7 @@ class SitemapHandler(ServiceTools):
 
         return results
 
-    def _get_categories_id_from_ssitemap(self) -> list:
+    def _get_categories_id_from_ssitemap(self) -> set:
         """
             Метод получает данные со страницы:
 
@@ -291,7 +291,7 @@ class SitemapHandler(ServiceTools):
         _xml_byte_data: bytes = self._get_no_disconnect_request(url=url_sitemap,  mode='bytes')
 
         # Получаем все категории (categories_ids) с сайт-мап, [str, ...]:
-        _ids = self.pars_sitemap_xml(_xml_byte_data)
+        _ids: set = self.pars_sitemap_xml(_xml_byte_data)
 
         return _ids
 
@@ -378,7 +378,7 @@ class ParsingPattern(Branches, SitemapHandler):
         branch_data_df = df[df['city_id'] != 0]
 
         # Получаем список всех* категорий с сайта:
-        ids: list = self._get_categories_id_from_ssitemap()
+        ids: set = self._get_categories_id_from_ssitemap()
 
         # 2) ------------------------------- Обход всех филиалов:
         """
