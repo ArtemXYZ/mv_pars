@@ -245,7 +245,8 @@ class SitemapHandler(ServiceTools):
 
         """
 
-        results = []
+        # results = []
+        results = set()
 
         # Преобразование XML в словарь
         xml_content = xmltodict.parse(xml_data)
@@ -268,7 +269,8 @@ class SitemapHandler(ServiceTools):
                 # Парсим все айди в урл строке:
                 id_list = re.findall(r'\d+', data_row)
 
-                results = results + id_list
+                # results = results + id_list
+                results.update(id_list)
 
         return results
 
@@ -404,7 +406,7 @@ class ParsingPattern(Branches, SitemapHandler):
                 f'============================================================'
             )
 
-            time.sleep(0.2)
+            # time.sleep(0.2)
 
             # ***
 
@@ -418,12 +420,13 @@ class ParsingPattern(Branches, SitemapHandler):
                 print(
                     BACK_WHITE + BRIGHT_STYLE + LIGHTGREEN +
                     f'============================================================ '
-                    f'{int(sub_index) + 1}. / {get_progress(sub_index, ids, 2)} % / '
+                    f'№ {int(sub_index) + 1}. / {get_progress(sub_index, ids, 2)} % / '
                     f'Парсинг данных для категории: {category_id} '
+                    f'({int(main_index) + 1}. филиал: {id_branch} / {get_progress(main_index, branch_data_df)} % / ) '
                     # f'============================================================'
                 )
 
-                time.sleep(0.1)
+                # time.sleep(0.1)
 
                 # Проверка: отработана ли данная категория уже:
                 if category_id in completed_categories:  # completed_categories: set
@@ -541,7 +544,7 @@ class ParsingPattern(Branches, SitemapHandler):
 
         # Удаление дубликатов (дистинкт для 'category_name') в DataFrame.
         # Останутся только первые значения - параметр keep='first'
-        dictionary_categories_df.drop_duplicates(subset=['category_name'], keep='first', inplace=True)
+        dictionary_categories_df.drop_duplicates(subset=['id_category'], keep='first', inplace=True)
 
         # Сброс индекса и переименование его в 'id'
         dictionary_categories_df.reset_index(drop=True, inplace=True)
@@ -608,6 +611,10 @@ class ParsingPattern(Branches, SitemapHandler):
 
         # Если есть результат загрузки дампа данных по филиалам или парсинга таких данных:
         if df_full_branch_data is not None:
+
+            # Загрузить результаты последнего парсинга или спарсить заново.
+            pass
+
 
             # Здесь вся основная логика:
             result_data_set = self._run_pattern_core(df=df_full_branch_data)
