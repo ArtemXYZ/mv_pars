@@ -69,8 +69,18 @@ class Branches(ServiceTools):
 
         # 3. Перебираем построчно датафрейм df_city_data с исходными справочными данными для основного запроса:
         # for index, row in df_city_data.iterrows():
-        for index, row in tqdm(df_city_data.iterrows(), ncols=80, ascii=True,
-                               desc=f'==================== Обработка данных для следующего города ==================='):
+        for index, row in df_city_data.iterrows():
+
+            print(
+                BACK_WHITE + BRIGHT_STYLE + LIGHTCYAN + # LIGHTBLACK
+                f'============================================================ '
+                f'{int(index) + 1}. / {get_progress(index, df_city_data)} % / '
+                f'Парсинг данных для города: {row.get('city_name')} '
+                f'============================================================'
+            )
+
+            time.sleep(0.2)
+
 
             city_id = row.get('city_id')
             region_id = row.get('region_id')
@@ -183,12 +193,14 @@ class Branches(ServiceTools):
 
         df_full_branch_data = df_branch_data
 
-        # Получаем пути к файлам:
-        dump_path = self._get_path_file_branch_dump()
-        excel_path = self._get_path_file_branch_excel()
+        # # Получаем пути к файлам:
+        # dump_path = self._get_path_file_branch_dump()
+        # excel_path = self._get_path_file_branch_excel()
 
         # Сохранение exce/dump:
-        self._save_data(df=df_full_branch_data, path_file_dump=dump_path, path_file_excel=excel_path)
+        # self._save_data(df=df_full_branch_data, path_file_dump=dump_path, path_file_excel=excel_path)
+        
+        self._save_damp_and_excel(df=df_full_branch_data)
 
         return df_full_branch_data
 
@@ -416,7 +428,10 @@ class ParsingPattern(Branches, SitemapHandler):
                 # Проверка: отработана ли данная категория уже:
                 if category_id in completed_categories:  # completed_categories: set
 
-                    print(f'Пропуск категории id: {category_id}, completed_categories: {completed_categories}')
+                    print(
+                        f'Пропуск категории id: {category_id}, '
+                        f'всего completed_categories: {len(completed_categories)}'
+                    )
                     # Если категория уже была обработана, пропускаем ее.
                     continue
 
@@ -537,8 +552,8 @@ class ParsingPattern(Branches, SitemapHandler):
 
     def save_results_in_db(
             self,
-            _history=current_stock_df,
-            _catalog=dictionary_categories_df,
+            _history,
+            _catalog,
             # _load_damp=False,
     ) -> None:  # bool
         """

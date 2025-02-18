@@ -150,9 +150,9 @@ class ActivateManager(ParsingPattern):
     def get_branches_dat(self):
         return self._get_branches_dat()
 
-    def run_one_cycle_pars(self, load_damp=False, if_exists='append'):  # replace
+    def run_one_cycle_pars(self, load_damp=False):  # replace  , if_exists='append'
         print("Запуск метода run_one_cycle_pars!")
-        return self._run_one_cycle_pars(load_damp=load_damp, if_exists=if_exists)
+        return self._run_one_cycle_pars(load_damp=load_damp)
 
     # def run_week_cycle_pars(self, day_of_week=None, h=None, m=None):   # cron_string=None):
     #     # Работаем со значениями по умолчанию:
