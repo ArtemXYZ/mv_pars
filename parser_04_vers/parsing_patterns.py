@@ -514,27 +514,12 @@ class ParsingPattern(Branches, SitemapHandler):
         return result_data_set
         # ----------------------------------------------------------
 
-    def preparate_results_df(self,result_data_set):
+    def preparate_results_df_to_history(self, result_df: DataFrame) -> DataFrame:
         """
-            Метод объединяет логику сохранения данных в дамп, Excel и базы данных.
+            Метод преобразования датафрейма в тербуемый вид для таблицы "inlet.current_stock_mvideo".
         """
 
-        # 0. Создание DataFrame из добытых данных:
-        result_df = pd.DataFrame(result_data_set)
-
-        # 0.1. Добавляем колонку: дата загрузки (по умолчанию: '_dt_load'):
-        self.insert_time_in_df(result_df)
-
-        # Итог result_df: 'branch_id', 'main_id', 'sku_count', 'parent_id', 'category_id',  'category_name', '_dt_load'.
-
-        # 1. Сохраняем результат парсинга в дамп и в эксель:
-        self._save_damp_and_excel(df=result_df)  # , path_file_dump=dump_path, path_file_excel=excel_path
-
-        # 2. --------------- Продолжаем обработку напрямую, а не загружая result_df из дампа как в пред. версии.
-
-
-
-        # ----------------------------------------- inlet."current_stock_mvideo"
+        # ----------------------------------------- "inlet.current_stock_mvideo"
         #                                                      *****
         # 2.1. Подготовка датафрейма для словаря категорий сохраняем в таблицу  inlet."current_stock_mvideo"
 
@@ -542,8 +527,14 @@ class ParsingPattern(Branches, SitemapHandler):
         current_stock_df = result_df.drop(['main_id', 'parent_id', 'category_name'], axis=1, inplace=False)
         # Остаются: 'branch_id', *, 'sku_count', * , 'category_id', '_dt_load'
 
+        return current_stock_df
 
-        # ----------------------------------------- inlet."dictionary_categories_mvideo"
+    def preparate_results_df_to_catalog(self, result_df: DataFrame) -> DataFrame:
+        """
+            Метод преобразования датафрейма в тербуемый вид для таблицы "inlet.dictionary_categories_mvideo"
+        """
+
+        # ----------------------------------------- "inlet.dictionary_categories_mvideo"
         #                                                      *****
         # 2.2. Подготовка датафрейма для словаря категорий сохраняем в таблицу  inlet."dictionary_categories_mvideo"
 
@@ -563,24 +554,37 @@ class ParsingPattern(Branches, SitemapHandler):
         dictionary_categories_df.index = dictionary_categories_df.index + 1  # Начинаем с 1 если нужно
         dictionary_categories_df.rename_axis('id', inplace=True)
 
-        return current_stock_df, dictionary_categories_df
+        return dictionary_categories_df
 
-    def save_results_in_db(
-            self,
-            _history,
-            _catalog,
-            # _load_damp=False,
-    ) -> None:  # bool
+    def save_history_df_in_db(self, _history: DataFrame, ) -> None:  # bool # _load_damp=False,
         """
-            Метод для сохранения результатов парсинга в бапзу данных.
+            # Метод для сохранения результатов парсинга в базу данных для таблицы "inlet.current_stock_mvideo".
+
+            :param _history:
+            :type _history:
+            :return:
+            :rtype:
         """
 
         # ---------------------------------  Извлекаем параметры для каждой из таблицы:
         # ---------------- Выбираем конкретные значения (се проверки на нижнем уровне присутствуют):
         schema_history: str = self._get_name_table('history')
-        name_table_history: str  = self._get_name_schem('history')
+        name_table_history: str = self._get_name_schem('history')
         mode_history: str = self._get_mode_type('history')
 
+        # --------------------------------- Сохраняем в бд:
+        # Загрузка итогового DataFrame в базу данных:
+
+        # Индекс ингнорируется по умолчанию, id генерится на уровне базы данных.
+        self.upload_to_db(df=current_stock_df, _schema=schema_history, _name=name_table_history, _mode=mode_history)
+
+    def save_catalog_df_in_db(self, _catalog: DataFrame) -> None:  # bool   # _load_damp=False,
+        """
+            Метод для сохранения результатов парсинга в базу данных для таблицы "inlet.dictionary_categories_mvideo".
+        """
+
+        # ---------------------------------  Извлекаем параметры для каждой из таблицы:
+        # ---------------- Выбираем конкретные значения (се проверки на нижнем уровне присутствуют):
         schema_catalog: str = self._get_name_table('catalog')
         name_table_catalog: str  = self._get_name_schem('catalog')
         mode_catalog: str = self._get_mode_type('catalog')
@@ -588,19 +592,16 @@ class ParsingPattern(Branches, SitemapHandler):
         # --------------------------------- Сохраняем в бд:
         # Загрузка итогового DataFrame в базу данных:
 
-        # Индекс ингнорируется по умолчанию, id генерится на уровне базы данных.
-        self.upload_to_db(df=current_stock_df, _schema=schema_history, _name=name_table_history, _mode=mode_history)
         self.upload_to_db(
             df=dictionary_categories_df,
             _schema=schema_catalog,
             _name=name_table_catalog,
             _mode=mode_catalog,
-            _index=True  #  Индекс переименован в id.
+            _index=True  #  Индекс переименован в id (по этому не сбрасываем при сохранении).
         )
 
-        # return True
 
-    # +
+    # todo добавить возможность загрузки спарсенного дампа (обернуть эту ветку в одну функцию).
     def _run_one_cycle_pars(self, load_damp=False):
         """
             Метод запуcка полного цикла парсинга
@@ -629,14 +630,28 @@ class ParsingPattern(Branches, SitemapHandler):
 
 
             # Здесь вся основная логика:
-            result_data_set = self._run_pattern_core(df=df_full_branch_data)
+            result_data_set: list = self._run_pattern_core(df=df_full_branch_data)
 
-            # Сервисный метод сохранения полученных данных:
-            history_df, catalog_df = self.preparate_results_df(result_data_set)
+            # 0. Создание DataFrame из добытых данных:
+            result_df = pd.DataFrame(result_data_set)
 
-            # Принимает датафреймы и параметры от верхнего уровня (что бы можно было управлять)
-            # todo добавить возможность загрузки спарсенного дампа (обернуть эту ветку в одну функцию).
-            self.save_results_in_db(_history=history_df, _catalog=catalog_df)
+            # 0.1. Добавляем колонку: дата загрузки (по умолчанию: '_dt_load'):
+            self.insert_time_in_df(result_df)
+
+            # Итог result_df: 'branch_id', 'main_id', 'sku_count', 'parent_id', 'category_id',  'category_name', '_dt_load'.
+
+            # 1. Сохраняем результат парсинга в дамп и в эксель:
+            self._save_damp_and_excel(df=result_df)  # , path_file_dump=dump_path, path_file_excel=excel_path
+
+            # 2. --------------- Продолжаем обработку напрямую, а не загружая result_df из дампа как в пред. версии.
+
+            # Преобразование датафреймов в тербуемый вид для каждой из таблиц:
+            history_df: DataFrame = self.preparate_results_df_to_history(result_df)
+            catalog_df: DataFrame = self.preparate_results_df_to_catalog(result_df)
+
+            # Принимает датафреймы для сохранения:
+            self.save_history_df_in_db(_history=history_df)
+            self.save_catalog_df_in_db(_catalog=catalog_df)
 
 
         # Парсинг остановлен по причине отсутствия файла дампа или подготовка данных в "get_shops" завершилась неудачей:
