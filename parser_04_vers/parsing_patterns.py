@@ -405,7 +405,7 @@ class ParsingPattern(Branches, SitemapHandler):
             print(
                 BACK_WHITE + BRIGHT_STYLE + LIGHTRED + # LIGHTBLACK
                 f'============================================================ '
-                f'№ {int(main_index) + 1}. / {main_progress} % / всего: {main_len} % / '
+                f'№ {int(main_index) + 1}. / {main_progress} % / всего: {main_len} / '
                 f'Парсинг данных для филиала: {id_branch} '
                 f'============================================================'
             )
@@ -428,13 +428,13 @@ class ParsingPattern(Branches, SitemapHandler):
                 print(
                     BACK_WHITE + BRIGHT_STYLE + LIGHTGREEN +
                     f'============================================================ '
-                    f'№ {int(sub_index) + 1}. / {sub_progress} % / всего: {sub_len} % / '
+                    f'№ {int(sub_index) + 1}. / {sub_progress} % / всего: {sub_len} / '
                     f'Парсинг данных для категории: {category_id} '
 
                     # После сброса устанавливает новый стиль (что бы выделить данные по верхнему циклу):
-                    + RESET + BACK_WHITE + BRIGHT_STYLE + LIGHTRED +
+                    + RESET + BACK_WHITE + BRIGHT_STYLE + LIGHTCYAN +
                     # Данные по верхнему циклу:
-                    f'(№ {int(main_index) + 1}. филиал: {id_branch} / {main_progress} %) '
+                    f'/ филиал № {int(main_index) + 1}: {id_branch} / {main_progress} % / из {main_len} / '
                     # f'============================================================'
                 )
 
@@ -444,7 +444,7 @@ class ParsingPattern(Branches, SitemapHandler):
                 if category_id in completed_categories:  # completed_categories: set
 
                     print(
-                        f'Пропуск категории id: {category_id}, '
+                        f'⏭️ Пропуск категории id: {category_id}, '
                         f'всего completed_categories: {len(completed_categories)}'
                     )
                     # Если категория уже была обработана, пропускаем ее.
@@ -462,6 +462,13 @@ class ParsingPattern(Branches, SitemapHandler):
                     region_shop_id=region_shop_id,
                     timezone_offset=timezone_offset
                 )
+
+                if not json_dict:
+                    print(
+                        f'🆘 Пропуск итерации для категории id: {category_id}, '
+                        f'проблема с ответом от сервера 🙁: {json_dict}'
+                    )
+                    continue
 
                 # Обращаемся к нужному контейнеру (отсекаем не нужное):
                 # Получаем [{'id': '23715', count': 0, 'name': 'Батуты', 'children': [аналогичная структура], {...}}]
@@ -491,7 +498,7 @@ class ParsingPattern(Branches, SitemapHandler):
                         completed_categories=completed_categories,
                         result_data_set=result_data_set
                     )
-                    print(f'Иог обработки категории id: {category_id}:')
+                    print(f'👌 Иог обработки категории id: {category_id}.')
 
                 else:
                     # Хранит косяки для всех филиалов в виде кортежа,
@@ -502,14 +509,14 @@ class ParsingPattern(Branches, SitemapHandler):
 
                     _bug = main_id, category_id
                     bug_list.append(_bug)  # json_body_data
-                    print(f'Добавлено в bug_list: {_bug}')
+                    print(f'❗️ Добавлено в bug_list: {_bug}')
 
                 # break
 
             # Очистка:
             completed_categories.clear()
             # bug_list - можно чистить
-            print(f'bug_list: {bug_list}')
+            print(f'📄 bug_list: {bug_list}')
 
         return result_data_set
         # ----------------------------------------------------------
@@ -600,8 +607,6 @@ class ParsingPattern(Branches, SitemapHandler):
             _index=True  #  Индекс переименован в id (по этому не сбрасываем при сохранении).
         )
 
-
-    # todo добавить возможность загрузки спарсенного дампа (обернуть эту ветку в одну функцию).
     def _run_one_cycle_pars(self, load_damp=False):
         """
             Метод запуcка полного цикла парсинга
@@ -616,7 +621,7 @@ class ParsingPattern(Branches, SitemapHandler):
         """
         # ----------------------------------------------------------------------------------
         if not isinstance(load_damp, bool):
-            raise ValueError('Параметр "load_damp" должен иметь тип данных bool.')
+            raise ValueError('⛔️ Параметр "load_damp" должен иметь тип данных bool.')
 
         # ----------------------------------------------------------------------------------
         # Результат проверки наличия дампа:
@@ -624,10 +629,6 @@ class ParsingPattern(Branches, SitemapHandler):
 
         # Если есть результат загрузки дампа данных по филиалам или парсинга таких данных:
         if df_full_branch_data is not None:
-
-            # Загрузить результаты последнего парсинга или спарсить заново.
-            pass
-
 
             # Здесь вся основная логика:
             result_data_set: list = self._run_pattern_core(df=df_full_branch_data)
@@ -653,15 +654,13 @@ class ParsingPattern(Branches, SitemapHandler):
             self.save_history_df_in_db(_history=history_df)
             self.save_catalog_df_in_db(_catalog=catalog_df)
 
-
         # Парсинг остановлен по причине отсутствия файла дампа или подготовка данных в "get_shops" завершилась неудачей:
         else:
-            print(f'Запуск парсинга остановлен по причине: {reason}')
+            print(f'⛔️ Запуск парсинга остановлен по причине: {reason}')
             history_df = None
 
         # Итог код магазина, категория, количество. ['id_branch','name_category','count']
         return history_df, catalog_df
-
 # ----------------------------------------------------------------------------------------------------------------------
 # ***
 # ----------------------------------------------------------------------------------------------------------------------

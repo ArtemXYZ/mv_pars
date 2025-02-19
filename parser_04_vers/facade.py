@@ -154,6 +154,16 @@ class ActivateManager(ParsingPattern):
         print("Запуск метода run_one_cycle_pars!")
         return self._run_one_cycle_pars(load_damp=load_damp)
 
+    def load_category_dump(self):
+        """
+            Загрузка дампа DataFrame предназначенного для "inlet.dictionary_categories_mvideo".=
+        """
+
+        dump_path: str = self._get_path_file_category_dump()
+
+        self._load_damp(dump_path)
+
+
     # def run_week_cycle_pars(self, day_of_week=None, h=None, m=None):   # cron_string=None):
     #     # Работаем со значениями по умолчанию:
     #     # if cron_string is None:

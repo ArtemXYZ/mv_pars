@@ -146,8 +146,14 @@ class ServiceTools(BaseProperty):
             она будет обработана блоком except requests.exceptions.RequestException, что предотвратит аварийное
             завершение программы
         """
+
         attempt = 0  # Количество попыток
+
         while attempt < self._get_retries():
+
+            if attempt > 0:
+                print(f"♻️ Повторное соединение, попытка: {attempt} / из {self._get_retries()}.")
+
             try:
                 # Основной запрос:
                 data = self._get_response_json(url=url, params=params, cookies=cookies, mode=mode)
@@ -159,8 +165,9 @@ class ServiceTools(BaseProperty):
                 # Обработка ошибок соединения
                 attempt += 1
                 print(
-                    f"Ошибка соединения: {e}. Попытка {attempt}/{self._get_retries()}."
-                    f" Повтор через {self._get_timeout()} сек.")
+                    f"🆘 Ошибка соединения: {e}. Попытка {attempt}/{self._get_retries()}."
+                    f"🕑 Повтор через {self._get_timeout()} сек."
+                )
                 time.sleep(self._get_timeout())  # Тайм-аут перед повторной попыткой
 
             except requests.exceptions.HTTPError as e:
@@ -293,11 +300,11 @@ class ServiceTools(BaseProperty):
         """
 
         if not isinstance(categories_data, list):
-            raise TypeError(f'Ошибка, недопустимый тип данных для аргумента "categories_data": '
+            raise TypeError(f'⛔️ Ошибка, недопустимый тип данных для аргумента "categories_data": '
                             f'{type(categories_data)}. Должен быть "list".')
 
         if not categories_data:
-            raise ValueError(f'Ошибка, данные по категориям отсутствуют, значение:  {categories_data}.')
+            raise ValueError(f'⛔️ Ошибка, данные по категориям отсутствуют, значение:  {categories_data}.')
 
         try:
             # -----------------------------------------
@@ -310,7 +317,7 @@ class ServiceTools(BaseProperty):
             children: list = category_dict['children']
             # -----------------------------------------
         except Exception as error:
-            raise ValueError(f'Ошибка доступа к значениям по индексу при обработке данных по категориям: {error}')
+            raise ValueError(f'⛔️ Ошибка доступа к значениям по индексу при обработке данных по категориям: {error}')
 
         # Создаем словарь с результатами по категории.
         data_set_row = {
@@ -451,6 +458,7 @@ class ServiceTools(BaseProperty):
         # Запрос на извлечение count_product (на вход обязательны: \
         # MVID_CITY_ID, MVID_REGION_ID, MVID_REGION_SHOP, MVID_TIMEZONE_OFFSET):
         data = self._get_no_disconnect_request(url=full_url, cookies=cookies_count_product)
+
         return data
 
     @staticmethod
@@ -486,49 +494,32 @@ class ServiceTools(BaseProperty):
             # Закрытие соединения
             self.__con.dispose()
 
-            print("Данные DataFrame успешно сохранены в базу данных!")
+            print("✅ Данные DataFrame успешно сохранены в базу данных!")
 
         except Exception as err:
             raise ValueError(
-                f'Ошибка сохранения DataFrame в базу данных, параметры: '
+                f'❌ Ошибка сохранения DataFrame в базу данных, параметры: '
                 f'схема "{_schema}", таблица "{_name}", режим сохранения "{_mode}".\n'
                 f'Подробности: {err}.'
             )
 
+    @staticmethod
+    def _load_damp(_dump_path: str) -> DataFrame | None:
+        """
+            Вспомогательный метод проверки наличия дампа и его загрузки.
+            Пример:  _dump_path = '../data/df_full_branch_data.joblib'
+        """
+
+        _df = load(_dump_path) if os.path.isfile(_dump_path) else None
+        if not _df:
+            print(f'❌ Отсутствует файл дампа в директории: {_dump_path}.\n')
+
+        return _df
+
+
     # __________________________________________________________________
 
-    # def load_result_pars_in_db(self, name_path_file_dump, if_exists='replace'):
-    #     """
-    #         Метод сохраняет датафрейм в базу данных, предварительно загрузив дамп результатов парсинга.
-    #     """
-    #     # ------------------------------------ Загрузка дампа результатов парсинга ------------------------------------
-    #     if os.path.isfile(name_path_file_dump):  # Если файл существует, тогда: True
-    #         # ------------------------------------
-    #         load_damp_df = load(name_path_file_dump)  # Тогда загружаем дамп
-    #         print("Дамп успешно загружен!")
-    #
-    #         self.insert_time_in_df(load_damp_df)
-    #
-    #
-    #
-    #
-    #         # ------------------------------------
-    #         print("Загрузка DataFrame в базу данных.")
-    #         # ------------------------------------
-    #         # Загрузка итогового DataFrame в базу данных:
-    #         load_damp_df.to_sql(name=self.__name_table, schema=self.__schema, con=self.__con,
-    #                             if_exists=if_exists, index=False, method='multi')
-    #         # Выбираем метод 'replace' для перезаписи таблицы или 'append' для добавления данных
-    #         # method='multi' используется для оптимизации вставки большого объема данных.
-    #
-    #         # Закрытие соединения
-    #         self.__con.dispose()
-    #
-    #         print("Данные успешно сохранены в базу данных!")
-    #
-    #     else:
-    #         load_damp_df = None
-    #         print(f'Отсутствует файл дампа в директории: "{name_path_file_dump}"!')
+
 
     # def _set_schedule(self, func, cron_string=None):
     #     """
