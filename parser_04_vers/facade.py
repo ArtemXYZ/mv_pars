@@ -23,20 +23,16 @@ class InfoManager(BaseProperty):
         return self._get_timeout()
 
     @property
-    def get_category_id_data(self):
-        return self._get_category_id_data()
-
-    @property
     def get_connect(self):
         return self._get_connect()
 
-    @property
-    def get_name_table(self):
-        return self._get_name_table()
+    # @property
+    def get_name_table(self, table_tag):
+        return self._get_name_table(params_for_table_tag=table_tag)
 
-    @property
-    def get_schem(self):
-        return self._get_name_schem()
+    # @property
+    def get_schem(self, table_tag):
+        return self._get_name_schem(params_for_table_tag=table_tag)
 
     @property
     def get_city_data(self):
@@ -79,7 +75,7 @@ class InfoManager(BaseProperty):
 # ----------------------------------------------------------------------------------------------------------------------
 class PropertyManager(BaseProperty):
     """
-    Класс для управления свойствами парсера.
+        Класс для управления свойствами парсера.
     """
 
     def __init__(self):
@@ -93,9 +89,11 @@ class PropertyManager(BaseProperty):
         self._set_retries(new_retries_param)
         return self
 
-    def set_category_id_data(self, new_category_data):
-        self._set_category_id_data(new_category_data)
-        return self
+    # def set_category_id_data(self, new_category_data):
+    #     self._set_category_id_data(new_category_data)
+    #     todo: в новой версии упразднено.
+    #      добавить реализацию присваивания (или парсинг категорий или пердача требуемых).
+    #     return self
 
     def set_new_connect(self, new_connect_obj):
         self._set_connect(new_connect_obj)
@@ -105,9 +103,9 @@ class PropertyManager(BaseProperty):
         self._set_name_table(new_name_table)
         return self
 
-    def set_schem(self, new_name_schem):
-        self._set_name_schem(new_name_schem)
-        return self
+    # def set_schem(self, new_name_schem):
+    #     self._set_name_schem(new_name_schem)
+    #     return self
 
     def set_city_data(self, new_city_data):
         self._set_city_data(new_city_data)

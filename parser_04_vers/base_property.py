@@ -165,7 +165,7 @@ class BaseProperty:
 
     def _get_name_table(self, params_for_table_tag: str) -> str:
         """
-            Возвращает имя таблицы в базе данных определенную по умолчанию для сохранения результатов парсинга (геттер).
+            Возвращает имя таблицы в базе данных определенную по умолчанию для сохранения результатов парсинга.
             :param: params_for_table_tag ('history' or 'catalog').
         """
 
@@ -207,7 +207,7 @@ class BaseProperty:
     def _get_name_schem(self, params_for_table_tag: str) -> str:
         """
             Возвращает имя схемы, где хранится таблица, определенная по умолчанию для сохранения результатов
-            парсинга (геттер).
+            парсинга.
         """
 
         schem_tag = self._validation_params(params_for_table_tag, str, '_get_name_schem')
@@ -277,7 +277,9 @@ class BaseProperty:
         self.__CITY_DATA = self._validation_params(new_city_data, (list, tuple), '_set_city_data')
 
     def _get_base_folder_save(self):
-        """Возвращает текущие значения имени папки для сохранения результатов работы парсера (геттер)."""
+        """
+            Возвращает текущие значения имени папки для сохранения результатов работы парсера (геттер).
+        """
         return self.__BASE_FOLDER_SAVE
 
     def _set_base_folder_save(self, new_folder):
@@ -285,7 +287,9 @@ class BaseProperty:
         self.__BASE_FOLDER_SAVE = self._validation_params(new_folder, str, '_set_base_folder_save')
 
     def _get_headers(self):
-        """Возвращает текущие значения заголовков (геттер)."""
+        """
+            Возвращает текущие значения заголовков (геттер).
+        """
         return self.__BASE_HEADERS
 
     def _set_headers(self, new_headers: dict):
@@ -294,7 +298,7 @@ class BaseProperty:
 
     def _get_unified_names_files_for_branches(self):
         """
-            Возвращает текущие значения имен итоговых выходных файлов метода получения филиалов (get_shops) (геттер).
+            Возвращает текущие значения имен итоговых выходных файлов метода получения филиалов (get_shops).
         """
         return self.__FILE_NAME_BRANCH
 
@@ -305,7 +309,7 @@ class BaseProperty:
 
     def _get_unified_names_files_for_category(self):
         """
-        Возвращает текущие значения имен итоговых выходных файлов метода получения категорий (count_product) (геттер).
+            Возвращает текущие значения имен итоговых выходных файлов метода получения категорий.
         """
         return self.__FILE_NAME_CATEGORY
 
@@ -318,22 +322,30 @@ class BaseProperty:
             new_name_file, str, '_set_unified_names_files_for_category')
 
     def _get_path_file_branch_dump(self):
-        """Формирует путь для сохранения дампа по филиалам."""
+        """
+            Формирует путь для сохранения дампа данных по филиалам.
+        """
         return f"{self.__BASE_FOLDER_SAVE}{self.__FILE_NAME_BRANCH}{self.__EXTENSION_FILE_DUMP}"
 
     def _get_path_file_branch_excel(self):
-        """Формирует путь для сохранения файла excel по филиалам."""
+        """
+            Формирует путь для сохранения файла excel по филиалам.
+            """
         return f"{self.__BASE_FOLDER_SAVE}{self.__FILE_NAME_BRANCH}{self.__EXTENSION_FILE_EXCEL}"
 
     def _get_path_file_category_dump(self):
-        """Формирует путь для сохранения дампа по категориям."""
+        """
+            Формирует путь для сохранения дампа данных по категориям.
+        """
         return f"{self.__BASE_FOLDER_SAVE}{self.__FILE_NAME_CATEGORY}{self.__EXTENSION_FILE_DUMP}"
 
     def _get_path_file_category_excel(self):
         return f"{self.__BASE_FOLDER_SAVE}{self.__FILE_NAME_CATEGORY}{self.__EXTENSION_FILE_EXCEL}"
 
     def _get_ping_limits(self):
-        """Возвращает текущие значения имитации задержки (геттер)."""
+        """
+            Возвращает текущие значения имитации задержки (минимальные и максимальные границы).
+        """
         return self.__IMITATION_PING_MIN, self.__IMITATION_PING_MAX
 
     def _set_ping_limits(self, min_ping, max_ping):
@@ -349,7 +361,9 @@ class BaseProperty:
         # todo:  !! переписать - нужно добавить валидацию.
 
     def _get_time_sleep_random(self):
-        """Случайная задержка для имитации человека во время парсинга."""
+        """
+            Случайная задержка для имитации человека во время парсинга. Возвращает саму задержку.
+        """
         min_ping, max_ping = self._get_ping_limits()
         time.sleep(random.uniform(min_ping, max_ping))
 

@@ -32,6 +32,7 @@ class Branches(ServiceTools):
     def _get_branches_dat(self):
         """
             # Парсинг кодов магазинов и адресов, необходимых для целевого запроса. Необходимо передать куки.
+
             :param session:
             :type session:
             :param city_data: ['city_name', 'city_id', 'region_id', 'region_shop_id', 'timezone_offset']
